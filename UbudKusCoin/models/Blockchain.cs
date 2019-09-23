@@ -30,6 +30,11 @@ namespace Models
             return Blocks[Blocks.Count - 1];
         }
 
+        public int GetHeight()
+        {
+            var lastBlock  = Blocks[Blocks.Count - 1];
+            return lastBlock.Height;
+        }
 
         private Block CreateGenesisBlock()
         {
@@ -37,7 +42,7 @@ namespace Models
             var trx = new Transaction
             {
                 Amount = 1000,
-                Sender = "System",
+                Sender = "Founder",
                 Recipient = "Genesis Account",
                 Fee = 0.0001
             };
