@@ -1,20 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.2</TargetFramework>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="LiteDB" Version="4.1.4" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="models\PowResult.cs" />
-    <Compile Remove="models\ProofOfWork.cs" />
-    <Compile Remove="utils\Constants.cs" />
-    <Compile Remove="utils\Sha256Generator.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="Node1a.db" />
-  </ItemGroup>
 </Project>
