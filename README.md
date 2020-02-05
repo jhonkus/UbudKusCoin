@@ -1,5 +1,5 @@
 # UbudKusCoin
-Simple Cryptocurrencies with Proof Of Stake Consensus Algorithm.
+Simple Cryptocurrencies with Proof Of Work Consensus Algorithm.
 Developed with C# and .Net Core
 
 For linux user
