@@ -10,6 +10,7 @@ namespace Models
 
  
         public IList<Block> Blocks { set; get; }
+        public List<Transaction> TrxPool {set;  get;}
 
         public Blockchain()
         {
@@ -23,6 +24,13 @@ namespace Models
             {
                 CreateGenesisBlock()
             };
+
+            TrxPool = new List<Transaction>();
+        }
+
+        public Block GetGenesisBlock()
+        {
+            return Blocks[0];
         }
 
         public Block GetLastBlock()
