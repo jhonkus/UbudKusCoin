@@ -3,22 +3,24 @@ using DB;
 using Models;
 using LiteDB;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace Main
 {
     public class Blockchain
     {
 
+   
         public Blockchain()
         {
             Initialize();
         }
 
 
-        private void Initialize()
+        private static void Initialize()
         {
 
-            var blocks = this.GetBlocks();
+            var blocks = GetBlocks();
             // blocks.EnsureIndex(x => x.Height);
 
             if (blocks.Count() < 1)
@@ -30,7 +32,7 @@ namespace Main
 
         }
 
-        public ILiteCollection<Models.Block> GetBlocks()
+        public static ILiteCollection<Models.Block> GetBlocks()
         {
             var coll = DbAccess.DB.GetCollection<Block>(DbAccess.TBL_BLOCKS);
             coll.EnsureIndex(x => x.Height);
@@ -39,44 +41,107 @@ namespace Main
 
 
 
-        public Block GetGenesisBlock()
+        public static Block GetGenesisBlock()
         {
-            var blockchain = this.GetBlocks();
+            var blockchain = GetBlocks();
             var block = blockchain.FindOne(Query.All(Query.Ascending));
             return block;
         }
 
-        public Block GetLastBlock()
+        public static Block GetLastBlock()
         {
-            var blockchain = this.GetBlocks();
+            var blockchain = GetBlocks();
             var block = blockchain.FindOne(Query.All(Query.Descending));
             return block;
         }
 
         public int GetHeight()
         {
-            var lastBlock = this.GetLastBlock();
+            var lastBlock = GetLastBlock();
             return lastBlock.Height;
         }
 
-        public void AddBlock(Block block)
+        public static void AddBlock(Block block)
         {
             var blocks = GetBlocks();
             blocks.Insert(block);
         }
 
-        public double GetBalance(string name)
+        public static double GetBalance(string name)
         {
             double balance = 0;
-            //TODO
+            double spending = 0;
+            double income = 0;
+            var blockchain = GetBlocks();
+            var blocks = blockchain.FindAll();
+            int i = 0;
+            foreach (Block block in blocks)
+            {
+                if (i != 0)
+                {
+                    var transactions = JsonConvert.DeserializeObject<List<Models.Transaction>>(block.Transactions);
+                    foreach (Transaction trx in transactions)
+                    {
+
+                        var sender = trx.Sender;
+                        var recipient = trx.Recipient;
+
+                        if (name.ToLower().Equals(sender.ToLower()))
+                        {
+                            spending += trx.Amount + trx.Fee;
+                        }
+
+
+                        if (name.ToLower().Equals(recipient.ToLower()))
+                        {
+                            income += trx.Amount;
+                        }
+
+                        balance = income - spending;
+                    }
+                }
+                i++;
+
+            }
             return balance;
         }
 
-        public void PrintBlocks()
+        public static List<Transaction> GetTransactionHistory(string name)
         {
-            var blockchain = this.GetBlocks();
-            var results = blockchain.FindAll();
-            Console.WriteLine(JsonConvert.SerializeObject(results, Formatting.Indented));
+     
+            var blocks = GetBlocks().FindAll();
+            int i = 0;
+
+            var transactionsHistory = new List<Transaction>();
+            foreach (Block block in blocks)
+            {
+                if (i != 0)
+                {
+                    var transactions = JsonConvert.DeserializeObject<List<Models.Transaction>>(block.Transactions);
+                    foreach (Transaction trx in transactions)
+                    {
+
+                        var sender = trx.Sender;
+                        var recipient = trx.Recipient;
+
+                        if (name.ToLower().Equals(sender.ToLower()))
+                        {
+                            transactionsHistory.Add(trx);
+                        }
+
+
+                        if (name.ToLower().Equals(recipient.ToLower()))
+                        {
+                            transactionsHistory.Add(trx);
+                        }
+                    }
+                }
+                i++;
+
+            }
+            return transactionsHistory;
         }
+
+
     }
 }
