@@ -8,14 +8,16 @@ namespace Client
 {
     public class Menu
     {
-        private Blockchain bc;
 
-        public Menu(Blockchain blockchain)
+        public static void DisplayMenu()
         {
-            this.bc = blockchain;
+
+            MenuScreen();
+            GetInputFromUser();
+
         }
 
-        private void MenuScreen()
+        private static void MenuScreen()
         {
             Console.Clear();
             Console.WriteLine("\n\n    UBUDKUS COIN MENU ");
@@ -31,7 +33,7 @@ namespace Client
             Console.WriteLine("=========================");
         }
 
-        private void GetInputFromUser()
+        private static void GetInputFromUser()
         {
             int selection = 0;
             while (selection != 20)
@@ -39,138 +41,41 @@ namespace Client
                 switch (selection)
                 {
                     case 1:
-                        Console.Clear();
-                        Console.WriteLine("\nGenesis Block");
-                        Console.WriteLine("======================");
-                        var genesisBlock = Blockchain.GetGenesisBlock();
-                        Console.WriteLine(JsonConvert.SerializeObject(genesisBlock, Formatting.Indented));
+                        DoGenesisBlock();
 
                         break;
                     case 2:
-                        Console.Clear();
-                        Console.WriteLine("\nLast Block");
-                        Console.WriteLine("======================");
-                        var lastBlock = Blockchain.GetLastBlock();
-                        Console.WriteLine(JsonConvert.SerializeObject(lastBlock, Formatting.Indented));
+                        DoLastBlock();
 
                         break;
 
                     case 3:
-                        Console.Clear();
-                        Console.WriteLine("\nSend Money");
-                        Console.WriteLine("======================");
-                        Console.WriteLine("Please input carefully, not validate yet!");
-
-                        Console.WriteLine("Please enter the sender name!:");
-                        string sender = Console.ReadLine();
-
-                        Console.WriteLine("Please enter the recipient name!:");
-                        string recipient = Console.ReadLine();
-
-                        Console.WriteLine("Please enter the amount (number)!:");
-                        string amount = Console.ReadLine();
-
-                        Console.WriteLine("Please enter fee (number)!:");
-                        string fee = Console.ReadLine();
-
-                        //Create transaction
-                        var newTrx = new Transaction()
-                        {
-                            TimeStamp = new DateTime().Ticks,
-                            Sender = sender,
-                            Recipient = recipient,
-                            Amount = Double.Parse(amount),
-                            Fee = Double.Parse(fee)
-                        };
-
-                        Transaction.AddToPool(newTrx);
-                        Console.Clear();
-                        Console.WriteLine("\nHoree, transaction added to transaction pool!.");
-                        Console.WriteLine("Sender: {0}", sender);
-                        Console.WriteLine("Recipient {0}", recipient);
-                        Console.WriteLine("Amount: {0}", amount);
-                        Console.WriteLine("Fee: {0}", fee);
+                        DoSendMoney();
 
                         break;
 
-
                     case 4:
-                        Console.Clear();
-                        Console.WriteLine("Create Block");
-                        Console.WriteLine("======================");
-                        var trxPool = Transaction.GetPool();
-                        var numOfTrxInPool = trxPool.Count();
-                        if (numOfTrxInPool <= 0)
-                        {
-                            Console.WriteLine("No transaction in pool, please create transaction first!");
-                        }
-                        else
-                        {
-                            var lastBlock2 = Blockchain.GetLastBlock();
 
-                            // create block from transaction pool
-                            string tempTransactions = JsonConvert.SerializeObject(trxPool.FindAll());
-
-                            var block = new Models.Block(lastBlock2, tempTransactions);
-                            Console.WriteLine("Block created and added to Blockchain");
-
-                            Blockchain.AddBlock(block);
-
-                            // clear mempool
-                            trxPool.DeleteAll();
-                        }
+                        DoCreateBlock();
 
                         break;
 
                     case 5:
-                        Console.Clear();
-                        Console.WriteLine("Get Balance Account");
-                        Console.WriteLine("Please enter name:");
-                        string name = Console.ReadLine();
-                        Console.Clear();
-                        Console.WriteLine("Balance of {0}", name);
-                        Console.WriteLine("======================");
-                        var balance = Blockchain.GetBalance(name);
-                        Console.WriteLine("Balance: {0}", balance);
+                        DpGetBalance();
 
                         break;
                     case 6:
-                        Console.Clear();
-                        Console.WriteLine("Get Transaction History");
-                        Console.WriteLine("Please enter name:");
-                        name = Console.ReadLine();
-                        Console.Clear();
-                        Console.WriteLine("Transaction History of {0}", name);
-                        Console.WriteLine("======================");
-                        var trxs = Blockchain.GetTransactionHistory(name);
-
-                        foreach (Transaction trx in trxs)
-                        {
-                            Console.WriteLine("Timestamp:   {0}", trx.TimeStamp.ConvertToDateTime());
-                            Console.WriteLine("Sender:      {0}", trx.Sender);
-                            Console.WriteLine("Recipient:   {0}", trx.Recipient);
-                            Console.WriteLine("Amount:      {0}", trx.Amount);
-                            Console.WriteLine("Fee:         {0}", trx.Fee);
-                            Console.WriteLine("--------------\n");
-
-                        }
+                        DpGetTransactionHistory();
 
 
                         break;
                     case 7:
-                        Console.Clear();
-                        Console.WriteLine("Block in Blockchain");
-                        Console.WriteLine("======================");
-                        var blockchain = Blockchain.GetBlocks();
-                        var results = blockchain.FindAll();
-                        Console.WriteLine(JsonConvert.SerializeObject(results, Formatting.Indented));
+                        DoShowBlockchain();
 
                         break;
 
                     case 8:
-                        Console.Clear();
-                        Console.WriteLine("\n\nApplication closed!\n");
-                        Environment.Exit(0);
+                        DoExit();
                         break;
                 }
 
@@ -195,12 +100,143 @@ namespace Client
 
         }
 
-        public void DisplayMenu(Blockchain bc)
+        private static void DoExit()
         {
-
-            MenuScreen();
-            GetInputFromUser();
-
+            Console.Clear();
+            Console.WriteLine("\n\nApplication closed!\n");
+            Environment.Exit(0);
         }
+
+        private static void DoShowBlockchain()
+        {
+            Console.Clear();
+            Console.WriteLine("Blocks in Blockchain");
+            Console.WriteLine("======================");
+            var blockchain = Blockchain.GetBlocks();
+            var results = blockchain.FindAll();
+            Console.WriteLine(JsonConvert.SerializeObject(results, Formatting.Indented));
+        }
+
+        private static void DpGetTransactionHistory()
+        {
+            Console.Clear();
+            Console.WriteLine("Get Transaction History");
+            Console.WriteLine("Please enter name:");
+            var name = Console.ReadLine();
+            Console.Clear();
+            Console.WriteLine("Transaction History of {0}", name);
+            Console.WriteLine("======================");
+            var trxs = Blockchain.GetTransactionHistory(name);
+
+            foreach (Transaction trx in trxs)
+            {
+                Console.WriteLine("Timestamp:   {0}", trx.TimeStamp.ConvertToDateTime());
+                Console.WriteLine("Sender:      {0}", trx.Sender);
+                Console.WriteLine("Recipient:   {0}", trx.Recipient);
+                Console.WriteLine("Amount:      {0}", trx.Amount);
+                Console.WriteLine("Fee:         {0}", trx.Fee);
+                Console.WriteLine("--------------\n");
+
+            }
+        }
+
+        private static void DpGetBalance()
+        {
+            Console.Clear();
+            Console.WriteLine("Get Balance Account");
+            Console.WriteLine("Please enter name:");
+            string name = Console.ReadLine();
+            Console.Clear();
+            Console.WriteLine("Balance of {0}", name);
+            Console.WriteLine("======================");
+            var balance = Blockchain.GetBalance(name);
+            Console.WriteLine("Balance: {0}", balance);
+        }
+
+        private static void DoLastBlock()
+        {
+            Console.Clear();
+            Console.WriteLine("\nLast Block");
+            Console.WriteLine("======================");
+            var lastBlock = Blockchain.GetLastBlock();
+            Console.WriteLine(JsonConvert.SerializeObject(lastBlock, Formatting.Indented));
+        }
+
+        private static void DoGenesisBlock()
+        {
+            Console.Clear();
+            Console.WriteLine("\nGenesis Block");
+            Console.WriteLine("======================");
+            var genesisBlock = Blockchain.GetGenesisBlock();
+            Console.WriteLine(JsonConvert.SerializeObject(genesisBlock, Formatting.Indented));
+        }
+
+        private static void DoSendMoney()
+        {
+            Console.Clear();
+            Console.WriteLine("\nSend Money");
+            Console.WriteLine("======================");
+            Console.WriteLine("Please input carefully, not validate yet!");
+
+            Console.WriteLine("Please enter the sender name!:");
+            string sender = Console.ReadLine();
+
+            Console.WriteLine("Please enter the recipient name!:");
+            string recipient = Console.ReadLine();
+
+            Console.WriteLine("Please enter the amount (number)!:");
+            string amount = Console.ReadLine();
+
+            Console.WriteLine("Please enter fee (number)!:");
+            string fee = Console.ReadLine();
+
+            //Create transaction
+            var newTrx = new Transaction()
+            {
+                TimeStamp = new DateTime().Ticks,
+                Sender = sender,
+                Recipient = recipient,
+                Amount = Double.Parse(amount),
+                Fee = Double.Parse(fee)
+            };
+
+            Transaction.AddToPool(newTrx);
+            Console.Clear();
+            Console.WriteLine("\nHoree, transaction added to transaction pool!.");
+            Console.WriteLine("Sender: {0}", sender);
+            Console.WriteLine("Recipient {0}", recipient);
+            Console.WriteLine("Amount: {0}", amount);
+            Console.WriteLine("Fee: {0}", fee);
+        }
+
+        private static void DoCreateBlock()
+        {
+            Console.Clear();
+            Console.WriteLine("Create Block");
+            Console.WriteLine("======================");
+            var trxPool = Transaction.GetPool();
+            var numOfTrxInPool = trxPool.Count();
+            if (numOfTrxInPool <= 0)
+            {
+                Console.WriteLine("No transaction in pool, please create transaction first!");
+            }
+            else
+            {
+                var lastBlock2 = Blockchain.GetLastBlock();
+
+                // create block from transaction pool
+                string tempTransactions = JsonConvert.SerializeObject(trxPool.FindAll());
+
+                var block = new Models.Block(lastBlock2, tempTransactions);
+                Console.WriteLine("Block created and added to Blockchain");
+
+                Blockchain.AddBlock(block);
+
+                // clear mempool
+                trxPool.DeleteAll();
+            }
+        }
+
+
     }
 }

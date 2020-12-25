@@ -1,10 +1,6 @@
-﻿using Models;
-
+﻿
 using Client;
-using System;
 using DB;
-using Newtonsoft.Json;
-using System.Text;
 
 namespace Main
 {
@@ -17,11 +13,10 @@ namespace Main
             DbAccess.Initialize();
 
             // Make blockchain
-            var bc = new Blockchain();
+            _ = new Blockchain();
 
             // show menu
-            var menu = new Menu(bc);
-            menu.DisplayMenu(bc);
+            Menu.DisplayMenu();
         }
     }
 

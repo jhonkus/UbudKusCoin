@@ -1,5 +1,4 @@
-﻿using System;
-using DB;
+﻿using DB;
 using Models;
 using LiteDB;
 using Newtonsoft.Json;
@@ -55,7 +54,7 @@ namespace Main
             return block;
         }
 
-        public int GetHeight()
+        public static int GetHeight()
         {
             var lastBlock = GetLastBlock();
             return lastBlock.Height;
@@ -79,7 +78,7 @@ namespace Main
             {
                 if (i != 0)
                 {
-                    var transactions = JsonConvert.DeserializeObject<List<Models.Transaction>>(block.Transactions);
+                    var transactions = JsonConvert.DeserializeObject<List<Transaction>>(block.Transactions);
                     foreach (Transaction trx in transactions)
                     {
 
