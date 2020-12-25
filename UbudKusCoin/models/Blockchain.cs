@@ -1,14 +1,13 @@
 ﻿using System.Collections.Generic;
-using System.Text;
 using System;
-using Utils; 
+using Utils;
 
 namespace Models
 {
     public class Blockchain
     {
 
- 
+
         public IList<Block> Blocks { set; get; }
 
         public Blockchain()
@@ -32,14 +31,14 @@ namespace Models
 
         public int GetHeight()
         {
-            var lastBlock  = Blocks[Blocks.Count - 1];
+            var lastBlock = Blocks[Blocks.Count - 1];
             return lastBlock.Height;
         }
 
-        private Block CreateGenesisBlock()
+        private static Block CreateGenesisBlock()
         {
             var lst = new List<Transaction>();
-            var trx = new Transaction
+            Transaction trx = new Transaction
             {
                 Amount = 1000,
                 Sender = "Founder",
@@ -47,9 +46,7 @@ namespace Models
                 Fee = 0.0001
             };
             lst.Add(trx);
-
-            var trxByte = lst.ToArray().ConvertToByte();
-            return new Block(1, String.Empty.ConvertToBytes(), lst.ToArray(), "Admin");
+            return new Block(1, string.Empty.ConvertToBytes(), lst.ToArray(), "Admin");
         }
 
 
@@ -60,15 +57,14 @@ namespace Models
             var lastBlock = GetLastBlock();
             var nextHeight = lastBlock.Height + 1;
             var prevHash = lastBlock.Hash;
-            var timestamp = DateTime.Now.Ticks;
             var block = new Block(nextHeight, prevHash, transactions, "Admin");
             Blocks.Add(block);
 
-
         }
 
-       
-        public double GetBalance(string name) {
+
+        public double GetBalance(string name)
+        {
 
             double balance = 0;
             double spending = 0;
@@ -77,19 +73,21 @@ namespace Models
             foreach (Block block in Blocks)
             {
                 var transactions = block.Transactions;
-              
+
                 foreach (Transaction transaction in transactions)
                 {
 
                     var sender = transaction.Sender;
                     var recipient = transaction.Recipient;
 
-                    if (name.ToLower().Equals(sender.ToLower())) {
-                        spending += transaction.Amount + transaction.Fee;                    
+                    if (name.ToLower().Equals(sender.ToLower()))
+                    {
+                        spending += transaction.Amount + transaction.Fee;
                     }
 
 
-                    if (name.ToLower().Equals(recipient.ToLower())) {
+                    if (name.ToLower().Equals(recipient.ToLower()))
+                    {
                         income += transaction.Amount;
                     }
 
@@ -99,9 +97,8 @@ namespace Models
             return balance;
         }
 
-        public void PrintBlocks() {
-
-            var sbf = new StringBuilder();
+        public void PrintBlocks()
+        {
 
             foreach (Block block in Blocks)
             {
@@ -114,9 +111,6 @@ namespace Models
                 Console.WriteLine("--------------\n");
 
             }
-
-            Console.WriteLine(sbf);
-
 
         }
     }
