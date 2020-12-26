@@ -33,18 +33,6 @@ namespace Utils
             return Newtonsoft.Json.JsonConvert.SerializeObject(lsTrx);
         }
 
-        /*
-        public static void PrintToDisplay(this byte[] arr)
-        {
-            Console.WriteLine(" byte lenght {0}", arr.Length);
-            for (int i = 0; i < arr.Length; i++)
-            {
-                Console.Write("{0}-{1}", arr[i], "-");
-            }
-            Console.WriteLine();
-        }
-        */
-
         public static string ConvertToHexString(this byte[] ba)
         {
             StringBuilder hex = new StringBuilder(ba.Length * 2);
