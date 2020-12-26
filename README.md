@@ -1,11 +1,27 @@
 # UbudKusCoin
-Simple Cryptocurrencies with Proof Of Work Consensus Algorithm.
+Simple Cryptocurrencies with Proof Of Stake  Consensus Algorithm.
+
 Developed with C# and .Net Core
 
-For linux user
-Download this https://www.monodevelop.com/  first and then open project
+## Requirement
+Net Core SDK 5.0 https://dotnet.microsoft.com/download/dotnet/5.0
 
-For Windows and MacOS use can use Visual Studio Comunity Edition https://visualstudio.microsoft.com/downloads/  then open the project.
+## IDE  
+- Visual Studio Comunity Edition https://visualstudio.microsoft.com/downloads
+- For linux user download Monodevelop https://www.monodevelop.com
 
+## Instalation
+
+First install .Net Core SDK 5.0
+```
+> git clone https://github.com/jhonkus/UbudKusCoin.git 
+
+> cd UbudKusCoin
+
+> dotnet restore
+
+```
+
+Open Project with Visual Studio or Monodevelop.
 
 
