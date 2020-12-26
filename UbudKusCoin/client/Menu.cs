@@ -179,7 +179,7 @@ namespace Client
             }
 
             Console.Clear();
-            Console.WriteLine("Transaction History of {0}", name);
+            Console.WriteLine("Transaction History for {0}", name);
             Console.WriteLine("Time: {0}", DateTime.Now);
             Console.WriteLine("======================");
             var trxs = Transaction.GetHistory(name);
@@ -218,7 +218,7 @@ namespace Client
             }
 
             Console.Clear();
-            Console.WriteLine("Balance of {0}", name);
+            Console.WriteLine("Balance for {0}", name);
             Console.WriteLine("Time: {0}", DateTime.Now);
             Console.WriteLine("======================");
             var balance = Transaction.GetBalance(name);
@@ -232,8 +232,31 @@ namespace Client
             Console.WriteLine("\n\n\nLast Block");
             Console.WriteLine("Time: {0}", DateTime.Now);
             Console.WriteLine("======================");
-            var lastBlock = Blockchain.GetLastBlock();
-            Console.WriteLine(JsonConvert.SerializeObject(lastBlock, Formatting.Indented));
+            var block = Blockchain.GetLastBlock();
+
+            //Console.WriteLine("ID          :{0}", block.ID);
+            Console.WriteLine("Height      : {0}", block.Height);
+            Console.WriteLine("Timestamp   : {0}", block.TimeStamp.ConvertToDateTime());
+            Console.WriteLine("Prev. Hash  : {0}", block.PrevHash);
+            Console.WriteLine("Hash        : {0}", block.Hash);
+
+    
+            var transactions = JsonConvert.DeserializeObject<List<Transaction>>(block.Transactions);
+            Console.WriteLine("Transactions:");
+            foreach (Transaction trx in transactions)
+            {
+                Console.WriteLine("   Timestamp   : {0}", trx.TimeStamp.ConvertToDateTime());
+                Console.WriteLine("   Sender      : {0}", trx.Sender);
+                Console.WriteLine("   Recipient   : {0}", trx.Recipient);
+                Console.WriteLine("   Amount      : {0}", trx.Amount.ToString("N", CultureInfo.InvariantCulture));
+                Console.WriteLine("   Fee         : {0}", trx.Fee.ToString("N4", CultureInfo.InvariantCulture));
+                Console.WriteLine("   - - - - - - ");
+
+            }
+            
+
+
+
         }
 
         private static void DoGenesisBlock()
