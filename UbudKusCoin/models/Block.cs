@@ -1,27 +1,28 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using Utils;
 
 namespace Models
 {
-    [Serializable]
+
     public class Block
     {
         public int Height { get; set; }
-        public Int64 TimeStamp { get; set; }
+        public long TimeStamp { get; set; }
         public byte[] PrevHash { get; set; }
         public byte[] Hash { get; set; }
         public Transaction[] Transactions { get; set; }
         public string Creator { get; set; }
 
-        public Block(int height, byte[] prevHash, Transaction[] transactions, string creator)
+        public Block(int height, byte[] prevHash, List<Transaction> transactions, string creator)
         {
-            this.Height = height;
-            this.PrevHash = prevHash;
-            this.TimeStamp = DateTime.Now.Ticks;
-            this.Transactions = transactions;
-            this.Hash = GenerateHash();
-            this.Creator = creator;
+            Height = height;
+            PrevHash = prevHash;
+            TimeStamp = DateTime.Now.Ticks;
+            Transactions = transactions.ToArray();
+            Hash = GenerateHash();
+            Creator = creator;
         }
 
         public byte[] GenerateHash()
