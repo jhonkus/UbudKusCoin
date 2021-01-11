@@ -1,0 +1,141 @@
+{
+  "format": 1,
+  "restore": {
+    "/Volumes/Data/NET_PROJECTS/UbudKusCoin/grpc-service/grpc-service.csproj": {}
+  },
+  "projects": {
+    "/Volumes/Data/NET_PROJECTS/UbudKusCoin/grpc-service/grpc-service.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Volumes/Data/NET_PROJECTS/UbudKusCoin/grpc-service/grpc-service.csproj",
+        "projectName": "grpc-service",
+        "projectPath": "/Volumes/Data/NET_PROJECTS/UbudKusCoin/grpc-service/grpc-service.csproj",
+        "packagesPath": "/Users/putukusuma/.nuget/packages/",
+        "outputPath": "/Volumes/Data/NET_PROJECTS/UbudKusCoin/grpc-service/obj/",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "/usr/local/share/dotnet/sdk/NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "/Users/putukusuma/.config/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net5.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net5.0": {
+            "targetAlias": "net5.0",
+            "projectReferences": {
+              "/Volumes/Data/NET_PROJECTS/UbudKusCoin/UbudKusCoin/UbudKusCoin.csproj": {
+                "projectPath": "/Volumes/Data/NET_PROJECTS/UbudKusCoin/UbudKusCoin/UbudKusCoin.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net5.0": {
+          "targetAlias": "net5.0",
+          "dependencies": {
+            "Grpc.AspNetCore": {
+              "target": "Package",
+              "version": "[2.32.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/5.0.101/RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "/Volumes/Data/NET_PROJECTS/UbudKusCoin/UbudKusCoin/UbudKusCoin.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Volumes/Data/NET_PROJECTS/UbudKusCoin/UbudKusCoin/UbudKusCoin.csproj",
+        "projectName": "UbudKusCoin",
+        "projectPath": "/Volumes/Data/NET_PROJECTS/UbudKusCoin/UbudKusCoin/UbudKusCoin.csproj",
+        "packagesPath": "/Users/putukusuma/.nuget/packages/",
+        "outputPath": "/Volumes/Data/NET_PROJECTS/UbudKusCoin/UbudKusCoin/obj/",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "/usr/local/share/dotnet/sdk/NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "/Users/putukusuma/.config/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net5.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net5.0": {
+            "targetAlias": "net5.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net5.0": {
+          "targetAlias": "net5.0",
+          "dependencies": {
+            "LiteDB": {
+              "target": "Package",
+              "version": "[5.0.9, )"
+            },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[12.0.3, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/5.0.101/RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}
