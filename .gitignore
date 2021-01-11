@@ -8,5 +8,7 @@
 .vscode
 /grpc-service/bin
 /grpc-service/obj
+/DesktopWallet/bin
+/DesktopWallet/obj
 .fake
 .ionide
