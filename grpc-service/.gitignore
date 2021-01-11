@@ -1,12 +1,4 @@
-﻿/UbudKusCoin/obj/*
-/UbudKusCoin/bin/
-/UbudKusCoin/*.db
+﻿obj/*
+bin/*
+.history
 .vs
-/UnitTest/bin
-/UnitTest/obj
-
-
-
-
-.fake
-.ionide
