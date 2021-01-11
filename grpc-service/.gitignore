@@ -1,0 +1,12 @@
+﻿/UbudKusCoin/obj/*
+/UbudKusCoin/bin/
+/UbudKusCoin/*.db
+.vs
+/UnitTest/bin
+/UnitTest/obj
+
+
+
+
+.fake
+.ionide
