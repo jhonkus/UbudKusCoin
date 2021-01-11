@@ -4,9 +4,9 @@
 .vs
 /UnitTest/bin
 /UnitTest/obj
-
-
-
-
+.history
+.vscode
+/grpc-service/bin
+/grpc-service/obj
 .fake
 .ionide
