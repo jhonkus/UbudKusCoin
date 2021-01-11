@@ -5,16 +5,16 @@ option csharp_namespace = "grpcservice.Protos";
 // The greeting service definition.
 service BlockSrv {
   // Sends a greeting
-  rpc GetGenesis(GenesisRequest) returns (GenesisReply);
+  rpc GetGenesis(EmptyRequest) returns (StringReply);
+  rpc LastBlock(EmptyRequest)  returns (StringReply);
 }
 
 // The request message 
 
-message GenesisRequest {
-string name = 1;
+message EmptyRequest {
 }
 
 // The response message containing the greetings.
-message GenesisReply {
+message StringReply {
   string message = 1;
 }
