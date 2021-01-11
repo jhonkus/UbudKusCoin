@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using grpcservice.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace grpc_service
+namespace grpcservice
 {
     public class Startup
     {
@@ -17,6 +18,13 @@ namespace grpc_service
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddGrpc();
+            services.AddCors(o => o.AddPolicy("AllowAll", builder =>
+            {
+                builder.AllowAnyOrigin()
+                       .AllowAnyMethod()
+                       .AllowAnyHeader()
+                       .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
+            }));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -27,11 +35,18 @@ namespace grpc_service
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseRouting();
+            // https://docs.microsoft.com/en-us/aspnet/core/grpc/browser?view=aspnetcore-5.0
 
+            app.UseRouting();
+            app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
+            app.UseCors();
+            //app.UseGrpcWeb(); // Must be added between UseRouting and UseEndpoints
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGrpcService<GreeterService>();
+                //endpoints.MapGrpcService<GreeterService>().EnableGrpcWeb().RequireCors("AllowAll");
+                endpoints.MapGrpcService<GreeterService>().RequireCors("AllowAll"); ;
+                //endpoints.MapGrpcService<BlockService>().EnableGrpcWeb().RequireCors("AllowAll");
+                endpoints.MapGrpcService<BlockService>().RequireCors("AllowAll"); ;
 
                 endpoints.MapGet("/", async context =>
                 {

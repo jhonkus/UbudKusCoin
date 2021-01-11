@@ -1,3 +1,30 @@
 ﻿syntax = "proto3";
 
 option csharp_namespace = "grpcservice.Protos";
+
+// The greeting service definition.
+service BlockSrv {
+  // Sends a greeting
+  rpc GetGenesis(EmptyRequest) returns (StringReply);
+  rpc LastBlock(EmptyRequest)  returns (StringReply);
+  rpc SendCoin(SendRequest)  returns (StringReply);
+  rpc Minting(EmptyRequest)  returns (StringReply);
+
+}
+
+
+message SendRequest{
+     string sender = 1;
+     string recipient = 2;
+     float  amount = 3;
+     float fee = 4;
+}
+
+// The request message 
+message EmptyRequest {
+}
+
+// The response message containing the greetings.
+message StringReply {
+  string message = 1;
+}
