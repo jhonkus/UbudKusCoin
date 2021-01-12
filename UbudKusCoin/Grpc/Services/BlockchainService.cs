@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Grpc.Core;
 using GrpcService.Protos;
 using Main;
-using Models;
 using Newtonsoft.Json;
 
 namespace GrpcService.Services

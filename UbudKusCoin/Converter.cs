@@ -1,5 +1,4 @@
 using System.Text;
-using Models;
 using System;
 
 namespace Main
@@ -11,7 +10,7 @@ namespace Main
         */
         public static string ConvertToString(this byte[] arg)
         {
-            return System.Text.Encoding.UTF8.GetString(arg, 0, arg.Length);
+            return Encoding.UTF8.GetString(arg, 0, arg.Length);
         }
 
         /**
@@ -19,7 +18,7 @@ namespace Main
          */
         public static byte[] ConvertToBytes(this string arg)
         {
-            return System.Text.Encoding.UTF8.GetBytes(arg);
+            return Encoding.UTF8.GetBytes(arg);
         }
 
         public static byte[] ConvertToByte(this Transaction[] lsTrx)
@@ -41,7 +40,7 @@ namespace Main
             return hex.ToString();
         }
 
-        public static byte[] ConvertHexStringToByteArray(String hex)
+        public static byte[] ConvertHexStringToByteArray(string hex)
         {
             int NumberChars = hex.Length;
             byte[] bytes = new byte[NumberChars / 2];
@@ -51,7 +50,7 @@ namespace Main
         }
 
 
-        public static string ConvertToDateTime(this Int64 timestamp)
+        public static string ConvertToDateTime(this long timestamp)
         {
 
             DateTime myDate = new DateTime(timestamp);
