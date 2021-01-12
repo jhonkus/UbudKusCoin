@@ -13,14 +13,9 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Protos\" />
+    <Protobuf Include="Protos\bchain.proto" GrpcServices="Client" />
   </ItemGroup>
-  <ItemGroup>
-    <Protobuf Include="Protos\greet.proto" GrpcServices="Client" />
-    <Protobuf Include="Protos\block.proto" GrpcServices="Client" />
-  </ItemGroup>
-
+  
 </Project>

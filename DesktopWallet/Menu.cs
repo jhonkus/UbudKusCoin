@@ -177,7 +177,7 @@
                             Console.WriteLine("======================");
 
 
-                            var block = new BlockSrv.BlockSrvClient(channel);
+                            var block = new BchainService.BchainServiceClient(channel);
 
                             var response = block.LastBlock(new EmptyRequest());
                             Console.WriteLine(response.Message);
@@ -195,9 +195,9 @@
            
                             //var hello = new Greeter.GreeterClient(channel);
 
-                            var block = new BlockSrv.BlockSrvClient(channel);
+                            var bcservice = new BchainService.BchainServiceClient(channel);
 
-                            var response = block.GetGenesis(new EmptyRequest());
+                            var response = bcservice.GetGenesis(new EmptyRequest());
                             Console.WriteLine(response.Message);
 
 
