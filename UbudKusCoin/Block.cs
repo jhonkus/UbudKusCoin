@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Security.Cryptography;
 using System.Text;
-using Utils;
 
-namespace Models
+namespace Main
 {
 
     public class Block

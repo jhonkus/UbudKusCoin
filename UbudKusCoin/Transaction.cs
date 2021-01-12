@@ -1,8 +1,7 @@
 using LiteDB;
-using DB;
 using System.Collections.Generic;
 
-namespace Models
+namespace Main
 {
 
     public class Transaction

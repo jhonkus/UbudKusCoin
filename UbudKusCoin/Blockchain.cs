@@ -1,6 +1,4 @@
-﻿using DB;
-using Models;
-using LiteDB;
+﻿using LiteDB;
 using Newtonsoft.Json;
 using System;
 
@@ -82,7 +80,7 @@ namespace Main
 
         }
 
-        public static ILiteCollection<Models.Block> GetBlocks()
+        public static ILiteCollection<Block> GetBlocks()
         {
             var coll = DbAccess.DB.GetCollection<Block>(DbAccess.TBL_BLOCKS);
             coll.EnsureIndex(x => x.Height);
