@@ -1,12 +1,14 @@
-﻿
-using Client;
+﻿using System.Runtime.InteropServices;
 using DB;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.Extensions.Hosting;
 
 namespace Main
 {
-    class Program
+    public class Program
     {
-        static void Main()
+        public static void Main(string[] args)
         {
 
             // Initilize db
@@ -14,18 +16,29 @@ namespace Main
 
             /**
              * remove all record in all table
-             * uncomment this if you want
+             * uncomment this
             **/
             // DbAccess.ClearDB();
 
             // Make blockchain
             _ = new Blockchain();
-
-            // show menu
-            Menu.DisplayMenu();
+            CreateHostBuilder(args).Build().Run();
         }
+
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+      Host.CreateDefaultBuilder(args)
+          .ConfigureWebHostDefaults(webBuilder =>
+          {
+              if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+              {
+                  webBuilder.ConfigureKestrel(options =>
+                  {
+                      // Setup a HTTP/2 endpoint without TLS.
+                      options.ListenLocalhost(5002, o => o.Protocols =
+                          HttpProtocols.Http2);
+                  });
+              }
+              webBuilder.UseStartup<Startup>();
+          });
     }
-
-
-
 }
