@@ -9,33 +9,29 @@ using Newtonsoft.Json;
 
 namespace grpcservice.Services
 {
-    public class BlockService: BlockSrv.BlockSrvBase
+    public class BlockchainService: BchainService.BchainServiceBase
     {
-        private readonly ILogger<GreeterService> _logger;
-        public BlockService(ILogger<GreeterService> logger)
-        {
-            _logger = logger;
-        }
 
         public override Task<StringReply> GetGenesis(EmptyRequest request, ServerCallContext context)
         {
-            var genesisBlock = Blockchain.GetGenesisBlock();
-            var genesis = JsonConvert.SerializeObject(genesisBlock, Formatting.Indented);
+            var blockObj = Blockchain.GetGenesisBlock();
+            var blockJson = JsonConvert.SerializeObject(blockObj, Formatting.Indented);
 
             return Task.FromResult(new StringReply
             {
-                Message = genesis
+                Message = blockJson
             });
         }
 
+
         public override Task<StringReply> LastBlock(EmptyRequest request, ServerCallContext context)
         {
-            var lastBlock = Blockchain.GetLastBlock();
-            var block = JsonConvert.SerializeObject(lastBlock, Formatting.Indented);
+            var lastBlockObj = Blockchain.GetLastBlock();
+            var blockJson = JsonConvert.SerializeObject(lastBlockObj, Formatting.Indented);
 
             return Task.FromResult(new StringReply
             {
-                Message = block
+                Message = blockJson
             });
         }
 

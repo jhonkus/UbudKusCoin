@@ -43,10 +43,8 @@ namespace grpcservice
             //app.UseGrpcWeb(); // Must be added between UseRouting and UseEndpoints
             app.UseEndpoints(endpoints =>
             {
-                //endpoints.MapGrpcService<GreeterService>().EnableGrpcWeb().RequireCors("AllowAll");
-                endpoints.MapGrpcService<GreeterService>().RequireCors("AllowAll"); ;
                 //endpoints.MapGrpcService<BlockService>().EnableGrpcWeb().RequireCors("AllowAll");
-                endpoints.MapGrpcService<BlockService>().RequireCors("AllowAll"); ;
+                endpoints.MapGrpcService<BlockchainService>().RequireCors("AllowAll"); ;
 
                 endpoints.MapGet("/", async context =>
                 {

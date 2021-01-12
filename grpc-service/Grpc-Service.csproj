@@ -24,8 +24,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Protobuf Include="Protos\greet.proto" GrpcServices="Server" />
-    <Protobuf Include="Protos\block.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\bchain.proto" GrpcServices="Server" />
   </ItemGroup>
     
 </Project>
