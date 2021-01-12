@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Net.Client;
 using Grpc.Net.Client.Web;
-using grpcservice.Protos;
-using static grpcservice.Protos.BChainService;
+using GrpcService.Protos;
+using static GrpcService.Protos.BChainService;
 
 namespace DesktopWallet
 {
@@ -17,7 +17,7 @@ namespace DesktopWallet
         private readonly GrpcChannel channel;
         private readonly BChainServiceClient bcservice;
 
-        public BlockchainClient() {   
+        public BlockchainClient() {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 AppContext.SetSwitch(
@@ -51,7 +51,6 @@ namespace DesktopWallet
                 {
                      // Console.WriteLine(block.ToString());
                      Helper.DoShowBlockchain(response.Blocks);
-                    
                 }
                 else
                 {

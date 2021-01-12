@@ -1,22 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using grpcservice.Protos;
 using System.Globalization;
 using Newtonsoft.Json;
-
+using GrpcService.Protos;
 
 namespace DesktopWallet
 {
     public static class Helper
     {
         //'Google.Protobuf.Collections.RepeatedField<grpcservice.Protos.BlockModel>' to 'System.Collections.Generic.List<grpcservice.Protos.BlockModel>'
-        public  static void DoShowBlockchain(Google.Protobuf.Collections.RepeatedField<BlockModel> blocks)
+        public static void DoShowBlockchain(Google.Protobuf.Collections.RepeatedField<BlockModel> blocks)
         {
             Console.Clear();
             Console.WriteLine("\n\n\nBlockchain Explorer");
             Console.WriteLine("Time: {0}", DateTime.Now);
             Console.WriteLine("======================");
-       
+
 
             foreach (var block in blocks)
             {

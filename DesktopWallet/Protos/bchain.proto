@@ -1,6 +1,6 @@
 ﻿syntax = "proto3";
 
-option csharp_namespace = "grpcservice.Protos";
+option csharp_namespace = "GrpcService.Protos";
 
 
 service BChainService {
@@ -25,9 +25,6 @@ message SendRequest{
    float fee = 4;
 }
 
-
-// block chain start
-
 message BlocksResponse {
   repeated BlockModel blocks = 1;
 }
@@ -47,13 +44,10 @@ message BlockModel {
 	string Hash = 4;
 	string Transactions = 5;
 }
-// == end of 
 
-// The request message 
 message EmptyRequest {
 }
 
-// The response message containing the greetings.
 message StringReply {
-  string message = 1;
+  string response = 1;
 }
