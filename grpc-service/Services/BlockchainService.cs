@@ -3,13 +3,12 @@ using System.Threading.Tasks;
 using Grpc.Core;
 using grpcservice.Protos;
 using Main;
-using Microsoft.Extensions.Logging;
 using Models;
 using Newtonsoft.Json;
 
 namespace grpcservice.Services
 {
-    public class BlockchainService: BchainService.BchainServiceBase
+    public class BlockchainService: BChainService.BChainServiceBase
     {
 
         public override Task<StringReply> GetGenesis(EmptyRequest request, ServerCallContext context)
@@ -33,6 +32,25 @@ namespace grpcservice.Services
             {
                 Message = blockJson
             });
+        }
+
+        public override Task<BlocksResponse> GetBlocks(EmptyRequest request, ServerCallContext context)
+        {
+            var blockchain = Blockchain.GetBlocks();
+            var blocks = blockchain.FindAll();
+            BlocksResponse response = new BlocksResponse();
+            foreach (Block block in blocks) {
+                BlockModel mdl = new BlockModel
+                {
+                    Height = block.Height,
+                    Hash = block.Hash,
+                    PrevHash = block.PrevHash,
+                    TimeStamp = block.TimeStamp,
+                    Transactions = block.Transactions
+                };
+                response.Blocks.Add(mdl);
+            }
+            return Task.FromResult(response);
         }
 
 

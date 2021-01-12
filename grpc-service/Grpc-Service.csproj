@@ -18,13 +18,13 @@
       <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
     </ProjectReference>
   </ItemGroup>
-  
+
   <ItemGroup>
     <Folder Include="Services\" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <Protobuf Include="Protos\bchain.proto" GrpcServices="Server" />
   </ItemGroup>
-    
+
 </Project>
