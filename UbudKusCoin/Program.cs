@@ -30,7 +30,7 @@ namespace Main
                 // Easy peasy 👇
                 scheduler
                     .Schedule<BlockJob>()
-                    .EveryTenSeconds();
+                    .EveryMinute();
             });
             host.Run();
 

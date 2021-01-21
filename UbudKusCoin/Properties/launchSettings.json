@@ -2,7 +2,7 @@
   "profiles": {
     "grpc-service": {
       "commandName": "Project",
-      "applicationUrl": "http://51.15.211.115:2499;https://51.15.211.115:48477",
+      "applicationUrl": "http://localhost:80;https://localhost:443",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
