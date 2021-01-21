@@ -1,6 +1,6 @@
 using NBitcoin;
 
-namespace PKusCoin.blockchain {
+namespace DesktopWallet {
     public class KeyPair {
         public ExtKey PrivateKey { set; get; }
         public ExtPubKey PublicKey { set; get; }

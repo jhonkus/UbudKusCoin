@@ -5,19 +5,19 @@ using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Net.Client;
 using Grpc.Net.Client.Web;
-using GrpcService.Protos;
-using static GrpcService.Protos.BChainService;
+using GrpcService;
+using static GrpcService.BChainService;
 
 namespace DesktopWallet
 {
-    public class BlockchainClient
+    public class GrpcClient
     {
 
         private readonly string serverAddress = "https://localhost:5002";
         private readonly GrpcChannel channel;
         private readonly BChainServiceClient bcservice;
 
-        public BlockchainClient() {
+        public GrpcClient() {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 AppContext.SetSwitch(
@@ -34,68 +34,21 @@ namespace DesktopWallet
 
         }
 
+       
 
-        /// <summary>
-        /// Getting all blocks from rpc
-        /// </summary>
-        /// <returns></returns>
-        public async Task ShowAllBlocks()
+        internal async Task GetBalance(string address)
         {
             try
             {
-                // Execute rpc
-                // Request is empty object so it is just created on the same line
-                var response =  await bcservice.GetBlocksAsync(new EmptyRequest());
-
-                if (response != null && response.Blocks != null && response.Blocks.Count > 0)
-                {
-                     // Console.WriteLine(block.ToString());
-                     Helper.DoShowBlockchain(response.Blocks);
-                }
-                else
-                {
-                    Console.WriteLine("There are no blocks");
-                }
-            }
-            catch (RpcException rpcException)
-            {
-                Console.WriteLine("There was an error communicating with gRPC server");
-                Console.WriteLine($"Code: {rpcException.StatusCode}, Status: {rpcException.Status}");
-            }
+                var balance = await bcservice.GetBalanceAsync(new AccountRequest {
+                    Address = address
+                });
+              
+             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Console.WriteLine(ex.Message);
             }
-        }
-
-        internal Task ShowGenesisBlock()
-        {
-            throw new NotImplementedException();
-        }
-
-        internal Task ShowLastBlock()
-        {
-            throw new NotImplementedException();
-        }
-
-        internal Task SendCoin()
-        {
-            throw new NotImplementedException();
-        }
-
-        internal Task ShowHistory()
-        {
-            throw new NotImplementedException();
-        }
-
-        internal Task CreateBlock()
-        {
-            throw new NotImplementedException();
-        }
-
-        internal Task ShowBalance()
-        {
-            throw new NotImplementedException();
         }
 
     }

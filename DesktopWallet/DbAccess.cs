@@ -1,19 +1,19 @@
+using DesktopWallet;
 using LiteDB;
 
-namespace Main
+namespace DesktopWallet
 {
     public class DbAccess
     {
 
         public static LiteDatabase DB { set; get; }
 
-        public const string DB_NAME = @"node.db";
-        public const string TBL_BLOCKS = "tbl_blocks";
-        public const string TBL_TRANSACTION_POOL = "tbl_transaction_pool";
-        public const string TBL_TRANSACTIONS = "tbl_transactions";
+        public const string DB_NAME = @"wallet.db";
+        public const string TBL_ACCOUNT = "tbl_account";
+
 
         /**
-        it will create db with name node.db
+        it will create db if no exist 
         **/
         public static void Initialize()
         {
@@ -25,14 +25,8 @@ namespace Main
         **/
         public static void ClearDB()
         {
-            var coll = DB.GetCollection<Block>(TBL_BLOCKS);
+            var coll = DB.GetCollection<Account>(TBL_ACCOUNT);
             coll.DeleteAll();
-
-            var coll2 = DB.GetCollection<Transaction>(TBL_TRANSACTION_POOL);
-            coll2.DeleteAll();
-
-            var coll3 = DB.GetCollection<Transaction>(TBL_TRANSACTIONS);
-            coll3.DeleteAll();
             
         }
         /**
