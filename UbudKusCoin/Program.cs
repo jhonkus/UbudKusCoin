@@ -30,7 +30,7 @@ namespace Main
                 // Easy peasy 👇
                 scheduler
                     .Schedule<BlockJob>()
-                    .EveryFiveMinutes();
+                    .EveryTenSeconds();
             });
             host.Run();
 
@@ -40,12 +40,14 @@ namespace Main
            Host.CreateDefaultBuilder(args)
           .ConfigureWebHostDefaults(webBuilder =>
           {
+              
               if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
               {
+                  
                   webBuilder.ConfigureKestrel(options =>
                   {
                       // Setup a HTTP/2 endpoint without TLS.
-                      options.ListenLocalhost(5002, o => o.Protocols =
+                      options.ListenLocalhost(8080, o => o.Protocols =
                           HttpProtocols.Http2);
                   });
               }

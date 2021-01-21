@@ -13,7 +13,7 @@ namespace DesktopWallet
     public class GrpcClient
     {
 
-        private readonly string serverAddress = "https://localhost:5002";
+        private readonly string serverAddress = "https://51.15.211.115:8080";
         private readonly GrpcChannel channel;
         private readonly BChainServiceClient bcservice;
 
@@ -22,7 +22,7 @@ namespace DesktopWallet
             {
                 AppContext.SetSwitch(
                     "System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
-                serverAddress = "http://localhost:5002";
+                serverAddress = "http://51.15.211.115:8080";
             }
 
             channel = GrpcChannel.ForAddress(serverAddress, new GrpcChannelOptions
