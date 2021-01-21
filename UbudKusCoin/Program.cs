@@ -1,7 +1,9 @@
 ﻿using System.Runtime.InteropServices;
+using Coravel;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Hosting;
+using UbudKusCoin.Sceduler;
 
 namespace Main
 {
@@ -19,13 +21,23 @@ namespace Main
             **/
             // DbAccess.ClearDB();
 
+
+
             // Make blockchain
             _ = new Blockchain();
-            CreateHostBuilder(args).Build().Run();
+            IHost host = CreateHostBuilder(args).Build();
+            host.Services.UseScheduler(scheduler => {
+                // Easy peasy 👇
+                scheduler
+                    .Schedule<BlockJob>()
+                    .EveryFiveMinutes();
+            });
+            host.Run();
+
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
-      Host.CreateDefaultBuilder(args)
+           Host.CreateDefaultBuilder(args)
           .ConfigureWebHostDefaults(webBuilder =>
           {
               if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
@@ -38,6 +50,7 @@ namespace Main
                   });
               }
               webBuilder.UseStartup<Startup>();
+
           });
     }
 }

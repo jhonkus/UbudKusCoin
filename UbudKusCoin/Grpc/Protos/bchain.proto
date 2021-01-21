@@ -1,15 +1,16 @@
 ﻿syntax = "proto3";
 
-option csharp_namespace = "GrpcService.Protos";
+option csharp_namespace = "GrpcService";
 
 
 service BChainService {
-  rpc GetGenesis(EmptyRequest) returns (StringReply);
-  rpc LastBlock(EmptyRequest)  returns (StringReply);
-  rpc SendCoin(SendRequest)  returns (StringReply);
-  rpc Minting(EmptyRequest)  returns (StringReply);
-  rpc GetBlocks(EmptyRequest) returns (BlocksResponse);
-
+  rpc GetGenesis(EmptyRequest) returns (TrxResponse);
+  rpc LastBlock(EmptyRequest)  returns (TrxResponse);
+  rpc SendCoin(SendRequest)  returns (TrxResponse);
+  rpc CreateBlock(EmptyRequest)  returns (TrxResponse);
+  rpc GetBlocks(BlockRequest) returns (BlocksResponse);
+  rpc GetBalance(AccountRequest) returns (BalanceResponse);
+  rpc GetTransactions(AccountRequest) returns (TransactionsResponse);
 }
 
 message SearchRequest {
@@ -19,21 +20,50 @@ message SearchRequest {
 }
 
 message SendRequest{
-   string sender = 1;
-   string recipient = 2;
-   float  amount = 3;
-   float fee = 4;
+   string trx_id = 1;
+   TrxInput trx_input = 2;
+   TrxOutput trx_output = 3;
+}
+
+message TrxInput{
+	int64 time_stamp = 1;
+	string sender_address = 2;
+	string signature = 3;
+}
+
+message TrxOutput{
+	string recipient_address = 1;
+	double amount = 2;
+	float fee = 3;
+}
+
+
+message AccountRequest{
+   string address = 1;
+}
+
+message BlockRequest{
+  int32 page_number = 1;
+  int32 result_per_page = 2; 
 }
 
 message BlocksResponse {
   repeated BlockModel blocks = 1;
 }
 
+message TransactionsResponse {
+  repeated TrxModel transactions = 1;
+}
+
+message BalanceResponse {
+  double balance = 1;
+}
+
 message TrxModel {
 	int64 TimeStamp = 1;
 	string Sender = 2;
 	string Recipient = 3;
-	float Amount = 4;
+	double Amount = 4;
 	float Fee = 5;
 }
 
@@ -48,6 +78,6 @@ message BlockModel {
 message EmptyRequest {
 }
 
-message StringReply {
-  string response = 1;
+message TrxResponse {
+  string result = 1;
 }

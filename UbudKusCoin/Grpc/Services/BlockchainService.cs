@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Grpc.Core;
-using GrpcService.Protos;
 using Main;
 using Newtonsoft.Json;
 
@@ -10,33 +9,42 @@ namespace GrpcService.Services
     public class BlockchainService : BChainService.BChainServiceBase
     {
 
-        public override Task<StringReply> GetGenesis(EmptyRequest request, ServerCallContext context)
+        public override Task<TrxResponse> GetGenesis(EmptyRequest request, ServerCallContext context)
         {
             var blockObj = Blockchain.GetGenesisBlock();
             var blockJson = JsonConvert.SerializeObject(blockObj, Formatting.Indented);
 
-            return Task.FromResult(new StringReply
+            return Task.FromResult(new TrxResponse
             {
-                Response = blockJson
+                Result = blockJson
             });
         }
 
 
-        public override Task<StringReply> LastBlock(EmptyRequest request, ServerCallContext context)
+        public override Task<BalanceResponse> GetBalance(AccountRequest request, ServerCallContext context)
+        {
+            var balance = Transaction.GetBalance(request.Address);
+            return Task.FromResult(new BalanceResponse
+            {
+                Balance = balance
+            });
+        }
+
+        public override Task<TrxResponse> LastBlock(EmptyRequest request, ServerCallContext context)
         {
             var lastBlockObj = Blockchain.GetLastBlock();
             var blockJson = JsonConvert.SerializeObject(lastBlockObj, Formatting.Indented);
 
-            return Task.FromResult(new StringReply
+            return Task.FromResult(new TrxResponse
             {
-                Response = blockJson
+                Result = blockJson
             });
         }
 
-        public override Task<BlocksResponse> GetBlocks(EmptyRequest request, ServerCallContext context)
+        public override Task<BlocksResponse> GetBlocks(BlockRequest request, ServerCallContext context)
         {
-            var blockchain = Blockchain.GetBlocks();
-            var blocks = blockchain.FindAll();
+            var blocks = Blockchain.GetBlocks(request.PageNumber, request.ResultPerPage);
+
             BlocksResponse response = new BlocksResponse();
             foreach (Block block in blocks)
             {
@@ -54,36 +62,56 @@ namespace GrpcService.Services
         }
 
 
-        public override Task<StringReply> SendCoin(SendRequest request, ServerCallContext context)
+        public override Task<TransactionsResponse> GetTransactions(AccountRequest request, ServerCallContext context)
+        {
+            TransactionsResponse response = new TransactionsResponse();
+            var transactions = Transaction.GetTransactions(request.Address);
+            foreach (Transaction trx in transactions)
+            {
+                TrxModel mdl = new TrxModel
+                {
+                    Recipient = trx.Recipient,
+                    Sender = trx.Sender,
+                    Fee = trx.Fee,
+                    Amount = trx.Amount,
+                    TimeStamp = trx.TimeStamp,
+                };
+                response.Transactions.Add(mdl);
+            }
+            return Task.FromResult(response);
+        }
+
+        public override Task<TrxResponse> SendCoin(SendRequest request, ServerCallContext context)
         {
 
             //Create transaction
             var newTrx = new Transaction()
             {
-                TimeStamp = DateTime.Now.Ticks,
-                Sender = request.Sender,
-                Recipient = request.Recipient,
-                Amount = request.Amount,
-                Fee = request.Fee
+                ID = request.TrxId,
+                TimeStamp = request.TrxInput.TimeStamp,
+                Sender = request.TrxInput.SenderAddress,
+                Recipient = request.TrxOutput.RecipientAddress,
+                Amount = request.TrxOutput.Amount,
+                Fee = request.TrxOutput.Fee
             };
             try
             {
                 Transaction.AddToPool(newTrx);
-                return Task.FromResult(new StringReply
+                return Task.FromResult(new TrxResponse
                 {
-                    Response = "Success"
+                    Result = "Success"
                 });
             }
-            catch
+            catch (Exception e)
             {
-                return Task.FromResult(new StringReply
+                return Task.FromResult(new TrxResponse
                 {
-                    Response = "Error"
+                    Result = "Error: " + e.Message
                 });
             }
         }
 
-        public override Task<StringReply> Minting(EmptyRequest request, ServerCallContext context)
+        public override Task<TrxResponse> CreateBlock(EmptyRequest request, ServerCallContext context)
         {
 
             var trxPool = Transaction.GetPool();
@@ -91,9 +119,9 @@ namespace GrpcService.Services
             var numOfTrxInPool = trxPool.Count();
             if (numOfTrxInPool <= 0)
             {
-                return Task.FromResult(new StringReply
+                return Task.FromResult(new TrxResponse
                 {
-                    Response = "Fail, No transaction in pool, please create transaction first!"
+                    Result = "Fail, No transaction in pool, please create transaction first!"
                 });
             }
 
@@ -116,9 +144,9 @@ namespace GrpcService.Services
             trxPool.DeleteAll();
 
 
-            return Task.FromResult(new StringReply
+            return Task.FromResult(new TrxResponse
             {
-                Response = "Success, a block created and added to Blockchain"
+                Result = "Success, a block created and added to Blockchain"
             });
         }
 

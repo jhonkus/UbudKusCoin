@@ -1,9 +1,10 @@
 using System.Text;
 using System;
+using System.Security.Cryptography;
 
 namespace Main
 {
-    public static class Converter
+    public static class Utils
     {
         /**
         Convert array of byte to string 
@@ -60,6 +61,23 @@ namespace Main
 
         }
 
+        public static string GetTrxHash(Transaction input)
+        {
+            var data = input.TimeStamp + input.Sender + input.Amount + input.Fee + input.Recipient;
+            var sha256 = SHA256.Create();
+            byte[] bytes = Encoding.ASCII.GetBytes(data);
+            byte[] hash = sha256.ComputeHash(bytes);
+            return Convert.ToBase64String(hash);
+        }
+
+        public static string GetHash(long timestamp, string lastHash, string transactions)
+        {
+            SHA256 sha256 = SHA256.Create();
+            var strSum = timestamp + lastHash + transactions;
+            byte[] sumBytes = Encoding.ASCII.GetBytes(strSum);
+            byte[] hashBytes = sha256.ComputeHash(sumBytes);
+            return Convert.ToBase64String(hashBytes);
+        }
 
     }
 

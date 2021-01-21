@@ -8,3 +8,6 @@
 .vscode
 /DesktopWallet/bin
 /DesktopWallet/obj
+
+.fake
+.ionide
