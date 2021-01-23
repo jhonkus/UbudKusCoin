@@ -1,3 +1,4 @@
+using EllipticCurve;
 using LiteDB;
 using System;
 using System.Collections.Generic;
@@ -54,27 +55,25 @@ namespace Main
         /**
         create transaction for each ico account
         **/
-        public static List<Transaction> CreateIcoTransction()
+        public static void CreateIcoTransction()
         {
-            var trx = new List<Transaction>();
-            var lst = IcoBalance.GetIcoAccounts();
-            foreach (var acc in lst)
+            var timeStamp = DateTime.Now.Ticks;
+            foreach (var acc in IcoBalance.GetIcoAccounts())
             {
+
                 var newTrx = new Transaction()
                 {
-                    TimeStamp = DateTime.Now.Ticks,
+                    TimeStamp = timeStamp,
                     Sender = "coinbase",
                     Recipient = acc.Address,
                     Amount = acc.Balance,
-                    Fee = 0.01f
+                    Fee = 0.0f
                 };
 
                 var trxHash = Utils.GetTrxHash(newTrx);
                 newTrx.ID = trxHash;
-
-                trx.Add(newTrx);
+                AddToPool(newTrx);
             }
-            return trx;
         }
 
         /**
@@ -108,6 +107,13 @@ namespace Main
             }
 
             return balance;
+        }
+
+        public static bool VerifySignature(string publicKeyHex, string message, string signature)
+        {
+            var byt = Utils.ConvertHexStringToByteArray(publicKeyHex);
+            var publicKey = PublicKey.fromString(byt);
+            return Ecdsa.verify(message, Signature.fromBase64(signature), publicKey);
         }
 
     }

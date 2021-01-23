@@ -1,6 +1,8 @@
 using System.Text;
 using System;
 using System.Security.Cryptography;
+using GrpcService;
+using EllipticCurve;
 
 namespace Main
 {
@@ -9,10 +11,7 @@ namespace Main
         /**
         Convert array of byte to string 
         */
-        public static string ConvertToString(this byte[] arg)
-        {
-            return Encoding.UTF8.GetString(arg, 0, arg.Length);
-        }
+        public static string ConvertToString(this byte[] arg) => Encoding.UTF8.GetString(arg, 0, arg.Length);
 
         /**
         Convert string to array of byte
@@ -53,31 +52,39 @@ namespace Main
 
         public static string ConvertToDateTime(this long timestamp)
         {
-
             DateTime myDate = new DateTime(timestamp);
             var strDate = myDate.ToString("dd MMM yyyy hh:mm:ss");
-
             return strDate;
-
         }
 
-        public static string GetTrxHash(Transaction input)
+        public static string GetTransactionHash(TrxInput input, TrxOutput output)
         {
-            var data = input.TimeStamp + input.Sender + input.Amount + input.Fee + input.Recipient;
+            var trxId = GenHash(input.TimeStamp + input.SenderAddress + output.Amount + output.Fee + output.RecipientAddress);
+            return trxId;
+        }
+
+        public static string GenHash(string data)
+        {
             var sha256 = SHA256.Create();
             byte[] bytes = Encoding.ASCII.GetBytes(data);
             byte[] hash = sha256.ComputeHash(bytes);
             return Convert.ToBase64String(hash);
         }
 
-        public static string GetHash(long timestamp, string lastHash, string transactions)
+        public static string GetTrxHash(Transaction input)
         {
-            SHA256 sha256 = SHA256.Create();
-            var strSum = timestamp + lastHash + transactions;
-            byte[] sumBytes = Encoding.ASCII.GetBytes(strSum);
-            byte[] hashBytes = sha256.ComputeHash(sumBytes);
-            return Convert.ToBase64String(hashBytes);
+            var data = input.TimeStamp + input.Sender + input.Amount + input.Fee + input.Recipient;
+            byte[] bytes = Encoding.ASCII.GetBytes(data);
+            byte[] hash = SHA256.Create().ComputeHash(bytes);
+            return Convert.ToBase64String(hash);
         }
+
+        public static string MakeAddress(PublicKey publicKey)
+        {
+            byte[] hash = SHA256.Create().ComputeHash(publicKey.toString());
+            return "UKC_" + Convert.ToBase64String(hash);
+        }
+
 
     }
 

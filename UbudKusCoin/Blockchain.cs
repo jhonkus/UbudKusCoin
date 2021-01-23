@@ -19,14 +19,27 @@
             {
 
                 var blocks = GetBlocks();
-                // blocks.EnsureIndex(x => x.Height);
-
+       
                 if (blocks.Count() < 1)
                 {
-                   var trxList =  Transaction.CreateIcoTransction();
-                   string genesisTrx = JsonConvert.SerializeObject(trxList);
-                    var gnsBlock = Block.Genesis(genesisTrx);
-                    blocks.Insert(gnsBlock);
+                    Transaction.CreateIcoTransction();
+                    var trxPool = Transaction.GetPool();
+                    var transactions = trxPool.FindAll();
+                    var strTransactions = JsonConvert.SerializeObject(transactions);
+
+
+                    var block = Block.Genesis(strTransactions);
+                    AddBlock(block);
+
+                    // move all record in trx pool to transactions table
+                    foreach (Transaction trx in transactions)
+                    {
+                        Transaction.Add(trx);
+                    }
+
+                    // clear mempool
+                    trxPool.DeleteAll();
+
                 }
 
             }
@@ -85,25 +98,11 @@
 
                 if (trxPool.Count() <= 0)
                 {
-                    //Create transaction
-                    var newTrx = new Transaction()
-                    {
-                        TimeStamp = DateTime.Now.Ticks,
-                        Sender = "-",
-                        Recipient = "-",
-                        Amount = 0,
-                        Fee = 0.001f
-                    };
-
-                    var lstTrx = new List<Transaction>
-                    {
-                        newTrx
-                    };
-
-                    // create empty block
+           
+                    var lstTrx = new List<Transaction>();
                     string tempTransactions = JsonConvert.SerializeObject(lstTrx);
                     var block = new Block(lastBlock, tempTransactions);
-                    Console.WriteLine("Empty Block created height: {0}, timestamp: {1}", block.Height, block.TimeStamp);
+                    Console.WriteLine("Block w/o trx created height: {0}, timestamp: {1}", block.Height, block.TimeStamp);
                     AddBlock(block);
 
                 }

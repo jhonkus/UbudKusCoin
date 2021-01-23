@@ -9,13 +9,11 @@ namespace Main
 
     public class Block
     {
-        //public string ID {get; set;}
         public int Height { get; set; }
         public long TimeStamp { get; set; }
         public string PrevHash { get; set; }
         public string Hash { get; set; }
         public string Transactions { get; set; }
-
 
         public Block(Block lastBlock, string transactions)
         {
@@ -25,8 +23,7 @@ namespace Main
             TimeStamp = DateTime.Now.Ticks;
             PrevHash = lastHash;
             Transactions = transactions;
-            Hash = Utils.GetHash(TimeStamp, lastHash, transactions);
-            //ID = Converter.ConvertToHexString(Converter.ConvertToBytes(Hash));
+            Hash = GetHash(TimeStamp, lastHash, transactions);
         }
 
         public Block(Block lastBlock)
@@ -37,8 +34,7 @@ namespace Main
             TimeStamp = DateTime.Now.Ticks;
             PrevHash = lastHash;
             Transactions = null;
-            Hash = Utils.GetHash(TimeStamp, lastHash, null);
-            //ID = Converter.ConvertToHexString(Converter.ConvertToBytes(Hash));
+            Hash = GetHash(TimeStamp, lastHash, null);
         }
 
         public Block(int height, long timestamp, string lastHash, string hash, string transactions)
@@ -53,16 +49,23 @@ namespace Main
         /**
         Create genesis block
         **/
-        public static Block Genesis( string transactions)
+        public static Block Genesis(string transactions)
         {
- 
-              var ts = new DateTime(2019, 10, 24);
-            var hash = Utils.GetHash(ts.Ticks, "-", transactions);
-            //var block = new Block(1, ts.Ticks, Convert.ToBase64String(Encoding.ASCII.GetBytes("-")), hash, Convert.ToBase64String(Encoding.ASCII.GetBytes(genesisTrx)));
-            var block = new Block(1, ts.Ticks, Convert.ToBase64String(Encoding.ASCII.GetBytes("-")), hash, transactions);
+            var ts = new DateTime(2020, 10, 24);
+            var hash = GetHash(ts.Ticks, "-", transactions);
+            var block = new Block(0, ts.Ticks, Convert.ToBase64String(Encoding.ASCII.GetBytes("-")), hash, transactions);
             return block;
         }
 
+
+        public static string GetHash(long timestamp, string lastHash, string transactions)
+        {
+            SHA256 sha256 = SHA256.Create();
+            var strSum = timestamp + lastHash + transactions;
+            byte[] sumBytes = Encoding.ASCII.GetBytes(strSum);
+            byte[] hashBytes = sha256.ComputeHash(sumBytes);
+            return Convert.ToBase64String(hashBytes);
+        }
 
 
     }

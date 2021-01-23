@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Grpc.Core;
 using Main;
 using Newtonsoft.Json;
@@ -9,7 +8,7 @@ namespace GrpcService.Services
     public class BlockchainService : BChainService.BChainServiceBase
     {
 
-        public override Task<TrxResponse> GetGenesis(EmptyRequest request, ServerCallContext context)
+        public override Task<TrxResponse> GenesisBlock(EmptyRequest request, ServerCallContext context)
         {
             var blockObj = Blockchain.GetGenesisBlock();
             var blockJson = JsonConvert.SerializeObject(blockObj, Formatting.Indented);
@@ -84,7 +83,7 @@ namespace GrpcService.Services
         public override Task<TrxResponse> SendCoin(SendRequest request, ServerCallContext context)
         {
 
-            //Create transaction
+            //Create new transaction
             var newTrx = new Transaction()
             {
                 ID = request.TrxId,
@@ -94,61 +93,38 @@ namespace GrpcService.Services
                 Amount = request.TrxOutput.Amount,
                 Fee = request.TrxOutput.Fee
             };
-            try
-            {
-                Transaction.AddToPool(newTrx);
-                return Task.FromResult(new TrxResponse
-                {
-                    Result = "Success"
-                });
-            }
-            catch (Exception e)
-            {
-                return Task.FromResult(new TrxResponse
-                {
-                    Result = "Error: " + e.Message
-                });
-            }
-        }
 
-        public override Task<TrxResponse> CreateBlock(EmptyRequest request, ServerCallContext context)
-        {
 
-            var trxPool = Transaction.GetPool();
-            var transactions = trxPool.FindAll();
-            var numOfTrxInPool = trxPool.Count();
-            if (numOfTrxInPool <= 0)
+            // verify transaction ID
+            var trxHash = Utils.GetTrxHash(newTrx);
+            if (!trxHash.Equals(request.TrxId))
             {
                 return Task.FromResult(new TrxResponse
                 {
-                    Result = "Fail, No transaction in pool, please create transaction first!"
+                    Result = "Transaction ID not valid"
+                });               
+            }
+           
+
+            // Verify signature   
+            var trxValid = Transaction.VerifySignature(request.PublicKey, request.TrxId, request.TrxInput.Signature);
+            if (!trxValid)
+            {
+                return Task.FromResult(new TrxResponse
+                {
+                    Result = "Signature not valid"
                 });
             }
 
 
-            var lastBlock = Blockchain.GetLastBlock();
-
-            // create block from transaction pool
-            string tempTransactions = JsonConvert.SerializeObject(transactions);
-
-            var block = new Block(lastBlock, tempTransactions);
-            Blockchain.AddBlock(block);
-
-            // move all record in trx pool to transactions table
-            foreach (Transaction trx in transactions)
-            {
-                Transaction.Add(trx);
-            }
-
-            // clear mempool
-            trxPool.DeleteAll();
-
-
+            Transaction.AddToPool(newTrx);
             return Task.FromResult(new TrxResponse
             {
-                Result = "Success, a block created and added to Blockchain"
+                Result = "Success"
             });
+       
         }
 
+        
     }
 }

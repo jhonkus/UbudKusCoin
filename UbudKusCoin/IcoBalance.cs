@@ -33,28 +33,17 @@ namespace UbudKusCoin
             {
                 new IcoAccount
                 {
-                    Address = "1APyMkWk4ftGNhq6AA3qifzZbmpYDU63LL",
+                    Address = "UKC_mGyJe2kD3cNs4c8d/KHVe4+DSt9mwrLLqlDejXUgdzA=",
                     Balance = 4000000
                 },
 
                 new IcoAccount
                 {
-                    Address = "162wTk4uZ2MpPWgqFWkMHE5KjkhSxhU4BG",
+                    Address = "UKC_JavaPsOANbgT5anGjTg0Ih6qdC4mHgbmpF5ptjAJb0g=",
                     Balance = 2000000
-                },
-
-                new IcoAccount
-                {
-                    Address = "1P2tQJ5DymKdEWorZtc6nPMh8Nw98ch7W8",
-                    Balance = 3000000
-                },
-
-
-                new IcoAccount
-                {
-                    Address = "1Ab3hiGuyMNNyKPnvTYmq4DQajgaYS5WVL",
-                    Balance = 1000000
                 }
+
+
             };
 
             return list;
