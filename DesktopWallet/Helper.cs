@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using Newtonsoft.Json;
-using GrpcService;
 
 namespace DesktopWallet
 {
@@ -87,17 +83,6 @@ namespace DesktopWallet
             }
 
 
-            //Create transaction
-            //var newTrx = new Transaction()
-            //{
-            //    TimeStamp = DateTime.Now.Ticks,
-            //    Sender = sender,
-            //    Recipient = recipient,
-            //    Amount = amount,
-            //    Fee = fee
-            //};
-
-            //Transaction.AddToPool(newTrx);
             Console.Clear();
             Console.WriteLine("\n\n\n\nHoree, transaction added to transaction pool!.");
             Console.WriteLine("Sender: {0}", sender);
@@ -106,25 +91,7 @@ namespace DesktopWallet
             Console.WriteLine("Fee: {0}", fee);
         }
 
-        internal static void ShowHistory()
-        {
-            Console.WriteLine("ShowHistory");
-        }
-
-        internal static void ShowBalance()
-        {
-            Console.WriteLine("ShowBalance");
-        }
-
-        internal static void SendCoin()
-        {
-            Console.WriteLine("Send Coin");
-        }
-
-        internal static void Restore()
-        {
-            Console.WriteLine("Restre Wallet");
-        }
+  
 
         internal static void Create()
         {
@@ -132,78 +99,12 @@ namespace DesktopWallet
             Console.Clear();
             Console.WriteLine("\n\n\n\nCreate Account");
             Console.WriteLine("======================");
-
-
-            Console.WriteLine("Please enter  3 digit number!:");
-
-            string strPin = Console.ReadLine();
-            try
-            {
-                var temp = float.Parse(strPin);
-                var id = Utils.CreateID();
-                string secreet = strPin + '-' + id;
-                Wallet.Create(0);
-
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("\nError! You have inputted the wrong value for the PIN! {0}", e.Message);
-                return;
-            }
-
-
           
-        }
-
-
-        //'Google.Protobuf.Collections.RepeatedField<grpcservice.Protos.BlockModel>' to 'System.Collections.Generic.List<grpcservice.Protos.BlockModel>'
-        public static void DoShowBlockchainXXX(Google.Protobuf.Collections.RepeatedField<BlockModel> blocks)
-        {
-            Console.Clear();
-            Console.WriteLine("\n\n\nBlockchain Explorer");
-            Console.WriteLine("Time: {0}", DateTime.Now);
-            Console.WriteLine("======================");
-
-
-            foreach (var block in blocks)
-            {
-                //Console.WriteLine("ID          :{0}", block.ID);
-                Console.WriteLine("Height      : {0}", block.Height);
-                Console.WriteLine("Timestamp   : {0}", block.TimeStamp.ConvertToDateTime());
-                Console.WriteLine("Prev. Hash  : {0}", block.PrevHash);
-                Console.WriteLine("Hash        : {0}", block.Hash);
-
-
-
-                if (block.Height == 1)
-                {
-                    Console.WriteLine("Transactions : {0}", block.Transactions);
-                }
-                else
-                {
-                    var transactions = JsonConvert.DeserializeObject<List<TrxModel>>(block.Transactions);
-                    Console.WriteLine("Transactions:");
-                    foreach (TrxModel trx in transactions)
-                    {
-                        Console.WriteLine("   Timestamp   : {0}", trx.TimeStamp.ConvertToDateTime());
-                        Console.WriteLine("   Sender      : {0}", trx.Sender);
-                        Console.WriteLine("   Recipient   : {0}", trx.Recipient);
-                        Console.WriteLine("   Amount      : {0}", trx.Amount.ToString("N", CultureInfo.InvariantCulture));
-                        Console.WriteLine("   Fee         : {0}", trx.Fee.ToString("N4", CultureInfo.InvariantCulture));
-                        Console.WriteLine("   - - - - - - ");
-
-                    }
-                }
-
-
-                Console.WriteLine("--------------\n");
-
-            }
-
+            Wallet.Create();
 
         }
 
- 
+
     }
 
 

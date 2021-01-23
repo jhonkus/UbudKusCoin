@@ -9,13 +9,13 @@
     <PackageReference Include="Grpc.Net.Client" Version="2.34.0" />
     <PackageReference Include="Grpc.Net.Client.Web" Version="2.34.0" />
     <PackageReference Include="Google.Protobuf" Version="3.14.0" />
-    <PackageReference Include="Grpc.Tools" Version="2.34.0">
+    <PackageReference Include="Grpc.Tools" Version="2.35.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="NBitcoin" Version="5.0.69" />
     <PackageReference Include="LiteDB" Version="5.0.10" />
+    <PackageReference Include="starkbank-ecdsa" Version="1.2.1" />
   </ItemGroup>
   <ItemGroup>
     <Protobuf Include="Protos\bchain.proto" GrpcServices="Client" />

@@ -1,8 +1,9 @@
-using NBitcoin;
+using EllipticCurve;
+
 
 namespace DesktopWallet {
     public class KeyPair {
-        public ExtKey PrivateKey { set; get; }
-        public ExtPubKey PublicKey { set; get; }
+        public PrivateKey PrivateKey { set; get; }
+        public PublicKey PublicKey { set; get; }
     }
 }        

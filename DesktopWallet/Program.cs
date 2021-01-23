@@ -13,7 +13,8 @@ namespace DesktopWallet
         static async Task Main(string[] args)
         {
 
-            var serverAddress = "https://51.15.211.115:8080";
+            //var serverAddress = "https://51.15.211.115:8080"
+            var serverAddress = "https://localhost:8080";
             GrpcChannel channel;
             BChainServiceClient bcservice;
 
@@ -22,7 +23,7 @@ namespace DesktopWallet
             {
                 AppContext.SetSwitch(
                     "System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
-                serverAddress = "http://51.15.211.115:8080";
+                serverAddress = "http://localhost:8080";
             }
 
             channel = GrpcChannel.ForAddress(serverAddress, new GrpcChannelOptions

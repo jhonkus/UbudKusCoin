@@ -2,6 +2,7 @@
 using System;
 using System.Security.Cryptography;
 using System.Text;
+using EllipticCurve;
 using GrpcService;
 using Newtonsoft.Json;
 
@@ -41,11 +42,6 @@ namespace DesktopWallet
 
         }
 
-        public static string CreateID()
-        {
-            Guid g = Guid.NewGuid();
-            return g.ToString();
-        }
 
         public static string GetTransactionHash(TrxInput input, TrxOutput output)
         {
@@ -53,12 +49,26 @@ namespace DesktopWallet
             return trxId;
         }
 
-
-        public static string CreteSignature(string hash, KeyPair keyPair)
+        public static string ConvertToHexString(this byte[] ba)
         {
-            var signature = keyPair.PrivateKey.PrivateKey.SignMessage(hash);
-            Console.WriteLine("trx signature: {0}", signature);
-            return signature;
+            StringBuilder hex = new StringBuilder(ba.Length * 2);
+            foreach (byte b in ba)
+                hex.AppendFormat("{0:x2}", b);
+            return hex.ToString();
+        }
+        public static byte[] ConvertHexStringToByteArray(string hex)
+        {
+            int NumberChars = hex.Length;
+            byte[] bytes = new byte[NumberChars / 2];
+            for (int i = 0; i < NumberChars; i += 2)
+                bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+            return bytes;
+        }
+
+        public static string MakeAddress(PublicKey publicKey)
+        {
+            byte[] hash = SHA256.Create().ComputeHash(publicKey.toString());
+            return "UKC_" + Convert.ToBase64String(hash);
         }
 
     }

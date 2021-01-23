@@ -66,7 +66,7 @@ namespace DesktopWallet
                         break;
 
                     case 5:
-                        Helper.ShowHistory();
+                        DoGetTransactionHistory();
                         break;
 
 
@@ -109,7 +109,7 @@ namespace DesktopWallet
 
         }
 
-        private void DoSendCoin()
+        private void  DoSendCoin()
         {
             Console.Clear();
             Console.WriteLine("\n\n\n\nTransfer Coin");
@@ -166,24 +166,26 @@ namespace DesktopWallet
                 return;
             }
 
-            // validating fee
-            // asume max fee is 50% of amount
-            if (fee > (0.5 * amount))
-            {
-                Console.WriteLine("\nError! You have inputted the fee to high, max fee 50% of amount!");
-                return;
-            }
+            Console.WriteLine("=== amount: {0}", amount);
+            Console.WriteLine("=== fee: {0}", fee);
 
             //get sender balance
-            //var senderBalance = Transaction.GetBalance(sender);
+            var response = service.GetBalance(new AccountRequest
+            {
+                Address = sender
+            });
 
-            // validate amount and fee
-            //if ((amount + fee) > senderBalance)
-            //{
-            //    Console.WriteLine("\nError! Sender ({0}) don't have enough balance!", sender);
-            //    Console.WriteLine("Sender ({0}) balance is {1}", sender, senderBalance);
-            //    return;
-            //}
+            var senderBalance = response.Balance;
+       
+            Console.WriteLine("=== SenderBalane: {0}", senderBalance);
+
+            //validate amount and fee
+            if ((amount + fee) > senderBalance)
+            {
+                Console.WriteLine("\nError! Sender ({0}) don't have enough balance!", sender);
+                Console.WriteLine("Sender ({0}) balance is {1}", sender, senderBalance);
+                return;
+            }
 
             var trxin = new TrxInput
             {
@@ -199,33 +201,40 @@ namespace DesktopWallet
             };
 
             var trxHash = Utils.GetTransactionHash(trxin, trxOut);
-            var signature = Utils.CreteSignature(trxHash, Wallet.CurrentKeypair);
+            var signature = Wallet.Sign(trxHash);
+
             trxin.Signature = signature;
 
             var sendRequest = new SendRequest
             {
                 TrxId = trxHash,
+                PublicKey = Wallet.GetPublicKeyHex(),
                 TrxInput = trxin,
                 TrxOutput = trxOut
             };
 
-            var strTrx = JsonConvert.SerializeObject(sendRequest);
-            Console.WriteLine("send request: {0}", strTrx);
-
-            var response = service.SendCoin(sendRequest);
-
-            if (response.Result.ToLower() == "success")
+            try
             {
-              //  Console.Clear();
-                Console.WriteLine("\n\n\n\nHoree, transaction added to transaction pool!.");
-                Console.WriteLine("Sender: {0}", sender);
-                Console.WriteLine("Recipient {0}", recipient);
-                Console.WriteLine("Amount: {0}", amount);
-                Console.WriteLine("Fee: {0}", fee);
+                var responseSend = service.SendCoin(sendRequest);
+
+                if (responseSend.Result.ToLower() == "success")
+                {
+                    //  Console.Clear();
+                    Console.WriteLine("\n\n\n\nHoree, transaction added to transaction pool!.");
+                    Console.WriteLine("Sender: {0}", sender);
+                    Console.WriteLine("Recipient {0}", recipient);
+                    Console.WriteLine("Amount: {0}", amount);
+                    Console.WriteLine("Fee: {0}", fee);
+                }
+                else
+                {
+                    Console.WriteLine("Error: {0}", responseSend.Result);
+                }
+
             }
-            else
+            catch(Exception e)
             {
-                Console.WriteLine("Error: {0}", response.Result);
+                Console.WriteLine("Error: {0}", e.Message);
             }
        
         }
@@ -234,12 +243,12 @@ namespace DesktopWallet
         {
             Console.Clear();
             Console.WriteLine("Restore Account");
-            Console.WriteLine("Please enter 12 Sheed Phrase:");
-            string sheed = Console.ReadLine();
+            Console.WriteLine("Please enter Screet number:");
+            string screet = Console.ReadLine();
 
-            if (string.IsNullOrEmpty(sheed))
+            if (string.IsNullOrEmpty(screet))
             {
-                Console.WriteLine("\n\nError, Please input 12 words sheed phrase!\n");
+                Console.WriteLine("\n\nError, Please input secreet number!\n");
                 return;
             }
 
@@ -248,15 +257,15 @@ namespace DesktopWallet
                 Console.Clear();
                 Console.WriteLine("\n\n\nYour Account");
                 Console.WriteLine("======================");
-                Account acc = Wallet.Restore(sheed);
+                Account acc = Wallet.Restore(screet);
 
                 Console.WriteLine("\nADDRESS:\n{0}", acc.Address);
                 Console.WriteLine("\nPUBLIC KEY:\n{0}", acc.PublicKey);
-                Console.WriteLine("\n12 Words SHEED PHRASE:\n{0}", Wallet.Mnemonic);
+                Console.WriteLine("\nSECREET NUMBER:\n{0}", Wallet.SECREET_NUMBER);
                 Console.WriteLine("\n - - - - - - - - - - - - - - - - - - - - - - ");
-                Console.WriteLine("*** save sheed phrase in safe place!     ***");
-                Console.WriteLine("*** use sheed phrase to restore account! ***");
-                Console.WriteLine("*** don't tell any one!                  ***");
+                Console.WriteLine("*** save secreet number!                   ***");
+                Console.WriteLine("*** use secreet number to restore account! ***");
+               
 
             }
             catch (Exception e)
@@ -273,15 +282,15 @@ namespace DesktopWallet
             try
             {
 
-                Account acc =  Wallet.Create(0);
+                Account acc =  Wallet.Create();
 
                 Console.WriteLine("\nADDRESS:\n{0}", acc.Address);
                 Console.WriteLine("\nPUBLIC KEY:\n{0}", acc.PublicKey);
-                Console.WriteLine("\n12 Words SHEED PHRASE:\n{0}", Wallet.Mnemonic);
+                Console.WriteLine("\nSECREET NUMBER:\n{0}", Wallet.SECREET_NUMBER);
                 Console.WriteLine("\n - - - - - - - - - - - - - - - - - - - - - - ");
-                Console.WriteLine("*** save sheed phrase in safe place!     ***");
-                Console.WriteLine("*** use sheed phrase to restore account! ***");
-                Console.WriteLine("*** don't tell any one!                  ***");
+                Console.WriteLine("*** save secreet number!                   ***");
+                Console.WriteLine("*** use secreet number to restore account! ***");
+
 
             }
             catch (Exception e)
@@ -299,6 +308,53 @@ namespace DesktopWallet
             Environment.Exit(0);
         }
 
+        private void DoGetTransactionHistory()
+        {
+            string address = Wallet.GetAddress();
+            if (string.IsNullOrEmpty(address))
+            {
+                Console.WriteLine("\n\nError, Address empty, please create account first!\n");
+                return;
+            }
+
+            Console.Clear();
+            Console.WriteLine("Transaction History for {0}", address);
+            Console.WriteLine("Time: {0}", DateTime.Now);
+            Console.WriteLine("======================");
+
+            try
+            {
+                var response = service.GetTransactions(new AccountRequest
+                {
+                    Address = address
+                });
+
+
+                if (response != null && response.Transactions != null)
+                {
+                    foreach (var trx in response.Transactions)
+                    {
+                        Console.WriteLine("ID          : {0}", trx.TrxID);
+                        Console.WriteLine("Timestamp   : {0}", trx.TimeStamp.ConvertToDateTime());
+                        Console.WriteLine("Sender      : {0}", trx.Sender);
+                        Console.WriteLine("Recipient   : {0}", trx.Recipient);
+                        Console.WriteLine("Amount      : {0}", trx.Amount.ToString("N", CultureInfo.InvariantCulture));
+                        Console.WriteLine("Fee         : {0}", trx.Fee.ToString("N4", CultureInfo.InvariantCulture));
+                        Console.WriteLine("--------------\n");
+
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("\n---- no record found! ---");
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+        }
 
         private  void DoGetBalance()
         {
@@ -380,12 +436,12 @@ namespace DesktopWallet
 
 
 
-                    if (block.Height == 1)
-                    {
-                        Console.WriteLine("Transactions : {0}", block.Transactions);
-                    }
-                    else
-                    {
+                    //if (block.Height == 1)
+                    //{
+                    //    Console.WriteLine("Transactions : {0}", block.Transactions);
+                    //}
+                    //else
+                    //{
                         var transactions = JsonConvert.DeserializeObject<List<TrxModel>>(block.Transactions);
                         Console.WriteLine("Transactions:");
                         foreach (var trx in transactions)
@@ -398,7 +454,7 @@ namespace DesktopWallet
                             Console.WriteLine("   - - - - - - ");
 
                         }
-                    }
+                    //}
 
 
                     Console.WriteLine("--------------\n");

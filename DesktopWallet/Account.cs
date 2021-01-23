@@ -9,7 +9,7 @@ namespace DesktopWallet
         public string Address {set; get;}
         public string PublicKey {set; get;}
         public int Balance {set; get;}
-        public int Path { set; get; }
+    
 
         public static ILiteCollection<Account> GetAll()
         {
