@@ -4,8 +4,8 @@ option csharp_namespace = "GrpcService";
 
 
 service BChainService {
-  rpc GenesisBlock(EmptyRequest) returns (TrxResponse);
-  rpc LastBlock(EmptyRequest)  returns (TrxResponse);
+  rpc GenesisBlock(EmptyRequest) returns (BlockResponse);
+  rpc LastBlock(EmptyRequest)  returns (BlockResponse);
   rpc SendCoin(SendRequest)  returns (TrxResponse);
   rpc GetBlocks(BlockRequest) returns (BlocksResponse);
   rpc GetBalance(AccountRequest) returns (BalanceResponse);
@@ -50,6 +50,10 @@ message BlockRequest{
 
 message BlocksResponse {
   repeated BlockModel blocks = 1;
+}
+
+message BlockResponse {
+  BlockModel block = 1;
 }
 
 message TransactionsResponse {

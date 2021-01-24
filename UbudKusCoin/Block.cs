@@ -60,10 +60,9 @@ namespace Main
 
         public static string GetHash(long timestamp, string lastHash, string transactions)
         {
-            SHA256 sha256 = SHA256.Create();
             var strSum = timestamp + lastHash + transactions;
             byte[] sumBytes = Encoding.ASCII.GetBytes(strSum);
-            byte[] hashBytes = sha256.ComputeHash(sumBytes);
+            byte[] hashBytes = SHA256.Create().ComputeHash(sumBytes);
             return Convert.ToBase64String(hashBytes);
         }
 

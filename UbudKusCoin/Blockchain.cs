@@ -11,6 +11,9 @@
 
             public Blockchain()
             {
+                // db
+                DbAccess.Initialize();
+
                 Initialize();
             }
 
@@ -90,7 +93,7 @@
                 blocks.Insert(block);
             }
 
-            public static void CreateBlock()
+            public static void BuildNewBlock()
             {
 
                 var trxPool = Transaction.GetPool();

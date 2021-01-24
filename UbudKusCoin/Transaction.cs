@@ -46,8 +46,9 @@ namespace Main
         public static IEnumerable<Transaction> GetTransactions(string address)
         {
             var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
-            coll.EnsureIndex(x => x.Sender);
-            coll.EnsureIndex(x => x.Recipient);
+            coll.EnsureIndex(x => x.TimeStamp);
+            //coll.EnsureIndex(x => x.Sender);
+            //coll.EnsureIndex(x => x.Recipient);
             var transactions = coll.Find(x => x.Sender == address || x.Recipient == address);
             return transactions;
         }

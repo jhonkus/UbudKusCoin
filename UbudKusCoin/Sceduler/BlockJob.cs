@@ -1,6 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Coravel.Invocable;
 using Main;
 
@@ -10,10 +8,7 @@ namespace UbudKusCoin.Sceduler
     {
         public Task Invoke()
         {
- 
-
-            Blockchain.CreateBlock();
-
+            Blockchain.BuildNewBlock();
             return Task.CompletedTask;
         }
     }

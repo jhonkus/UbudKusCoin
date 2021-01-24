@@ -65,26 +65,16 @@ namespace Main
 
         public static string GenHash(string data)
         {
-            var sha256 = SHA256.Create();
             byte[] bytes = Encoding.ASCII.GetBytes(data);
-            byte[] hash = sha256.ComputeHash(bytes);
+            byte[] hash = SHA256.Create().ComputeHash(bytes);
             return Convert.ToBase64String(hash);
         }
 
         public static string GetTrxHash(Transaction input)
         {
             var data = input.TimeStamp + input.Sender + input.Amount + input.Fee + input.Recipient;
-            byte[] bytes = Encoding.ASCII.GetBytes(data);
-            byte[] hash = SHA256.Create().ComputeHash(bytes);
-            return Convert.ToBase64String(hash);
+            return GenHash(data);
         }
-
-        public static string MakeAddress(PublicKey publicKey)
-        {
-            byte[] hash = SHA256.Create().ComputeHash(publicKey.toString());
-            return "UKC_" + Convert.ToBase64String(hash);
-        }
-
 
     }
 

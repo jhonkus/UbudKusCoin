@@ -12,22 +12,12 @@ namespace Main
         public static void Main(string[] args)
         {
 
-            // Initilize db
-            DbAccess.Initialize();
-
-            /**
-             * remove all record in all table
-             * uncomment this
-            **/
-            // DbAccess.ClearDB();
-
-
-
-            // Make blockchain
+            // blockchain
             _ = new Blockchain();
+
+            // grpc
             IHost host = CreateHostBuilder(args).Build();
             host.Services.UseScheduler(scheduler => {
-                // Easy peasy 👇
                 scheduler
                     .Schedule<BlockJob>()
                     .EveryMinute();
@@ -40,17 +30,20 @@ namespace Main
            Host.CreateDefaultBuilder(args)
           .ConfigureWebHostDefaults(webBuilder =>
           {
-              
+
+              // if macos
               if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
               {
                   
                   webBuilder.ConfigureKestrel(options =>
                   {
                       // Setup a HTTP/2 endpoint without TLS.
-                      options.ListenLocalhost(8080, o => o.Protocols =
+                      options.ListenLocalhost(5002, o => o.Protocols =
                           HttpProtocols.Http2);
                   });
               }
+
+              // start
               webBuilder.UseStartup<Startup>();
 
           });
