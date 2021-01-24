@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
 using GrpcService;
-using Newtonsoft.Json;
 using static GrpcService.BChainService;
 
 namespace Main
@@ -11,7 +9,7 @@ namespace Main
     public class ConsoleWallet
     {
         readonly BChainServiceClient service;
-        public Account WalletConsole { get; set; }
+        public Account account;
         public ConsoleWallet(BChainServiceClient service)
         {
             this.service = service;
@@ -21,7 +19,7 @@ namespace Main
         private void MenuItem()
         {
 
-            if (WalletConsole == null)
+            if (account == null)
             {
                 Console.Clear();
                 Console.WriteLine("\n\n\n");
@@ -40,7 +38,7 @@ namespace Main
                 Console.WriteLine("\n\n\n");
                 Console.WriteLine("                    UBUDKUS COIN WALLET ");
                 Console.WriteLine("============================================================");
-                Console.WriteLine("  Address: {0}", WalletConsole.GetAddress());
+                Console.WriteLine("  Address: {0}", account.GetAddress());
                 Console.WriteLine("============================================================");
                 Console.WriteLine("                    1. Create Account");
                 Console.WriteLine("                    2. Restore Account");
@@ -127,7 +125,7 @@ namespace Main
             Console.WriteLine("======================");
 
             Console.WriteLine("Sender address:");
-            string sender = WalletConsole.GetAddress();
+            string sender = account.GetAddress();
             Console.WriteLine(sender);
 
 
@@ -190,7 +188,7 @@ namespace Main
 
             var trxin = new TrxInput
             {
-                SenderAddress = WalletConsole.GetAddress(),
+                SenderAddress = account.GetAddress(),
                 TimeStamp = DateTime.Now.Ticks
             };
 
@@ -202,14 +200,14 @@ namespace Main
             };
 
             var trxHash = Utils.GetTransactionHash(trxin, trxOut);
-            var signature = WalletConsole.CreateSignature(trxHash);
+            var signature = account.CreateSignature(trxHash);
 
             trxin.Signature = signature;
 
             var sendRequest = new SendRequest
             {
                 TrxId = trxHash,
-                PublicKey = WalletConsole.GetPubKeyHex(),
+                PublicKey = account.GetPubKeyHex(),
                 TrxInput = trxin,
                 TrxOutput = trxOut
             };
@@ -256,7 +254,7 @@ namespace Main
             }
 
 
-            WalletConsole = new Account(screet);
+            account = new Account(screet);
             WalletInfo();
 
          
@@ -265,7 +263,7 @@ namespace Main
         private void DoCreateAccount()
         {
       
-            WalletConsole = new Account();
+            account = new Account();
             WalletInfo();
            
         }
@@ -275,9 +273,9 @@ namespace Main
             Console.Clear();
             Console.WriteLine("\n\n\nYour Wallet");
             Console.WriteLine("======================");
-            Console.WriteLine("\nADDRESS:\n{0}", WalletConsole.GetAddress());
-            Console.WriteLine("\nPUBLIC KEY:\n{0}", WalletConsole.PubKey);
-            Console.WriteLine("\nSECREET NUMBER:\n{0}", WalletConsole.SecretNumber);
+            Console.WriteLine("\nADDRESS:\n{0}", account.GetAddress());
+            Console.WriteLine("\nPUBLIC KEY:\n{0}", account.PubKey);
+            Console.WriteLine("\nSECREET NUMBER:\n{0}", account.SecretNumber);
             Console.WriteLine("\n - - - - - - - - - - - - - - - - - - - - - - ");
             Console.WriteLine("*** save secreet number!                   ***");
             Console.WriteLine("*** use secreet number to restore account! ***");
@@ -293,7 +291,7 @@ namespace Main
 
         private void DoGetTransactionHistory()
         {
-            string address = WalletConsole.GetAddress();
+            string address = account.GetAddress();
             if (string.IsNullOrEmpty(address))
             {
                 Console.WriteLine("\n\nError, Address empty, please create account first!\n");
@@ -342,7 +340,7 @@ namespace Main
         private void DoGetBalance()
         {
 
-            string address = WalletConsole.GetAddress();
+            string address = account.GetAddress();
             if (string.IsNullOrEmpty(address))
             {
                 Console.WriteLine("\n\nError, Address empty, please create account first!\n");
