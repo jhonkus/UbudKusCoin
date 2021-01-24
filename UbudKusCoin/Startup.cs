@@ -39,17 +39,20 @@ namespace Main
             }
 
             app.UseRouting();
-            app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
-            app.UseCors();
+           // app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
+            //app.UseCors();
             //app.UseGrpcWeb(); // Must be added between UseRouting and UseEndpoints
             app.UseEndpoints(endpoints =>
             {
-                //endpoints.MapGrpcService<BlockService>().EnableGrpcWeb().RequireCors("AllowAll");
-                endpoints.MapGrpcService<BlockchainService>().RequireCors("AllowAll"); ;
+                endpoints.MapGrpcService<BlockchainService>();
+                //endpoints.MapGrpcService<BlockchainService>().EnableGrpcWeb().RequireCors("AllowAll");
+                //endpoints.MapGrpcService<BlockchainService>().RequireCors("AllowAll"); ;
 
                 endpoints.MapGet("/", async context =>
                 {
-                    await context.Response.WriteAsync("Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
+                    await context.Response.WriteAsync(
+                        "Communication with gRPC endpoints" +
+                        " must be made through a gRPC client.");
                 });
             });
         }

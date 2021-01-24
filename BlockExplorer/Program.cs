@@ -19,10 +19,12 @@ namespace Main
                 serverAddress = "http://localhost:5002";
             }
 
-            GrpcChannel channel = GrpcChannel.ForAddress(serverAddress, new GrpcChannelOptions
-            {
-                HttpHandler = new GrpcWebHandler(new HttpClientHandler())
-            });
+            GrpcChannel channel = GrpcChannel.ForAddress(serverAddress);
+
+            //GrpcChannel channel = GrpcChannel.ForAddress(serverAddress, new GrpcChannelOptions
+            //{
+            //    HttpHandler = new GrpcWebHandler(new HttpClientHandler())
+            //});
             BChainServiceClient bcservice = new BChainServiceClient(channel);
 
             _ = new ConsoleExplorer(bcservice);
