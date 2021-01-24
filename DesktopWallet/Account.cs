@@ -1,93 +1,48 @@
 ﻿using System;
 using System.Numerics;
+using System.Security.Cryptography;
 using EllipticCurve;
 
-namespace DesktopWallet
+namespace Main
 {
 
-    public static class Wallet
+    public  class Account
     {
-        public static BigInteger SECREET_NUMBER { set; get; }
-        public static string STR_PEM { set; get; }
+        public BigInteger SecretNumber { set; get; }
+        public PrivateKey PrivKey { set; get; }
+        public PublicKey PubKey { set; get; }
 
-        public static KeyPair CurrentKeypair { get; set; }
-
-        private static Account CreateAccount()
+        public Account(string screet="")
         {
-               var acc = new Account
-            {
-                Name = "Account 1",
-                PublicKey = GetPublicKeyHex(),
-                Address = GetAddress(),
-                Balance = 0
-            };
-
-            return acc;
-        }
-        public static Account Restore(string secreet)
-        {
-            CurrentKeypair = GenerateKeyPair(secreet);
-         
-            return CreateAccount();
-        }
-
-
-        public static Account Create()
-        {
-            CurrentKeypair = GenerateKeyPair();
-            return CreateAccount();
-        }
-
-        private static KeyPair GenerateKeyPair(string screet="")
-        {
-
-            PrivateKey privateKey = new PrivateKey();
             if (screet != "")
             {
-                privateKey = new PrivateKey("secp256k1", BigInteger.Parse(screet));
+                PrivKey = new PrivateKey("secp256k1", BigInteger.Parse(screet));
             }
-            
-            SECREET_NUMBER = privateKey.secret;
-            STR_PEM = privateKey.toPem();
-            PublicKey publicKey = privateKey.publicKey();
-
-
-            var keyPair = new KeyPair()
+            else
             {
-                PrivateKey = privateKey,
-                PublicKey = publicKey
-            };
-            return keyPair;
+                PrivKey = new PrivateKey();
+            }
+            SecretNumber = PrivKey.secret;
+            PubKey = PrivKey.publicKey();
         }
 
-        public static string GetPublicKeyHex()
+        public string GetPubKeyHex()
         {
-            if (CurrentKeypair == null)
-            {
-                return null;
-            }
-            return CurrentKeypair.PublicKey.toString().ConvertToHexString();
+            return Convert.ToHexString(PubKey.toString());
         }
 
-        public static string GetAddress()
+        public string GetAddress()
         {
-            if (CurrentKeypair == null)
-            {
-                return "- - - - - - - - - -";
-            }
-            return Utils.MakeAddress(CurrentKeypair.PublicKey); ;
+            byte[] hash = SHA256.Create().ComputeHash(PubKey.toString());
+            return "UKC_" + Convert.ToBase64String(hash);
         }
 
-
-
-        public static string Sign(string dataHash)
+        public string CreateSignature(string message)
         {
-            Signature signature = Ecdsa.sign(dataHash, CurrentKeypair.PrivateKey);
-            Console.WriteLine(signature.toBase64());
+            Signature signature = Ecdsa.sign(message, PrivKey);
             return signature.toBase64();
         }
 
-      
 
     }
 }

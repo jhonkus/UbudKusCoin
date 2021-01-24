@@ -1,42 +1,30 @@
 ﻿using System;
 using System.Net.Http;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using Grpc.Net.Client;
 using Grpc.Net.Client.Web;
 using static GrpcService.BChainService;
 
-namespace DesktopWallet
+namespace Main
 {
     class Program
     {
-        static async Task Main(string[] args)
+        static void Main()
         {
-
-            //var serverAddress = "https://51.15.211.115:8080"
-            var serverAddress = "https://localhost:8080";
-            GrpcChannel channel;
-            BChainServiceClient bcservice;
-
-
+        
+            var serverAddress = "https://localhost:5002";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 AppContext.SetSwitch(
                     "System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
-                serverAddress = "http://localhost:8080";
+                serverAddress = "http://localhost:5002";
             }
 
-            channel = GrpcChannel.ForAddress(serverAddress, new GrpcChannelOptions
+            GrpcChannel channel = GrpcChannel.ForAddress(serverAddress, new GrpcChannelOptions
             {
                 HttpHandler = new GrpcWebHandler(new HttpClientHandler())
             });
-            bcservice = new BChainServiceClient(channel);
-
-
-
-            // DbAccess.Initialize();
-            // show wallet
-
+            BChainServiceClient bcservice = new BChainServiceClient(channel);
             _ = new ConsoleWallet(bcservice);
         }
 

@@ -20,5 +20,5 @@
   <ItemGroup>
     <Protobuf Include="Protos\bchain.proto" GrpcServices="Client" />
   </ItemGroup>
-  
+
 </Project>
