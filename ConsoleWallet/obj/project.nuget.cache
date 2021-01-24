@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "dgSpecHash": "pkTwe9+81nru1kD+YmzWxHMei6vGt1aZH15Kni9lEL/hW9sNSOoZlH6yWQHUXTT+W5/PSuT3jC2QcgC5HgJLcw==",
+  "success": true,
+  "projectFilePath": "/Volumes/Data/NET_PROJECTS/UbudKusCoin/DesktopWallet/ConsoleWallet.csproj",
+  "expectedPackageFiles": [
+    "/Users/putukusuma/.nuget/packages/google.protobuf/3.14.0/google.protobuf.3.14.0.nupkg.sha512",
+    "/Users/putukusuma/.nuget/packages/grpc.core.api/2.34.0/grpc.core.api.2.34.0.nupkg.sha512",
+    "/Users/putukusuma/.nuget/packages/grpc.net.client/2.34.0/grpc.net.client.2.34.0.nupkg.sha512",
+    "/Users/putukusuma/.nuget/packages/grpc.net.client.web/2.34.0/grpc.net.client.web.2.34.0.nupkg.sha512",
+    "/Users/putukusuma/.nuget/packages/grpc.net.common/2.34.0/grpc.net.common.2.34.0.nupkg.sha512",
+    "/Users/putukusuma/.nuget/packages/grpc.tools/2.35.0/grpc.tools.2.35.0.nupkg.sha512",
+    "/Users/putukusuma/.nuget/packages/litedb/5.0.10/litedb.5.0.10.nupkg.sha512",
+    "/Users/putukusuma/.nuget/packages/microsoft.extensions.logging.abstractions/3.0.3/microsoft.extensions.logging.abstractions.3.0.3.nupkg.sha512",
+    "/Users/putukusuma/.nuget/packages/newtonsoft.json/12.0.3/newtonsoft.json.12.0.3.nupkg.sha512",
+    "/Users/putukusuma/.nuget/packages/starkbank-ecdsa/1.2.1/starkbank-ecdsa.1.2.1.nupkg.sha512",
+    "/Users/putukusuma/.nuget/packages/system.diagnostics.diagnosticsource/4.5.1/system.diagnostics.diagnosticsource.4.5.1.nupkg.sha512",
+    "/Users/putukusuma/.nuget/packages/system.memory/4.5.3/system.memory.4.5.3.nupkg.sha512",
+    "/Users/putukusuma/.nuget/packages/system.runtime.compilerservices.unsafe/4.5.2/system.runtime.compilerservices.unsafe.4.5.2.nupkg.sha512"
+  ],
+  "logs": []
+}

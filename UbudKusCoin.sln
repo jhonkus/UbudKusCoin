@@ -8,7 +8,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.gitignore = .gitignore
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleWallet", "DesktopWallet\ConsoleWallet.csproj", "{BB617FED-A809-472E-8CEB-6AA91074214E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleWallet", "ConsoleWallet\ConsoleWallet.csproj", "{BB617FED-A809-472E-8CEB-6AA91074214E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlockExplorer", "BlockExplorer\BlockExplorer.csproj", "{E822DC99-5125-4477-8F20-230C283E344B}"
 EndProject
