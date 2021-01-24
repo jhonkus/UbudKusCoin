@@ -23,15 +23,12 @@
     <PackageReference Include="Coravel" Version="4.0.2" />
     <PackageReference Include="starkbank-ecdsa" Version="1.2.1" />
   </ItemGroup>
-    
-    
-    
+
   <ItemGroup>
     <Protobuf Include="Grpc\Protos\bchain.proto" GrpcServices="Server" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Sceduler\" />
-    <Folder Include="Client\" />
   </ItemGroup>
 </Project>
