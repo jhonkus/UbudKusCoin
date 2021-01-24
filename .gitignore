@@ -1,16 +1,18 @@
-﻿/UbudKusCoin/obj/*
-/UbudKusCoin/bin/
+﻿/UbudKusCoin/obj
+/UbudKusCoin/bin
 /UbudKusCoin/*.db
+
+/ConsoleWallet/bin
+/ConsoleWallet/obj
+
+/BlockExplorer/bin
+/BlockExplorer/obj
+
 .vs
 /UnitTest/bin
 /UnitTest/obj
 .history
 .vscode
-/DesktopWallet/bin
-/DesktopWallet/obj
-
-/BlockExplorer/bin
-/BlockExplorer/obj
 
 .fake
 .ionide
