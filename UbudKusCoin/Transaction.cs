@@ -65,7 +65,7 @@ namespace Main
                 var newTrx = new Transaction()
                 {
                     TimeStamp = timeStamp,
-                    Sender = "coinbase",
+                    Sender = "ico",
                     Recipient = acc.Address,
                     Amount = acc.Balance,
                     Fee = 0.0f
