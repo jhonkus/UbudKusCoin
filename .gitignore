@@ -9,5 +9,8 @@
 /DesktopWallet/bin
 /DesktopWallet/obj
 
+/BlockExplorer/bin
+/BlockExplorer/obj
+
 .fake
 .ionide
