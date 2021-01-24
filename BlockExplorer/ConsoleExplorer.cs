@@ -20,18 +20,18 @@ namespace Main
         private void MenuItem()
         {
 
-        
-                Console.Clear();
-                Console.WriteLine("\n\n\n");
-                Console.WriteLine("                    UBUDKUS COIN EXPLORER ");
-                Console.WriteLine("============================================================");
-                Console.WriteLine("                    1. First Block");
-                Console.WriteLine("                    2. Last Block");
-                Console.WriteLine("                    3. Show All Block");
-                Console.WriteLine("                    9. Exit");
-                Console.WriteLine("------------------------------------------------------------");
-                
-            
+
+            Console.Clear();
+            Console.WriteLine("\n\n\n");
+            Console.WriteLine("                    UBUDKUS COIN EXPLORER ");
+            Console.WriteLine("============================================================");
+            Console.WriteLine("                    1. First Block");
+            Console.WriteLine("                    2. Last Block");
+            Console.WriteLine("                    3. Show All Block");
+            Console.WriteLine("                    9. Exit");
+            Console.WriteLine("------------------------------------------------------------");
+
+
         }
 
         private void GetInput()
@@ -89,7 +89,7 @@ namespace Main
 
         }
 
- 
+
         private void ShowLastBlock()
         {
 
@@ -100,23 +100,7 @@ namespace Main
             var response = service.LastBlock(new EmptyRequest());
             var block = response.Block;
 
-            Console.WriteLine("Height      : {0}", block.Height);
-            Console.WriteLine("Timestamp   : {0}", block.TimeStamp.ConvertToDateTime());
-            Console.WriteLine("Prev. Hash  : {0}", block.PrevHash);
-            Console.WriteLine("Hash        : {0}", block.Hash);
-
-            var transactions = JsonConvert.DeserializeObject<List<TrxModel>>(block.Transactions);
-            Console.WriteLine("Transactions:");
-            foreach (var trx in transactions)
-            {
-                Console.WriteLine("   Timestamp   : {0}", trx.TimeStamp.ConvertToDateTime());
-                Console.WriteLine("   Sender      : {0}", trx.Sender);
-                Console.WriteLine("   Recipient   : {0}", trx.Recipient);
-                Console.WriteLine("   Amount      : {0}", trx.Amount.ToString("N", CultureInfo.InvariantCulture));
-                Console.WriteLine("   Fee         : {0}", trx.Fee.ToString("N4", CultureInfo.InvariantCulture));
-                Console.WriteLine("   - - - - - - ");
-
-            }
+            PrintBlock(block);
 
 
             Console.WriteLine("--------------\n");
@@ -134,15 +118,25 @@ namespace Main
             var response = service.GenesisBlock(new EmptyRequest());
             var block = response.Block;
 
+
+            PrintBlock(block);
+
+            Console.WriteLine("--------------\n");
+
+        }
+
+        private static void PrintBlock(BlockModel block)
+        {
             Console.WriteLine("Height      : {0}", block.Height);
             Console.WriteLine("Timestamp   : {0}", block.TimeStamp.ConvertToDateTime());
-            Console.WriteLine("Prev. Hash  : {0}", block.PrevHash);
             Console.WriteLine("Hash        : {0}", block.Hash);
+            Console.WriteLine("Prev. Hash  : {0}", block.PrevHash);
 
             var transactions = JsonConvert.DeserializeObject<List<TrxModel>>(block.Transactions);
             Console.WriteLine("Transactions:");
             foreach (var trx in transactions)
             {
+                Console.WriteLine("   ID          : {0}", trx.TrxID);
                 Console.WriteLine("   Timestamp   : {0}", trx.TimeStamp.ConvertToDateTime());
                 Console.WriteLine("   Sender      : {0}", trx.Sender);
                 Console.WriteLine("   Recipient   : {0}", trx.Recipient);
@@ -151,12 +145,7 @@ namespace Main
                 Console.WriteLine("   - - - - - - ");
 
             }
-
-
-            Console.WriteLine("--------------\n");
-
         }
-
 
         private static async void DoExit()
         {
@@ -211,24 +200,7 @@ namespace Main
 
                 foreach (var block in response.Blocks)
                 {
-                    Console.WriteLine("Height      : {0}", block.Height);
-                    Console.WriteLine("Timestamp   : {0}", block.TimeStamp.ConvertToDateTime());
-                    Console.WriteLine("Prev. Hash  : {0}", block.PrevHash);
-                    Console.WriteLine("Hash        : {0}", block.Hash);
-
-                    var transactions = JsonConvert.DeserializeObject<List<TrxModel>>(block.Transactions);
-                    Console.WriteLine("Transactions:");
-                    foreach (var trx in transactions)
-                    {
-                        Console.WriteLine("   Timestamp   : {0}", trx.TimeStamp.ConvertToDateTime());
-                        Console.WriteLine("   Sender      : {0}", trx.Sender);
-                        Console.WriteLine("   Recipient   : {0}", trx.Recipient);
-                        Console.WriteLine("   Amount      : {0}", trx.Amount.ToString("N", CultureInfo.InvariantCulture));
-                        Console.WriteLine("   Fee         : {0}", trx.Fee.ToString("N4", CultureInfo.InvariantCulture));
-                        Console.WriteLine("   - - - - - - ");
-
-                    }
-
+                    PrintBlock(block);
 
                     Console.WriteLine("--------------\n");
 
