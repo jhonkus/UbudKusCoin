@@ -274,7 +274,7 @@ namespace Main
             Console.WriteLine("\n\n\nYour Wallet");
             Console.WriteLine("======================");
             Console.WriteLine("\nADDRESS:\n{0}", account.GetAddress());
-            Console.WriteLine("\nPUBLIC KEY:\n{0}", account.PubKey);
+            Console.WriteLine("\nPUBLIC KEY:\n{0}", account.GetPubKeyHex());
             Console.WriteLine("\nSECREET NUMBER:\n{0}", account.SecretNumber);
             Console.WriteLine("\n - - - - - - - - - - - - - - - - - - - - - - ");
             Console.WriteLine("*** save secreet number!                   ***");
