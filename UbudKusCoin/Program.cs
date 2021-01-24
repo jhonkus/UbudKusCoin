@@ -17,10 +17,10 @@ namespace Main
 
             // grpc
             IHost host = CreateHostBuilder(args).Build();
-            host.Services.UseScheduler(scheduler => {
-                scheduler
-                    .Schedule<BlockJob>()
-                    .EveryMinute();
+            host.Services.UseScheduler(scheduler =>
+            {
+                scheduler.Schedule<BlockJob>()
+                    .EveryThirtySeconds();
             });
             host.Run();
 
@@ -34,7 +34,7 @@ namespace Main
               // if macos
               if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
               {
-                  
+
                   webBuilder.ConfigureKestrel(options =>
                   {
                       // Setup a HTTP/2 endpoint without TLS.
