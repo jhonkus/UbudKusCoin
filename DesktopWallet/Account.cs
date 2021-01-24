@@ -1,48 +1,93 @@
-using LiteDB;
-
+﻿using System;
+using System.Numerics;
+using EllipticCurve;
 
 namespace DesktopWallet
 {
-    public class Account{
 
-        public string Name { set; get; }
-        public string Address {set; get;}
-        public string PublicKey {set; get;}
-        public int Balance {set; get;}
-    
+    public static class Wallet
+    {
+        public static BigInteger SECREET_NUMBER { set; get; }
+        public static string STR_PEM { set; get; }
 
-        public static ILiteCollection<Account> GetAll()
+        public static KeyPair CurrentKeypair { get; set; }
+
+        private static Account CreateAccount()
         {
-            var coll = DbAccess.DB.GetCollection<Account>(DbAccess.TBL_ACCOUNT);
-            coll.EnsureIndex(x => x.Address);
-            return coll;
-        }
+               var acc = new Account
+            {
+                Name = "Account 1",
+                PublicKey = GetPublicKeyHex(),
+                Address = GetAddress(),
+                Balance = 0
+            };
 
-        public static void Add(Account acc)
-        {
-            var accounts = GetAll();
-            accounts.Insert(acc);
-        }
-
-        public static Account Get(string address)
-        {
-            var coll = DbAccess.DB.GetCollection<Account>(DbAccess.TBL_ACCOUNT);
-            coll.EnsureIndex(x => x.Address);
-            var acc = coll.FindOne(x => x.Address == address);
             return acc;
         }
-
-
-        public static void Update(Account acc)
+        public static Account Restore(string secreet)
         {
-            var accOld = Get(acc.Address);
-            if (accOld!=null)
-            {
-                var coll = DbAccess.DB.GetCollection<Account>(DbAccess.TBL_ACCOUNT);
-                coll.EnsureIndex(x => x.Name);
-                coll.Update(accOld);
-            }
+            CurrentKeypair = GenerateKeyPair(secreet);
+         
+            return CreateAccount();
         }
+
+
+        public static Account Create()
+        {
+            CurrentKeypair = GenerateKeyPair();
+            return CreateAccount();
+        }
+
+        private static KeyPair GenerateKeyPair(string screet="")
+        {
+
+            PrivateKey privateKey = new PrivateKey();
+            if (screet != "")
+            {
+                privateKey = new PrivateKey("secp256k1", BigInteger.Parse(screet));
+            }
+            
+            SECREET_NUMBER = privateKey.secret;
+            STR_PEM = privateKey.toPem();
+            PublicKey publicKey = privateKey.publicKey();
+
+
+            var keyPair = new KeyPair()
+            {
+                PrivateKey = privateKey,
+                PublicKey = publicKey
+            };
+            return keyPair;
+        }
+
+        public static string GetPublicKeyHex()
+        {
+            if (CurrentKeypair == null)
+            {
+                return null;
+            }
+            return CurrentKeypair.PublicKey.toString().ConvertToHexString();
+        }
+
+        public static string GetAddress()
+        {
+            if (CurrentKeypair == null)
+            {
+                return "- - - - - - - - - -";
+            }
+            return Utils.MakeAddress(CurrentKeypair.PublicKey); ;
+        }
+
+
+
+        public static string Sign(string dataHash)
+        {
+            Signature signature = Ecdsa.sign(dataHash, CurrentKeypair.PrivateKey);
+            Console.WriteLine(signature.toBase64());
+            return signature.toBase64();
+        }
+
+      
 
     }
 }
