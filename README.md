@@ -25,3 +25,15 @@ First install .Net Core SDK 5.0
 Open Project with Visual Studio or Monodevelop.
 
 
+Articles:
+
+Part 1
+https://putukusuma.medium.com/developing-simple-crypto-application-using-c-48258c2d4e45
+
+part 2
+https://putukusuma.medium.com/creating-simple-cryptocurrency-using-c-and-net-core-part-2-menu-and-database-4ae842098f55
+
+Part3
+https://putukusuma.medium.com/creating-simple-cryptocurrency-using-c-and-net-core-part-3-wallet-8bbfe0544770
+
+
