@@ -115,28 +115,42 @@ namespace Main
             Console.WriteLine("\n\n\n\nGenesis Block");
             Console.WriteLine("Time: {0}", DateTime.Now);
             Console.WriteLine("======================");
-            var response = service.GenesisBlock(new EmptyRequest());
-            var block = response.Block;
+
+            try
+            {
+                var response = service.GenesisBlock(new EmptyRequest());
+                var block = response.Block;
 
 
-            PrintBlock(block);
+                PrintBlock(block);
 
-            Console.WriteLine("--------------\n");
+                Console.WriteLine("--------------\n");
+            }
+            catch
+            {
+                Console.WriteLine(" error !!!!");
+            }
 
         }
 
         private static void PrintBlock(BlockModel block)
         {
-            Console.WriteLine("Height      : {0}", block.Height);
-            Console.WriteLine("Timestamp   : {0}", block.TimeStamp.ConvertToDateTime());
-            Console.WriteLine("Hash        : {0}", block.Hash);
-            Console.WriteLine("Prev. Hash  : {0}", block.PrevHash);
+            Console.WriteLine("Height        : {0}", block.Height);
+            Console.WriteLine("Timestamp     : {0}", block.TimeStamp.ConvertToDateTime());
+            Console.WriteLine("Hash          : {0}", block.Hash);
+            Console.WriteLine("MerkleRoot    : {0}", block.MerkleRoot);
+            Console.WriteLine("Prev. Hash    : {0}", block.PrevHash);
+
+            Console.WriteLine("Num of Txs    : {0}", block.NumOfTx);
+            Console.WriteLine("Total Amount  : {0}", block.TotalAmount);
+            Console.WriteLine("Total Fee     : {0}", block.TotalReward);
+
 
             var transactions = JsonConvert.DeserializeObject<List<TrxModel>>(block.Transactions);
             Console.WriteLine("Transactions:");
             foreach (var trx in transactions)
             {
-                Console.WriteLine("   ID          : {0}", trx.TrxID);
+                Console.WriteLine("   ID          : {0}", trx.Hash);
                 Console.WriteLine("   Timestamp   : {0}", trx.TimeStamp.ConvertToDateTime());
                 Console.WriteLine("   Sender      : {0}", trx.Sender);
                 Console.WriteLine("   Recipient   : {0}", trx.Recipient);
