@@ -1,6 +1,15 @@
 ﻿/UbudKusCoin/obj/*
 /UbudKusCoin/bin/
 /UbudKusCoin/*.db
+
+/BlockExplorer/obj/*
+/BlockExplorer/bin/
+/BlockExplorer/*.db
+
+/ConsoleWallet/obj/*
+/ConsoleWallet/bin/
+/ConsoleWallet/*.db
+
 .vs
 /UnitTest/bin
 /UnitTest/obj
