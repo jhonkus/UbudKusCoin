@@ -189,7 +189,7 @@ namespace Main
             var trxin = new TrxInput
             {
                 SenderAddress = account.GetAddress(),
-                TimeStamp = DateTime.Now.Ticks
+                TimeStamp = Utils.GetTime()
             };
 
             var trxOut = new TrxOutput
@@ -201,6 +201,7 @@ namespace Main
 
             var trxHash = Utils.GetTransactionHash(trxin, trxOut);
             var signature = account.CreateSignature(trxHash);
+            
 
             trxin.Signature = signature;
 
@@ -218,12 +219,15 @@ namespace Main
 
                 if (responseSend.Result.ToLower() == "success")
                 {
+                    DateTime utcDate = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMilliseconds(Convert.ToDouble(trxin.TimeStamp));
+
                     Console.Clear();
                     Console.WriteLine("\n\n\n\nTransaction has send to Blockchain.!.");
-                    Console.WriteLine("Sender: {0}", sender);
-                    Console.WriteLine("Recipient {0}", recipient);
-                    Console.WriteLine("Amount: {0}", amount);
-                    Console.WriteLine("Fee: {0}", fee);
+                    Console.WriteLine("Timestamp: {0}", utcDate.ToLocalTime());
+                    Console.WriteLine("Sender: {0}", trxin.SenderAddress);
+                    Console.WriteLine("Recipient {0}", trxOut.RecipientAddress);
+                    Console.WriteLine("Amount: {0}", trxOut.Amount);
+                    Console.WriteLine("Fee: {0}", trxOut.Fee);
                     Console.WriteLine("-------------------");
                     Console.WriteLine("Need around 30 second to be processed!");
                 }
@@ -315,7 +319,7 @@ namespace Main
                 {
                     foreach (var trx in response.Transactions)
                     {
-                        Console.WriteLine("ID          : {0}", trx.TrxID);
+                        Console.WriteLine("Hash        : {0}", trx.TrxID);
                         Console.WriteLine("Timestamp   : {0}", trx.TimeStamp.ConvertToDateTime());
                         Console.WriteLine("Sender      : {0}", trx.Sender);
                         Console.WriteLine("Recipient   : {0}", trx.Recipient);
