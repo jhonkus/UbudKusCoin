@@ -65,7 +65,7 @@ message BalanceResponse {
 }
 
 message TrxModel {
-	string TrxID = 1;
+	string Hash = 1;
 	int64 TimeStamp = 2;
 	string Sender = 3;
 	string Recipient = 4;
@@ -79,6 +79,11 @@ message BlockModel {
 	string PrevHash = 3;
 	string Hash = 4;
 	string Transactions = 5;
+    string Creator = 6;
+    string MerkleRoot = 7;
+    int32  NumOfTx = 8;
+    double TotalAmount = 9;
+    float TotalReward = 10;
 }
 
 message EmptyRequest {
