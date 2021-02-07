@@ -1,0 +1,94 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "GrpcService";
+
+
+service BChainService {
+  rpc GenesisBlock(EmptyRequest) returns (BlockResponse);
+  rpc LastBlock(EmptyRequest)  returns (BlockResponse);
+  rpc SendCoin(SendRequest)  returns (TrxResponse);
+  rpc GetBlocks(BlockRequest) returns (BlocksResponse);
+  rpc GetBalance(AccountRequest) returns (BalanceResponse);
+  rpc GetTransactions(AccountRequest) returns (TransactionsResponse);
+}
+
+message SearchRequest {
+  string query = 1;
+  int32 page_number = 2;
+  int32 result_per_page = 3; 
+}
+
+
+message SendRequest{
+   string trx_id = 1;
+   string public_key = 2;
+   TrxInput trx_input = 3;
+   TrxOutput trx_output = 4;
+}
+
+message TrxInput{
+	int64 time_stamp = 1;
+	string sender_address = 2;
+	string signature = 3;
+}
+
+message TrxOutput{
+	string recipient_address = 1;
+	double amount = 2;
+	float fee = 3;
+}
+
+
+message AccountRequest{
+   string address = 1;
+}
+
+message BlockRequest{
+  int32 page_number = 1;
+  int32 result_per_page = 2; 
+}
+
+message BlocksResponse {
+  repeated BlockModel blocks = 1;
+}
+
+message BlockResponse {
+  BlockModel block = 1;
+}
+
+message TransactionsResponse {
+  repeated TrxModel transactions = 1;
+}
+
+message BalanceResponse {
+  double balance = 1;
+}
+
+message TrxModel {
+	string Hash = 1;
+	int64 TimeStamp = 2;
+	string Sender = 3;
+	string Recipient = 4;
+	double Amount = 5;
+	float Fee = 6;
+}
+
+message BlockModel {
+	int64 Height = 1;
+	int64 TimeStamp = 2;
+	string PrevHash = 3;
+	string Hash = 4;
+	string Transactions = 5;
+    string Creator = 6;
+    string MerkleRoot = 7;
+    int32  NumOfTx = 8;
+    double TotalAmount = 9;
+    float TotalReward = 10;
+}
+
+message EmptyRequest {
+}
+
+message TrxResponse {
+  string result = 1;
+}

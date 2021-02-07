@@ -1,31 +1,51 @@
-﻿
-using Client;
-using DB;
+﻿using System.Runtime.InteropServices;
+using Coravel;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.Extensions.Hosting;
+using UbudKusCoin.Sceduler;
 
 namespace Main
 {
-    class Program
+    public class Program
     {
-        static void Main()
+        public static void Main(string[] args)
         {
 
-            // Initilize db
-            DbAccess.Initialize();
-
-            /**
-             * remove all record in all table
-             * uncomment this if you want
-            **/
-            // DbAccess.ClearDB();
-
-            // Make blockchain
+            // blockchain
             _ = new Blockchain();
 
-            // show menu
-            Menu.DisplayMenu();
+            // grpc
+            IHost host = CreateHostBuilder(args).Build();
+            host.Services.UseScheduler(scheduler =>
+            {
+                scheduler.Schedule<BlockJob>()
+                    .EveryThirtySeconds();
+            });
+            host.Run();
+
         }
+
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+           Host.CreateDefaultBuilder(args)
+          .ConfigureWebHostDefaults(webBuilder =>
+          {
+
+              // if macos
+              if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+              {
+
+                  webBuilder.ConfigureKestrel(options =>
+                  {
+                      // Setup a HTTP/2 endpoint without TLS.
+                      options.ListenLocalhost(5002, o => o.Protocols =
+                          HttpProtocols.Http2);
+                  });
+              }
+
+              // start
+              webBuilder.UseStartup<Startup>();
+
+          });
     }
-
-
-
 }
