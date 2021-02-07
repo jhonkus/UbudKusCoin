@@ -1,6 +1,7 @@
 ﻿    using LiteDB;
     using Newtonsoft.Json;
     using System;
+    using System.Linq;
     using System.Collections.Generic;
 
     namespace Main
@@ -22,7 +23,7 @@
             {
 
                 var blocks = GetBlocks();
-       
+
                 if (blocks.Count() < 1)
                 {
                     Transaction.CreateIcoTransction();
@@ -97,11 +98,16 @@
             {
 
                 var trxPool = Transaction.GetPool();
+
+                // build merkle tree
+
+                // var transactionStrList = trxPool.FindAll().Select(tran => CalculateHash(CalculateHash(tran.From + tran.To + tran.Amount))).ToList();
+
                 var lastBlock = GetLastBlock();
 
                 if (trxPool.Count() <= 0)
                 {
-           
+
                     var lstTrx = new List<Transaction>();
                     string tempTransactions = JsonConvert.SerializeObject(lstTrx);
                     var block = new Block(lastBlock, tempTransactions);
@@ -112,6 +118,16 @@
                 else
                 {
                     var transactions = trxPool.FindAll();
+                    // var transactionStrList = transactions.Select(trx => Utils.DoReverse(Utils.DoSwap(trx.ID)).ToList());
+                    var transactionHashes = new List<string>();
+                    foreach (dynamic trx in transactions)
+                    {
+                            transactionHashes.Add(Utils.ReverseString(Utils.SwapString(trx.ID)));
+                    }
+
+                    var markleRoot =   Utils.CreateMerkleRoot(transactionHashes);
+
+                    var markleRootFinal = Utils.ReverseString(Utils.SwapString(markleRoot));
 
                     // create block from transaction pool
                     string tempTransactions = JsonConvert.SerializeObject(transactions);

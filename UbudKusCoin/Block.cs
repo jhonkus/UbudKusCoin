@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Security.Cryptography;
 using System.Text;
-using Newtonsoft.Json;
 
 namespace Main
 {
@@ -20,10 +17,10 @@ namespace Main
             var lastHeight = lastBlock.Height;
             var lastHash = lastBlock.Hash;
             Height = lastHeight + 1;
-            TimeStamp = DateTime.Now.Ticks;
+            TimeStamp = Utils.GetTime();
             PrevHash = lastHash;
             Transactions = transactions;
-            Hash = GetHash(TimeStamp, lastHash, transactions);
+            Hash = GetBlockHash(TimeStamp, lastHash, transactions);
         }
 
         public Block(Block lastBlock)
@@ -34,7 +31,7 @@ namespace Main
             TimeStamp = DateTime.Now.Ticks;
             PrevHash = lastHash;
             Transactions = null;
-            Hash = GetHash(TimeStamp, lastHash, null);
+            Hash = GetBlockHash(TimeStamp, lastHash, null);
         }
 
         public Block(int height, long timestamp, string lastHash, string hash, string transactions)
@@ -52,18 +49,16 @@ namespace Main
         public static Block Genesis(string transactions)
         {
             var ts = new DateTime(2020, 10, 24);
-            var hash = GetHash(ts.Ticks, "-", transactions);
+            var hash = GetBlockHash(ts.Ticks, "-", transactions);
             var block = new Block(0, ts.Ticks, Convert.ToBase64String(Encoding.ASCII.GetBytes("-")), hash, transactions);
             return block;
         }
 
 
-        public static string GetHash(long timestamp, string lastHash, string transactions)
+        public static string GetBlockHash(long timestamp, string lastHash, string transactions)
         {
             var strSum = timestamp + lastHash + transactions;
-            byte[] sumBytes = Encoding.ASCII.GetBytes(strSum);
-            byte[] hashBytes = SHA256.Create().ComputeHash(sumBytes);
-            return Convert.ToBase64String(hashBytes);
+            return Utils.GenHash(strSum);
         }
 
 

@@ -82,7 +82,7 @@ namespace GrpcService.Services
             {
                 TrxModel mdl = new TrxModel
                 {
-                    TrxID = trx.ID,
+                    TrxID = trx.Hash,
                     Recipient = trx.Recipient,
                     Sender = trx.Sender,
                     Fee = trx.Fee,
@@ -100,7 +100,7 @@ namespace GrpcService.Services
             //Create new transaction
             var newTrx = new Transaction()
             {
-                ID = request.TrxId,
+                Hash = request.TrxId,
                 TimeStamp = request.TrxInput.TimeStamp,
                 Sender = request.TrxInput.SenderAddress,
                 Recipient = request.TrxOutput.RecipientAddress,
@@ -110,17 +110,16 @@ namespace GrpcService.Services
 
 
             // verify transaction ID
-            var trxHash = Utils.GetTrxHash(newTrx);
+            var trxHash = newTrx.GetHash();
             if (!trxHash.Equals(request.TrxId))
             {
                 return Task.FromResult(new TrxResponse
                 {
                     Result = "Transaction ID not valid"
-                });               
+                });
             }
-           
 
-            // Verify signature   
+            // Verify signature
             var trxValid = Transaction.VerifySignature(request.PublicKey, request.TrxId, request.TrxInput.Signature);
             if (!trxValid)
             {
@@ -136,9 +135,7 @@ namespace GrpcService.Services
             {
                 Result = "Success"
             });
-       
         }
 
-        
     }
 }

@@ -9,7 +9,7 @@ namespace Main
 
     public class Transaction
     {
-        public string ID { get; set;}
+        public string Hash { get; set;}
         public long TimeStamp { get; set; }
         public string Sender { set; get; }
         public string Recipient { set; get; }
@@ -27,6 +27,7 @@ namespace Main
             var transactions = GetAll();
             transactions.Insert(transaction);
         }
+
 
         public static ILiteCollection<Transaction> GetPool()
         {
@@ -71,8 +72,7 @@ namespace Main
                     Fee = 0.0f
                 };
 
-                var trxHash = Utils.GetTrxHash(newTrx);
-                newTrx.ID = trxHash;
+                newTrx.Hash = newTrx.GetHash();
                 AddToPool(newTrx);
             }
         }
@@ -112,10 +112,17 @@ namespace Main
 
         public static bool VerifySignature(string publicKeyHex, string message, string signature)
         {
-            var byt = Utils.ConvertHexStringToByteArray(publicKeyHex);
+            var byt = Utils.HexToBytes(publicKeyHex);
             var publicKey = PublicKey.fromString(byt);
             return Ecdsa.verify(message, Signature.fromBase64(signature), publicKey);
         }
+
+        public  string GetHash()
+        {
+            var data = this.TimeStamp + this.Sender + this.Amount + this.Fee + this.Recipient;
+            return Utils.GenHash(data);
+        }
+
 
     }
 
