@@ -1,81 +1,101 @@
-using System.Text;
 using System;
 using System.Security.Cryptography;
-using GrpcService;
-using EllipticCurve;
+using System.Linq;
+using System.Collections.Generic;
+using System.Text;
 
 namespace Main
 {
     public static class Utils
     {
-        /**
-        Convert array of byte to string 
-        */
-        public static string ConvertToString(this byte[] arg) => Encoding.UTF8.GetString(arg, 0, arg.Length);
-
-        /**
-        Convert string to array of byte
-         */
-        public static byte[] ConvertToBytes(this string arg)
+        public static string BytesToHex(byte[] bytes)
         {
-            return Encoding.UTF8.GetBytes(arg);
+            return Convert.ToHexString(bytes).ToLower();
         }
 
-        public static byte[] ConvertToByte(this Transaction[] lsTrx)
+        public static byte[] HexToBytes(string hex)
         {
-            var transactionsString = Newtonsoft.Json.JsonConvert.SerializeObject(lsTrx);
-            return transactionsString.ConvertToBytes();
-        }
+            // int NumberChars = hex.Length;
+            // byte[] bytes = new byte[NumberChars / 2];
+            // for (int i = 0; i < NumberChars; i += 2)
+            // {
+            //     bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+            // }
+            // return bytes;
 
-        public static string ConvertToString(this Transaction[] lsTrx)
-        {
-            return Newtonsoft.Json.JsonConvert.SerializeObject(lsTrx);
-        }
-
-        public static string ConvertToHexString(this byte[] ba)
-        {
-            StringBuilder hex = new StringBuilder(ba.Length * 2);
-            foreach (byte b in ba)
-                hex.AppendFormat("{0:x2}", b);
-            return hex.ToString();
-        }
-
-        public static byte[] ConvertHexStringToByteArray(string hex)
-        {
-            int NumberChars = hex.Length;
-            byte[] bytes = new byte[NumberChars / 2];
-            for (int i = 0; i < NumberChars; i += 2)
-                bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
-            return bytes;
-        }
-
-
-        public static string ConvertToDateTime(this long timestamp)
-        {
-            DateTime myDate = new DateTime(timestamp);
-            var strDate = myDate.ToString("dd MMM yyyy hh:mm:ss");
-            return strDate;
-        }
-
-        public static string GetTransactionHash(TrxInput input, TrxOutput output)
-        {
-            var trxId = GenHash(input.TimeStamp + input.SenderAddress + output.Amount + output.Fee + output.RecipientAddress);
-            return trxId;
+            return Enumerable.Range(0, hex.Length)
+                .Where(x => x % 2 == 0)
+                .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
+                .ToArray();
         }
 
         public static string GenHash(string data)
         {
-            byte[] bytes = Encoding.ASCII.GetBytes(data);
+            byte[] bytes = Encoding.UTF8.GetBytes(data);
             byte[] hash = SHA256.Create().ComputeHash(bytes);
-            return Convert.ToBase64String(hash);
+            return BytesToHex(hash);
         }
 
-        public static string GetTrxHash(Transaction input)
+        public static long GetTime()
         {
-            var data = input.TimeStamp + input.Sender + input.Amount + input.Fee + input.Recipient;
-            return GenHash(data);
+            DateTimeOffset now = DateTimeOffset.UtcNow;
+            long unixTimeMilliseconds = now.ToUnixTimeMilliseconds();
+            return unixTimeMilliseconds;
         }
+
+        public static string ComputeHash(string hex)
+        {
+            var algo = new SHA256Managed();
+            algo.ComputeHash(HexToBytes(hex));
+            var result = algo.Hash;
+            return BytesToHex(result);
+        }
+
+        public static string SwapString(string arg)
+        {
+            string result = string.Empty; ;
+            for (int i = 0; i < arg.Count(); i += 2)
+            {
+                result += string.Concat(arg[i + 1], arg[i]);
+            }
+            return result;
+        }
+
+        public static string ReverseString(string arg)
+        {
+            var result = new string(arg.Reverse().ToArray());
+            return result;
+        }
+
+        public static string CreateMerkleRoot(IList<string> merkelLeaves)
+        {
+            if (merkelLeaves == null || !merkelLeaves.Any())
+
+                return string.Empty;
+
+            if (merkelLeaves.Count == 1)
+            {
+                return merkelLeaves.First();
+            }
+
+            if (merkelLeaves.Count % 2 > 0)
+            {
+                merkelLeaves.Add(merkelLeaves.Last());
+            }
+
+            var merkleBranches = new List<string>();
+
+            for (int i = 0; i < merkelLeaves.Count; i += 2)
+            {
+                var leafPair = string.Concat(merkelLeaves[i], merkelLeaves[i + 1]);
+                merkleBranches.Add(GenHash(GenHash(leafPair)));
+            }
+            return CreateMerkleRoot(merkleBranches);
+        }
+
 
     }
+
+
 
 }
