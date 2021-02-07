@@ -1,10 +1,17 @@
 # UbudKusCoin
 Simple Cryptocurrencies with Proof Of Stake  Consensus Algorithm.
 
-Developed with C# and .Net Core
+Developed with C# and .Net 5.0
+
+This Solution have 3 projects
+
+- UbudKusCoin  is Blockchain Core
+- ConsoleWallet is desktop wallet
+- BlockExporer is desktop explorer
+
 
 ## Requirement
-Net Core SDK 5.0 https://dotnet.microsoft.com/download/dotnet/5.0
+Net SDK 5.0 https://dotnet.microsoft.com/download/dotnet/5.0
 
 ## IDE  
 - Visual Studio Comunity Edition https://visualstudio.microsoft.com/downloads
@@ -22,7 +29,34 @@ First install .Net Core SDK 5.0
 
 ```
 
-Open Project with Visual Studio or Monodevelop.
+To run Blockchain core, after above command
+
+```
+> cd UbudKuscoin 
+> dotnet run
+
+```
+
+To run BlockExplorer
+
+```
+> cd BlockExplorer
+> dotnet run
+
+```
+
+To run ConsoleWallet
+
+```
+> cd ConsoleWallet
+> dotnet run
+
+```
+
+
+Open Project with Visual Studio Comunity Edition 2019 or Monodevelop.
+
+
 
 
 Articles:
