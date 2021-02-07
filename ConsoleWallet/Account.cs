@@ -28,7 +28,7 @@ namespace Main
 
         public string GetPubKeyHex()
         {
-            return Convert.ToHexString(PubKey.toString());
+            return Convert.ToHexString(PubKey.toString()).ToLower();
         }
 
         public string GetAddress()

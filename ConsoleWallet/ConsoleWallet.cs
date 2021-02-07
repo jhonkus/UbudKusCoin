@@ -45,6 +45,8 @@ namespace Main
                 Console.WriteLine("                    3. Send Coin");
                 Console.WriteLine("                    4. Check Balance");
                 Console.WriteLine("                    5. Transaction History");
+                Console.WriteLine("                    6. Account Info");
+                Console.WriteLine("                    7. Send Bulk Tx");
                 Console.WriteLine("                    9. Exit");
                 Console.WriteLine("------------------------------------------------------------");
                 
@@ -82,6 +84,14 @@ namespace Main
                         DoGetTransactionHistory();
                         break;
 
+                    case 6:
+                        DoShowAccountInfo();
+                        break;
+
+                    case 7:
+                        DoSendBulkTx();
+                        break;
+
                     case 9:
                         DoExit();
                         break;
@@ -115,6 +125,113 @@ namespace Main
                 }
             }
 
+        }
+
+        private void DoSendBulkTx()
+        {
+            Console.Clear();
+            Console.WriteLine("\n\n\n\nTransfer Coin");
+            Console.WriteLine("Time: {0}", DateTime.Now);
+            Console.WriteLine("======================");
+
+            Console.WriteLine("Sender address:");
+            string sender = account.GetAddress();
+            Console.WriteLine(sender);
+
+
+            Console.WriteLine("\nPlease enter the recipient address!:");
+            string recipient = Console.ReadLine();
+
+            Console.WriteLine("\nPlease enter the number of Tx!:");
+            string strNumOfTx = Console.ReadLine();
+
+            double amount = 0.0001d;
+            float fee = 0.0001f;
+
+            if (string.IsNullOrEmpty(sender) ||
+                string.IsNullOrEmpty(strNumOfTx) ||
+                string.IsNullOrEmpty(recipient))
+            {
+
+                Console.WriteLine("\n\nError, Please input all data: sender, recipient, amount and fee!\n");
+                return;
+            }
+
+         
+            var response = service.GetBalance(new AccountRequest
+            {
+                Address = sender
+            });
+
+            var senderBalance = response.Balance;
+
+            var numOfTx = int.Parse(strNumOfTx);
+            if ((numOfTx * amount + fee) > senderBalance)
+            {
+                Console.WriteLine("\nError! Sender ({0}) don't have enough balance!", sender);
+                Console.WriteLine("Sender ({0}) balance is {1}", sender, senderBalance);
+                return;
+            }
+
+            for (int i = 0; i < numOfTx; i++ )
+            {
+                Console.Write(i + "- ");
+                SendCoin(account.GetAddress(), recipient, amount, fee);
+                System.Threading.Thread.Sleep(50);
+            }
+
+        }
+
+
+        private void SendCoin(string sender, string recipient, double amount, float fee)
+        {
+            var trxin = new TrxInput
+            {
+                SenderAddress = sender,
+                TimeStamp = Utils.GetTime()
+            };
+
+            var trxOut = new TrxOutput
+            {
+                RecipientAddress = recipient,
+                Amount = amount,
+                Fee = fee,
+            };
+
+            var trxHash = Utils.GetTransactionHash(trxin, trxOut);
+            var signature = account.CreateSignature(trxHash);
+            trxin.Signature = signature;
+            var sendRequest = new SendRequest
+            {
+                TrxId = trxHash,
+                PublicKey = account.GetPubKeyHex(),
+                TrxInput = trxin,
+                TrxOutput = trxOut
+            };
+
+            try
+            {
+                var responseSend = service.SendCoin(sendRequest);
+                if (responseSend.Result.ToLower() == "success")
+                {                   
+                    Console.WriteLine("== success == ");
+                }
+                else
+                {
+                    Console.WriteLine("Error: {0}", responseSend.Result);
+                }
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error: {0}", e.Message);
+            }
+
+        }
+
+        private void DoShowAccountInfo()
+        {
+            WalletInfo();
         }
 
         private void DoSendCoin()
@@ -257,10 +374,15 @@ namespace Main
                 return;
             }
 
-
-            account = new Account(screet);
-            WalletInfo();
-
+            try
+            {
+                account = new Account(screet);
+                WalletInfo();
+            }
+            catch
+            {
+                Console.WriteLine(" Wrong secreet key!");
+            }
          
         }
 
@@ -319,7 +441,7 @@ namespace Main
                 {
                     foreach (var trx in response.Transactions)
                     {
-                        Console.WriteLine("Hash        : {0}", trx.TrxID);
+                        Console.WriteLine("Hash        : {0}", trx.Hash);
                         Console.WriteLine("Timestamp   : {0}", trx.TimeStamp.ConvertToDateTime());
                         Console.WriteLine("Sender      : {0}", trx.Sender);
                         Console.WriteLine("Recipient   : {0}", trx.Recipient);

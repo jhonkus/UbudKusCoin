@@ -57,7 +57,8 @@ namespace Main
 
         public static string GetTransactionHash(TrxInput input, TrxOutput output)
         {
-            var trxId = GenHash(input.TimeStamp + input.SenderAddress + output.Amount + output.Fee + output.RecipientAddress);
+            var trxId = GenHash(GenHash(input.TimeStamp + input.SenderAddress + output.Amount + output.Fee + output.RecipientAddress));
+
 
             return trxId;
         }
