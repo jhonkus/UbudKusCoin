@@ -11,6 +11,7 @@ namespace Main
         public const string TBL_BLOCKS = "tbl_blocks";
         public const string TBL_TRANSACTION_POOL = "tbl_transaction_pool";
         public const string TBL_TRANSACTIONS = "tbl_transactions";
+        public const string TBL_STACKER = "tbl_stacker";
 
         /**
         it will create db with name node.db
@@ -33,7 +34,11 @@ namespace Main
 
             var coll3 = DB.GetCollection<Transaction>(TBL_TRANSACTIONS);
             coll3.DeleteAll();
-            
+
+
+            var coll4 = DB.GetCollection<Transaction>(TBL_STACKER);
+            coll4.DeleteAll();
+
         }
         /**
          * Close database when app closed

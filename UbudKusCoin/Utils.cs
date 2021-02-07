@@ -8,6 +8,20 @@ namespace Main
 {
     public static class Utils
     {
+        public static string GenHash(string data)
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes(data);
+            byte[] hash = SHA256.Create().ComputeHash(bytes);
+            return BytesToHex(hash);
+        }
+
+        public static string GenHashHex(string hex)
+        {
+            byte[] bytes = HexToBytes(hex);
+            byte[] hash = SHA256.Create().ComputeHash(bytes);
+            return BytesToHex(hash);
+        }
+
         public static string BytesToHex(byte[] bytes)
         {
             return Convert.ToHexString(bytes).ToLower();
@@ -15,25 +29,10 @@ namespace Main
 
         public static byte[] HexToBytes(string hex)
         {
-            // int NumberChars = hex.Length;
-            // byte[] bytes = new byte[NumberChars / 2];
-            // for (int i = 0; i < NumberChars; i += 2)
-            // {
-            //     bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
-            // }
-            // return bytes;
-
             return Enumerable.Range(0, hex.Length)
                 .Where(x => x % 2 == 0)
                 .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
                 .ToArray();
-        }
-
-        public static string GenHash(string data)
-        {
-            byte[] bytes = Encoding.UTF8.GetBytes(data);
-            byte[] hash = SHA256.Create().ComputeHash(bytes);
-            return BytesToHex(hash);
         }
 
         public static long GetTime()
@@ -43,54 +42,54 @@ namespace Main
             return unixTimeMilliseconds;
         }
 
-        public static string ComputeHash(string hex)
+        public static string CreateMerkleRoot(string[] txsHash)
         {
-            var algo = new SHA256Managed();
-            algo.ComputeHash(HexToBytes(hex));
-            var result = algo.Hash;
-            return BytesToHex(result);
+    
+            while (true)
+            {
+                if (txsHash.Length == 0)
+                {
+                    return string.Empty;
+                }
+
+                if (txsHash.Length == 1)
+                {
+                    return txsHash[0];
+                }
+
+                List<string> newHashList = new List<string>();
+
+                int len = (txsHash.Length % 2 != 0) ? txsHash.Length - 1 : txsHash.Length;
+
+                for (int i = 0; i < len; i += 2)
+                {
+                    newHashList.Add(DoubleHash(txsHash[i], txsHash[i + 1]));
+                }
+
+                if (len < txsHash.Length)
+                {
+                    newHashList.Add(DoubleHash(txsHash[^1], txsHash[^1]));
+                }
+
+                txsHash = newHashList.ToArray();
+            }
         }
 
-        public static string SwapString(string arg)
+        static string DoubleHash(string leaf1, string leaf2)
         {
-            string result = string.Empty; ;
-            for (int i = 0; i < arg.Count(); i += 2)
-            {
-                result += string.Concat(arg[i + 1], arg[i]);
-            }
-            return result;
-        }
+            byte[] leaf1Byte = HexToBytes(leaf1);
+            Array.Reverse(leaf1Byte);
 
-        public static string ReverseString(string arg)
-        {
-            var result = new string(arg.Reverse().ToArray());
-            return result;
-        }
+            byte[] leaf2Byte = HexToBytes(leaf2);
+            Array.Reverse(leaf2Byte);
 
-        public static string CreateMerkleRoot(IList<string> merkelLeaves)
-        {
-            if (merkelLeaves == null || !merkelLeaves.Any())
+            var concatHash = leaf1Byte.Concat(leaf2Byte).ToArray();
+            SHA256 sha256 = SHA256.Create();
+            byte[] sendHash = sha256.ComputeHash(sha256.ComputeHash(concatHash));
 
-                return string.Empty;
+            Array.Reverse(sendHash);
 
-            if (merkelLeaves.Count == 1)
-            {
-                return merkelLeaves.First();
-            }
-
-            if (merkelLeaves.Count % 2 > 0)
-            {
-                merkelLeaves.Add(merkelLeaves.Last());
-            }
-
-            var merkleBranches = new List<string>();
-
-            for (int i = 0; i < merkelLeaves.Count; i += 2)
-            {
-                var leafPair = string.Concat(merkelLeaves[i], merkelLeaves[i + 1]);
-                merkleBranches.Add(GenHash(GenHash(leafPair)));
-            }
-            return CreateMerkleRoot(merkleBranches);
+            return BytesToHex(sendHash).ToLower();
         }
 
 

@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Grpc.Core;
 using Main;
 using Newtonsoft.Json;
@@ -11,14 +12,7 @@ namespace GrpcService.Services
         public override Task<BlockResponse> GenesisBlock(EmptyRequest request, ServerCallContext context)
         {
             var block = Blockchain.GetGenesisBlock();
-            BlockModel mdl = new BlockModel
-            {
-                Height = block.Height,
-                Hash = block.Hash,
-                PrevHash = block.PrevHash,
-                TimeStamp = block.TimeStamp,
-                Transactions = block.Transactions
-            };
+            BlockModel mdl = ConvertBlock(block);
 
             return Task.FromResult(new BlockResponse
             {
@@ -39,19 +33,13 @@ namespace GrpcService.Services
         public override Task<BlockResponse> LastBlock(EmptyRequest request, ServerCallContext context)
         {
             var block = Blockchain.GetLastBlock();
-            BlockModel mdl = new BlockModel
-            {
-                Height = block.Height,
-                Hash = block.Hash,
-                PrevHash = block.PrevHash,
-                TimeStamp = block.TimeStamp,
-                Transactions = block.Transactions
-            };
+            BlockModel mdl = ConvertBlock(block);
             return Task.FromResult(new BlockResponse
             {
                 Block = mdl
             });
         }
+
 
         public override Task<BlocksResponse> GetBlocks(BlockRequest request, ServerCallContext context)
         {
@@ -60,14 +48,7 @@ namespace GrpcService.Services
             BlocksResponse response = new BlocksResponse();
             foreach (Block block in blocks)
             {
-                BlockModel mdl = new BlockModel
-                {
-                    Height = block.Height,
-                    Hash = block.Hash,
-                    PrevHash = block.PrevHash,
-                    TimeStamp = block.TimeStamp,
-                    Transactions = block.Transactions
-                };
+                BlockModel mdl = ConvertBlock(block);
                 response.Blocks.Add(mdl);
             }
             return Task.FromResult(response);
@@ -80,23 +61,16 @@ namespace GrpcService.Services
             var transactions = Transaction.GetTransactions(request.Address);
             foreach (Transaction trx in transactions)
             {
-                TrxModel mdl = new TrxModel
-                {
-                    TrxID = trx.Hash,
-                    Recipient = trx.Recipient,
-                    Sender = trx.Sender,
-                    Fee = trx.Fee,
-                    Amount = trx.Amount,
-                    TimeStamp = trx.TimeStamp,
-                };
+                TrxModel mdl = ConvertTrxModel(trx);
                 response.Transactions.Add(mdl);
             }
             return Task.FromResult(response);
         }
 
+
         public override Task<TrxResponse> SendCoin(SendRequest request, ServerCallContext context)
         {
-
+            Console.WriteLine("request.TrxId: {0}", request.TrxId);
             //Create new transaction
             var newTrx = new Transaction()
             {
@@ -137,5 +111,47 @@ namespace GrpcService.Services
             });
         }
 
+        private static BlockModel ConvertBlock(Block block)
+        {
+
+            try
+            {
+                BlockModel mdl = new BlockModel
+                {
+                    Height = block.Height,
+                    Hash = block.Hash,
+                    PrevHash = block.PrevHash,
+                    TimeStamp = block.TimeStamp,
+                    Transactions = JsonConvert.SerializeObject(block.Transactions),
+                    MerkleRoot = block.MerkleRoot,
+                    NumOfTx = block.NumOfTx,
+                    TotalAmount = block.TotalAmount,
+                    TotalReward = block.TotalReward
+
+                };
+                return mdl;
+            }
+            catch
+            {
+                return null;
+            }
+
+          
+        }
+
+        private static TrxModel ConvertTrxModel(Transaction trx)
+        {
+            TrxModel mdl = new TrxModel
+            {
+                Hash = trx.Hash,
+                Recipient = trx.Recipient,
+                Sender = trx.Sender,
+                Fee = trx.Fee,
+                Amount = trx.Amount,
+                TimeStamp = trx.TimeStamp,
+            };
+
+            return mdl;
+        }
     }
 }

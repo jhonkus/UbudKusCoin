@@ -66,13 +66,13 @@ namespace Main
                 var newTrx = new Transaction()
                 {
                     TimeStamp = timeStamp,
-                    Sender = "ico",
+                    Sender = "ICO",
                     Recipient = acc.Address,
                     Amount = acc.Balance,
                     Fee = 0.0f
                 };
+                newTrx.Build();
 
-                newTrx.Hash = newTrx.GetHash();
                 AddToPool(newTrx);
             }
         }
@@ -117,10 +117,15 @@ namespace Main
             return Ecdsa.verify(message, Signature.fromBase64(signature), publicKey);
         }
 
-        public  string GetHash()
+        public void Build()
         {
-            var data = this.TimeStamp + this.Sender + this.Amount + this.Fee + this.Recipient;
-            return Utils.GenHash(data);
+            Hash = GetHash();
+        }
+
+        public string GetHash()
+        {
+            var data = TimeStamp + Sender + Amount + Fee + Recipient;
+            return Utils.GenHash(Utils.GenHash(data));
         }
 
 
