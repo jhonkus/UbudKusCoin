@@ -20,7 +20,11 @@
 		"@context": "http://schema.org",
 		"@type": "Organization",
 		"name": "Ubudkus Coin",
-		"url": "index.html"
+		"url": "index.html",
+		"logo": "images/icon.png",
+		"sameAs": [
+				"https://youtube.com/channel/UCTytu-NXvphXlT2M80-4Pdg"
+		]
 }</script>
     <meta property="og:title" content="Blog Template">
     <meta property="og:type" content="website">
@@ -28,7 +32,15 @@
     <link rel="canonical" href="index.html">
     <meta property="og:url" content="index.html">
   </head>
-  <body class="u-body"><header class="u-align-left u-clearfix u-header u-header" id="sec-775a"><div class="u-clearfix u-sheet u-sheet-1"></div></header>
+  <body class="u-body"><header class="u-align-center-sm u-align-center-xs u-clearfix u-header u-header" id="sec-775a"><div class="u-clearfix u-sheet u-sheet-1">
+        <a href="https://nicepage.com" class="u-image u-logo u-image-1">
+          <img src="images/icon.png" class="u-logo-image u-logo-image-1" data-image-width="63">
+        </a>
+        <div class="u-social-icons u-spacing-10 u-social-icons-1">
+          <a class="u-social-url" target="_blank" href="https://youtube.com/channel/UCTytu-NXvphXlT2M80-4Pdg"><span class="u-icon u-icon-circle u-social-type-logo u-social-youtube u-icon-1"><svg class="u-svg-link" preserveAspectRatio="xMidYMin slice" viewBox="0 0 112 112" style=""><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#svg-afcf"></use></svg><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" xml:space="preserve" class="u-svg-content" viewBox="0 0 112 112" x="0px" y="0px" id="svg-afcf"><path d="M82.3,24H29.7C19.3,24,11,32.5,11,43v26.7c0,10.5,8.3,19,18.7,19h52.5c10.3,0,18.7-8.5,18.7-19V43 C101,32.5,92.7,24,82.3,24L82.3,24z M69.7,57.6L45.1,69.5c-0.7,0.2-1.4-0.2-1.4-0.8V44.1c0-0.7,0.8-1.3,1.4-0.8l24.6,12.6 C70.4,56.2,70.4,57.3,69.7,57.6L69.7,57.6z"></path></svg></span>
+          </a>
+        </div>
+      </div></header>
     <section class="u-clearfix u-section-1" id="sec-6e60">
       <div class="u-clearfix u-sheet u-valign-middle u-sheet-1"><!--blog--><!--blog_options_json--><!--{"type":"Recent","source":"","tags":"","count":3}--><!--/blog_options_json-->
         <div class="u-blog u-expanded-width u-repeater u-repeater-1"><!--blog_post-->
