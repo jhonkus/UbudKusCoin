@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html style="font-size: 16px;">
+<html style="font-size: 16px;" lang="en-ID">
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="utf-8">
@@ -18,54 +18,23 @@
     <script type="application/ld+json">{
 		"@context": "http://schema.org",
 		"@type": "Organization",
-		"name": "",
-		"url": "index.html",
-		"logo": "images/iconfinder_audio_spectrum_line_sound_3005778.png"
+		"name": "Ubudkus Coin",
+		"url": "index.html"
 }</script>
     <meta property="og:title" content="Post Template">
     <meta property="og:type" content="website">
-    <meta name="theme-color" content="#478ac9">
+    <meta name="theme-color" content="#73a3de">
     <link rel="canonical" href="index.html">
     <meta property="og:url" content="index.html">
   </head>
-  <body class="u-body"><header class="u-clearfix u-header u-header" id="sec-775a"><div class="u-clearfix u-sheet u-sheet-1">
-        <a href="https://nicepage.com" class="u-image u-logo u-image-1">
-          <img src="images/iconfinder_audio_spectrum_line_sound_3005778.png" class="u-logo-image u-logo-image-1" data-image-width="64">
-        </a>
-      </div></header>
-    <section class="u-align-center u-clearfix u-section-1" id="sec-3190">
-      <div class="u-clearfix u-sheet u-valign-middle-md u-valign-middle-sm u-valign-middle-xs u-sheet-1"><!--post_details--><!--post_details_options_json--><!--{"source":""}--><!--/post_details_options_json--><!--blog_post-->
-        <div class="u-container-style u-expanded-width u-post-details u-post-details-1">
-          <div class="u-container-layout u-valign-middle u-container-layout-1"><!--blog_post_image-->
-            <img alt="" class="u-blog-control u-expanded-width u-image u-image-default u-image-1" src="images/2.jpeg"><!--/blog_post_image--><!--blog_post_header-->
-            <h2 class="u-blog-control u-text u-text-1">
-              <a class="u-post-header-link" href="#"><!--blog_post_header_content-->Post 1 Headline<!--/blog_post_header_content--></a>
-            </h2><!--/blog_post_header--><!--blog_post_metadata-->
-            <div class="u-blog-control u-metadata u-metadata-1"><!--blog_post_metadata_date-->
-              <span class="u-meta-date u-meta-icon"><!--blog_post_metadata_date_content-->Mon Feb 08 2021<!--/blog_post_metadata_date_content--></span><!--/blog_post_metadata_date--><!--blog_post_metadata_category-->
-              <span class="u-meta-category u-meta-icon"><!--blog_post_metadata_category_content-->Category<!--/blog_post_metadata_category_content--></span><!--/blog_post_metadata_category--><!--blog_post_metadata_comments-->
-              <span class="u-meta-comments u-meta-icon"><!--blog_post_metadata_comments_content-->Comments (0)<!--/blog_post_metadata_comments_content--></span><!--/blog_post_metadata_comments-->
-            </div><!--/blog_post_metadata--><!--blog_post_content-->
-            <div class="u-align-justify u-blog-control u-post-content u-text u-text-2"><!--blog_post_content_content-->Sample small text. Lorem ipsum dolor sit amet.<!--/blog_post_content_content--></div><!--/blog_post_content-->
-          </div>
-        </div><!--/blog_post--><!--/post_details-->
-      </div>
+  <body class="u-body"><header class="u-align-left u-clearfix u-header u-header" id="sec-775a"><div class="u-clearfix u-sheet u-sheet-1"></div></header>
+    <section class="u-align-left u-clearfix u-section-1" id="sec-3190">
+      <div class="u-clearfix u-sheet u-valign-middle-md u-valign-middle-sm u-valign-middle-xs u-sheet-1"></div>
     </section>
     
     
-    <footer class="u-align-center u-clearfix u-footer u-palette-2-light-1 u-footer" id="sec-fc06"><div class="u-clearfix u-sheet u-sheet-1">
+    <footer class="u-align-center u-clearfix u-footer u-palette-1-base u-footer" id="sec-fc06"><div class="u-clearfix u-sheet u-sheet-1">
         <p class="u-small-text u-text u-text-variant u-text-1">@2021 Ubudkuscoin.com | Bali, Indonesia</p>
       </div></footer>
-    <section class="u-backlink u-clearfix u-grey-80">
-      <a class="u-link" href="https://nicepage.com/website-templates" target="_blank">
-        <span>Website Templates</span>
-      </a>
-      <p class="u-text">
-        <span>created with</span>
-      </p>
-      <a class="u-link" href="https://nicepage.com/" target="_blank">
-        <span>Website Builder Software</span>
-      </a>. 
-    </section>
   </body>
 </html>

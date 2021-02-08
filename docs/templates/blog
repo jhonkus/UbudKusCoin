@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html style="font-size: 16px;">
+<html style="font-size: 16px;" lang="en-ID">
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="utf-8">
@@ -19,21 +19,16 @@
     <script type="application/ld+json">{
 		"@context": "http://schema.org",
 		"@type": "Organization",
-		"name": "",
-		"url": "index.html",
-		"logo": "images/iconfinder_audio_spectrum_line_sound_3005778.png"
+		"name": "Ubudkus Coin",
+		"url": "index.html"
 }</script>
     <meta property="og:title" content="Blog Template">
     <meta property="og:type" content="website">
-    <meta name="theme-color" content="#478ac9">
+    <meta name="theme-color" content="#73a3de">
     <link rel="canonical" href="index.html">
     <meta property="og:url" content="index.html">
   </head>
-  <body class="u-body"><header class="u-clearfix u-header u-header" id="sec-775a"><div class="u-clearfix u-sheet u-sheet-1">
-        <a href="https://nicepage.com" class="u-image u-logo u-image-1">
-          <img src="images/iconfinder_audio_spectrum_line_sound_3005778.png" class="u-logo-image u-logo-image-1" data-image-width="64">
-        </a>
-      </div></header>
+  <body class="u-body"><header class="u-align-left u-clearfix u-header u-header" id="sec-775a"><div class="u-clearfix u-sheet u-sheet-1"></div></header>
     <section class="u-clearfix u-section-1" id="sec-6e60">
       <div class="u-clearfix u-sheet u-valign-middle u-sheet-1"><!--blog--><!--blog_options_json--><!--{"type":"Recent","source":"","tags":"","count":3}--><!--/blog_options_json-->
         <div class="u-blog u-expanded-width u-repeater u-repeater-1"><!--blog_post-->
@@ -42,7 +37,7 @@
               <h4 class="u-blog-control u-text u-text-1">
                 <a class="u-post-header-link" href="#"><!--blog_post_header_content-->Post 1 Headline<!--/blog_post_header_content--></a>
               </h4><!--/blog_post_header--><!--blog_post_image-->
-              <img alt="" class="u-blog-control u-image u-image-default u-image-1" src="images/2.jpeg"><!--/blog_post_image--><!--blog_post_content-->
+              <img alt="" class="u-blog-control u-image u-image-default u-image-1" src="images/1.jpeg"><!--/blog_post_image--><!--blog_post_content-->
               <div class="u-blog-control u-post-content u-text u-text-2"><!--blog_post_content_content-->Sample small text. Lorem ipsum dolor sit amet.<!--/blog_post_content_content--></div><!--/blog_post_content--><!--blog_post_readmore-->
               <a href="#" class="u-blog-control u-border-2 u-border-palette-1-base u-btn u-btn-rectangle u-button-style u-none u-btn-1"><!--blog_post_readmore_content-->Read More<!--/blog_post_readmore_content--></a><!--/blog_post_readmore-->
             </div>
@@ -52,7 +47,7 @@
               <h4 class="u-blog-control u-text u-text-3">
                 <a class="u-post-header-link" href="#"><!--blog_post_header_content-->Post 2 Headline<!--/blog_post_header_content--></a>
               </h4><!--/blog_post_header--><!--blog_post_image-->
-              <img alt="" class="u-blog-control u-image u-image-default u-image-2" src="images/3.jpeg"><!--/blog_post_image--><!--blog_post_content-->
+              <img alt="" class="u-blog-control u-image u-image-default u-image-2" src="images/2.jpeg"><!--/blog_post_image--><!--blog_post_content-->
               <div class="u-blog-control u-post-content u-text u-text-4"><!--blog_post_content_content-->Sample small text. Lorem ipsum dolor sit amet.<!--/blog_post_content_content--></div><!--/blog_post_content--><!--blog_post_readmore-->
               <a href="#" class="u-blog-control u-border-2 u-border-palette-1-base u-btn u-btn-rectangle u-button-style u-none u-btn-2"><!--blog_post_readmore_content-->Read More<!--/blog_post_readmore_content--></a><!--/blog_post_readmore-->
             </div>
@@ -62,7 +57,7 @@
               <h4 class="u-blog-control u-text u-text-5">
                 <a class="u-post-header-link" href="#"><!--blog_post_header_content-->Post 3 Headline<!--/blog_post_header_content--></a>
               </h4><!--/blog_post_header--><!--blog_post_image-->
-              <img alt="" class="u-blog-control u-image u-image-default u-image-3" src="images/4.jpeg"><!--/blog_post_image--><!--blog_post_content-->
+              <img alt="" class="u-blog-control u-image u-image-default u-image-3" src="images/3.jpeg"><!--/blog_post_image--><!--blog_post_content-->
               <div class="u-blog-control u-post-content u-text u-text-6"><!--blog_post_content_content-->Sample small text. Lorem ipsum dolor sit amet.<!--/blog_post_content_content--></div><!--/blog_post_content--><!--blog_post_readmore-->
               <a href="#" class="u-blog-control u-border-2 u-border-palette-1-base u-btn u-btn-rectangle u-button-style u-none u-btn-3"><!--blog_post_readmore_content-->Read More<!--/blog_post_readmore_content--></a><!--/blog_post_readmore-->
             </div>
@@ -99,19 +94,8 @@
     </section>
     
     
-    <footer class="u-align-center u-clearfix u-footer u-palette-2-light-1 u-footer" id="sec-fc06"><div class="u-clearfix u-sheet u-sheet-1">
+    <footer class="u-align-center u-clearfix u-footer u-palette-1-base u-footer" id="sec-fc06"><div class="u-clearfix u-sheet u-sheet-1">
         <p class="u-small-text u-text u-text-variant u-text-1">@2021 Ubudkuscoin.com | Bali, Indonesia</p>
       </div></footer>
-    <section class="u-backlink u-clearfix u-grey-80">
-      <a class="u-link" href="https://nicepage.com/website-templates" target="_blank">
-        <span>Website Templates</span>
-      </a>
-      <p class="u-text">
-        <span>created with</span>
-      </p>
-      <a class="u-link" href="https://nicepage.com/" target="_blank">
-        <span>Website Builder Software</span>
-      </a>. 
-    </section>
   </body>
 </html>

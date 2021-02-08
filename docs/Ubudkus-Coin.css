@@ -1,6 +1,7 @@
 .u-section-1 {
-  background-image: url("images/dfggg-min.jpg");
+  background-image: linear-gradient(0deg, rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url("images/841c69582ebfa50f1ad2231a81918a771509042a6f8780f3b7edda0562bcc207bcc679290862eeb4958ddb23a34a289268838ae1afa6745e99ce5f_1280.jpg");
   background-position: 50% 50%;
+  background-size: 130%;
 }
 
 .u-section-1 .u-sheet-1 {
@@ -10,7 +11,7 @@
 .u-section-1 .u-group-1 {
   width: 457px;
   min-height: 485px;
-  background-image: linear-gradient(#478ac9, #db545a);
+  background-image: linear-gradient(#73a3de, #4c637f);
   margin: 200px auto 107px 0;
 }
 
@@ -110,10 +111,9 @@
 .u-section-2 .u-list-1 {
   min-height: 414px;
   grid-template-columns: calc(50% - 5px) calc(50% - 5px);
-  height: auto;
   width: 1060px;
   grid-gap: 10px 10px;
-  margin: 40px auto 60px;
+  margin: 60px auto;
 }
 
 .u-section-2 .u-container-layout-1 {
@@ -123,7 +123,7 @@
 .u-section-2 .u-icon-1 {
   height: 65px;
   width: 65px;
-  background-image: linear-gradient(#478ac9, #db545a);
+  background-image: none;
   margin: 0 auto 0 0;
 }
 
@@ -153,7 +153,7 @@
 .u-section-2 .u-icon-2 {
   height: 65px;
   width: 65px;
-  background-image: linear-gradient(#478ac9, #db545a);
+  background-image: none;
   margin: 0 auto 0 0;
 }
 
@@ -184,7 +184,7 @@
 .u-section-2 .u-icon-3 {
   height: 65px;
   width: 65px;
-  background-image: linear-gradient(#478ac9, #db545a);
+  background-image: none;
   margin: 0 auto 0 0;
 }
 
@@ -215,7 +215,7 @@
 .u-section-2 .u-icon-4 {
   height: 65px;
   width: 65px;
-  background-image: linear-gradient(#478ac9, #db545a);
+  background-image: none;
   margin: 0 auto 0 0;
 }
 
@@ -252,6 +252,7 @@
   .u-section-2 .u-list-1 {
     min-height: 468px;
     grid-template-columns: repeat(2, calc(50% - 5px));
+    height: auto;
     margin-top: 18px;
     margin-right: initial;
     margin-left: initial;
@@ -436,25 +437,11 @@
   margin: 100px 205px 0;
 }
 
-.u-section-3 .u-social-icons-1 {
-  white-space: nowrap;
-  height: 48px;
-  min-height: 16px;
-  width: 164px;
-  min-width: 68px;
-  margin: 30px auto 100px;
-}
-
 .u-section-3 .u-icon-1 {
-  height: 100%;
-}
-
-.u-section-3 .u-icon-2 {
-  height: 100%;
-}
-
-.u-section-3 .u-icon-3 {
-  height: 100%;
+  height: 64px;
+  width: 64px;
+  background-image: none;
+  margin: 20px auto 60px;
 }
 
 @media (max-width: 1199px) {
@@ -476,7 +463,6 @@
 @media (max-width: 767px) {
   .u-section-3 .u-text-1 {
     width: 540px;
-    margin-top: 60px;
   }
 }
 
