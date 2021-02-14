@@ -53,6 +53,10 @@ To run ConsoleWallet
 
 ```
 
+Restore Genesis Account Console Wallet
+
+- Select menu no 2 restore account
+- input this: 37115820268057954843929458901983051845242353300769768346456079873593606626394
 
 Open Project with Visual Studio Comunity Edition 2019 or Monodevelop.
 
