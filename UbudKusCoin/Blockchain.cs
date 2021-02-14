@@ -31,7 +31,10 @@ namespace Main
 
             if (blocks.Count() < 1)
             {
-                // crate initial transaction
+                // crate genesis transaction
+                Transaction.CreateGenesisTransction();
+
+                // crate ICO transaction
                 Transaction.CreateIcoTransction();
 
                 // get all ico transaction from pool
