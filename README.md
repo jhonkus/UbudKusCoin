@@ -79,6 +79,25 @@ dotnet publish -c Release -o ./publish-net
 dotnet publish -c Release -r linux-x64 -o ./publish-linux
 ```
 
+## Run as service on linux vps
+```
+cd /etc/systemd/system
+nano myapp.service
+
+[Unit]
+Description=My gRPC Application
+
+[Service]
+Type=notify
+ExecStart=/usr/sbin/myapp
+
+[Install]
+WantedBy=multi-user.target
+
+
+```
+
+
 ## Copy file to server
 ```
 scp Archive.zip root@xx.15.xx1.xx:~/path
