@@ -13,15 +13,17 @@ This Solution have 3 projects
 ## Requirement
 Net SDK 5.0 https://dotnet.microsoft.com/download/dotnet/5.0
 
-## IDE  
+## IDE
 - Visual Studio Comunity Edition https://visualstudio.microsoft.com/downloads
 - For linux user download Monodevelop https://www.monodevelop.com
 
 ## Instalation
 
 First install .Net Core SDK 5.0
+
+
 ```
-> git clone https://github.com/jhonkus/UbudKusCoin.git 
+> git clone https://github.com/jhonkus/UbudKusCoin.git
 
 > cd UbudKusCoin
 
@@ -32,7 +34,7 @@ First install .Net Core SDK 5.0
 To run Blockchain core, after above command
 
 ```
-> cd UbudKuscoin 
+> cd UbudKuscoin
 > dotnet run
 
 ```
@@ -58,7 +60,10 @@ Restore Genesis Account Console Wallet
 - Select menu no 2 restore account
 - input this: 37115820268057954843929458901983051845242353300769768346456079873593606626394
 
+## Edit Project
+
 Open Project with Visual Studio Comunity Edition 2019 or Monodevelop.
+
 
 
 
@@ -73,6 +78,13 @@ https://putukusuma.medium.com/creating-simple-cryptocurrency-using-c-and-net-cor
 
 Part3
 https://putukusuma.medium.com/creating-simple-cryptocurrency-using-c-and-net-core-part-3-wallet-8bbfe0544770
+
+
+Videos
+https://youtu.be/TYM55x7I8us
+
+https://youtu.be/gpYKUWGBxf4
+
 
 
 
