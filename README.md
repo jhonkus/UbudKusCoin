@@ -60,13 +60,57 @@ Restore Genesis Account Console Wallet
 - Select menu no 2 restore account
 - input this: 37115820268057954843929458901983051845242353300769768346456079873593606626394
 
+
 ## Edit Project
 
 Open Project with Visual Studio Comunity Edition 2019 or Monodevelop.
 
+## Publish
+
+- Net Runtime
+
+```
+dotnet publish -c Release -o ./publish-net
+```
+
+- Linux
+
+```
+dotnet publish -c Release -r linux-x64 -o ./publish-linux
+```
+
+## Run as service on linux vps
+```
+cd /etc/systemd/system
+nano myapp.service
+
+[Unit]
+Description=My gRPC Application
+
+[Service]
+Type=notify
+ExecStart=/usr/sbin/myapp
+
+[Install]
+WantedBy=multi-user.target
 
 
+```
 
+
+## Copy file to server
+```
+scp Archive.zip root@xx.15.xx1.xx:~/path
+```
+
+## Install UNZIP
+
+```
+sudo apt-get install unzip
+
+unzip file.zip -d destination_folder
+unzip file.zip
+```
 
 Articles:
 
@@ -79,6 +123,9 @@ https://putukusuma.medium.com/creating-simple-cryptocurrency-using-c-and-net-cor
 Part3
 https://putukusuma.medium.com/creating-simple-cryptocurrency-using-c-and-net-core-part-3-wallet-8bbfe0544770
 
+Part4
+https://putukusuma.medium.com/creating-simple-cryptocurrency-using-c-and-net-part-4-block-header-c8ad97fd237b
+
 
 Videos
 https://youtu.be/TYM55x7I8us
@@ -90,3 +137,10 @@ https://youtu.be/gpYKUWGBxf4
 
 
 
+Self-hosted gRPC applications
+
+https://docs.microsoft.com/en-us/dotnet/architecture/grpc-for-wcf-developers/self-hosted
+
+
+Reference
+https://stackoverflow.com/questions/63827667/bind-grpc-services-to-specific-port-in-aspnetcore
