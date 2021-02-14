@@ -51,8 +51,8 @@ namespace Main
 
               webBuilder.ConfigureKestrel(options =>
               {
-                  options.ListenAnyIP(80, listenOptions => listenOptions.Protocols = HttpProtocols.Http1); //webapi
-                  options.ListenAnyIP(8080, listenOptions => listenOptions.Protocols = HttpProtocols.Http2); //grpc
+                  options.ListenAnyIP(5001, listenOptions => listenOptions.Protocols = HttpProtocols.Http1); //webapi
+                  options.ListenAnyIP(5002, listenOptions => listenOptions.Protocols = HttpProtocols.Http2); //grpc
               });
 
               // start
