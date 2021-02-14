@@ -20,7 +20,7 @@ namespace Main
 
             //initilize stake
             Stake.Initialize();
-            Console.WriteLine(" inisitali succes ...");
+            Console.WriteLine(" initilize success ...");
         }
 
 
@@ -130,7 +130,7 @@ namespace Main
             var prevHash = lastBlock.Hash;
             Console.WriteLine(" = Prev Hash: {0}", prevHash);
 
-            var creator = Stake.GetCreator();
+            var creator = Stake.GetValidator();
             Console.WriteLine(" = Creator: {0}", creator);
 
             var transactions = new List<Transaction>(); // JsonConvert.SerializeObject(new List<Transaction>());
