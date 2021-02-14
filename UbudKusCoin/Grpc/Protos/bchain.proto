@@ -74,16 +74,18 @@ message TrxModel {
 }
 
 message BlockModel {
-	int64 Height = 1;
-	int64 TimeStamp = 2;
-	string PrevHash = 3;
-	string Hash = 4;
-	string Transactions = 5;
-    string Creator = 6;
-    string MerkleRoot = 7;
-    int32  NumOfTx = 8;
-    double TotalAmount = 9;
-    float TotalReward = 10;
+	int32 Version = 1;
+	int64 Height = 2;
+	int64 TimeStamp = 3;
+	string PrevHash = 4;
+	string Hash = 5;
+	string Transactions = 6;
+    string Validator = 7;
+    string MerkleRoot = 8;
+    int32  NumOfTx = 9;
+    double TotalAmount = 10;
+    float TotalReward = 11;
+    int32 Difficulty = 12;
 }
 
 message EmptyRequest {

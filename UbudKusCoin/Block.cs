@@ -8,39 +8,40 @@ namespace Main
 
     public class Block
     {
-        public int Height { get; set; }
+        public int Version { get; set; }
+        public long Height { get; set; }
         public long TimeStamp { get; set; }
         public string PrevHash { get; set; }
         public string Hash { get; set; }
         public string MerkleRoot { get; set; }
         public IList<Transaction> Transactions { get; set; }
-        public string Creator { get; set; }
+        public string Validator { get; set; }
         public int NumOfTx { get; set; }
         public double TotalAmount { get; set; }
         public float TotalReward { get; set; }
+        public int Difficulty { get; set; }
 
 
         public void Build()
         {
+            Version = 1;
             NumOfTx = Transactions.Count;
-            Console.WriteLine(" = Num Of Tx: {0}", NumOfTx);
             TotalAmount = GetTotalAmount();
             TotalReward = GetTotalFees();
             MerkleRoot = GetMerkleRoot();
             Hash = GetBlockHash();
+            Difficulty = 1;
         }
 
         private float GetTotalFees()
         {
             var totFee = Transactions.AsEnumerable().Sum(x => x.Fee);
-            Console.WriteLine(" = Total Fee: {0}", totFee);
             return totFee;
         }
 
         private double GetTotalAmount()
         {
            var totalAmount =  Transactions.AsEnumerable().Sum(x => x.Amount);
-            Console.WriteLine(" = Total Amount: {0}", totalAmount);
             return totalAmount;
         }
 
@@ -52,14 +53,14 @@ namespace Main
             var ts = 1498018714; //21 june 2017
 
             // for genesis bloc we set creatoris first of Genesis Account
-            var creator = Genesis.GetAll().FirstOrDefault();
+            var validator = Genesis.GetAll().FirstOrDefault();
             var block = new Block
             {
                 Height = 0,
                 TimeStamp = ts,
                 PrevHash = "-",
                 Transactions = transactions,
-                Creator = creator.Address
+                Validator = validator.Address
             };
             block.Build();
 
@@ -69,9 +70,8 @@ namespace Main
 
         public  string GetBlockHash()
         {
-            var strSum = TimeStamp + PrevHash + MerkleRoot + Creator;
+            var strSum = Version + PrevHash + MerkleRoot + TimeStamp + Difficulty + Validator;
             var hash = Utils.GenHash(strSum);
-            Console.WriteLine(" = Hash: {0}", hash);
             return hash;
         }
 
@@ -85,7 +85,6 @@ namespace Main
             }
 
             var hashRoot = Utils.CreateMerkleRoot(txsHash.ToArray());
-            Console.WriteLine(" = Merkle Root: {0}", hashRoot);
             return hashRoot;
         }
 
