@@ -70,7 +70,7 @@ namespace GrpcService.Services
 
         public override Task<TrxResponse> SendCoin(SendRequest request, ServerCallContext context)
         {
-            Console.WriteLine("request.TrxId: {0}", request.TrxId);
+            //Console.WriteLine("request.TrxId: {0}", request.TrxId);
             //Create new transaction
             var newTrx = new Transaction()
             {

@@ -87,16 +87,16 @@ namespace Main
         static string DoubleHash(string leaf1, string leaf2)
         {
             byte[] leaf1Byte = HexToBytes(leaf1);
-            Array.Reverse(leaf1Byte);
+            //Array.Reverse(leaf1Byte);
 
             byte[] leaf2Byte = HexToBytes(leaf2);
-            Array.Reverse(leaf2Byte);
+            //Array.Reverse(leaf2Byte);
 
             var concatHash = leaf1Byte.Concat(leaf2Byte).ToArray();
             SHA256 sha256 = SHA256.Create();
             byte[] sendHash = sha256.ComputeHash(sha256.ComputeHash(concatHash));
 
-            Array.Reverse(sendHash);
+            //Array.Reverse(sendHash);
 
             return BytesToHex(sendHash).ToLower();
         }
