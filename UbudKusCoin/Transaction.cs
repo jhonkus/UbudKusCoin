@@ -66,7 +66,7 @@ namespace Main
                 var newTrx = new Transaction()
                 {
                     TimeStamp = timeStamp,
-                    Sender = "ICO",
+                    Sender = "UKC_rcyChuW7cQcIVoKi1LfSXKfCxZBHysTwyPm88ZsN0BM=",
                     Recipient = acc.Address,
                     Amount = acc.Balance,
                     Fee = 0.0f
@@ -76,6 +76,30 @@ namespace Main
                 AddToPool(newTrx);
             }
         }
+
+               /**
+        create transaction for each ico account
+        **/
+        public static void CreateGenesisTransction()
+        {
+            var timeStamp = DateTime.Now.Ticks;
+            foreach (var acc in Genesis.GetAll())
+            {
+
+                var newTrx = new Transaction()
+                {
+                    TimeStamp = timeStamp,
+                    Sender = "Genesis",
+                    Recipient = acc.Address,
+                    Amount = acc.Balance,
+                    Fee = 0.0f
+                };
+                newTrx.Build();
+
+                AddToPool(newTrx);
+            }
+        }
+
 
         /**
         * Get balance by name
