@@ -123,6 +123,9 @@ https://putukusuma.medium.com/creating-simple-cryptocurrency-using-c-and-net-cor
 Part3
 https://putukusuma.medium.com/creating-simple-cryptocurrency-using-c-and-net-core-part-3-wallet-8bbfe0544770
 
+Part4
+https://putukusuma.medium.com/creating-simple-cryptocurrency-using-c-and-net-part-4-block-header-c8ad97fd237b
+
 
 Videos
 https://youtu.be/TYM55x7I8us
@@ -136,7 +139,6 @@ https://youtu.be/gpYKUWGBxf4
 Self-hosted gRPC applications
 
 https://docs.microsoft.com/en-us/dotnet/architecture/grpc-for-wcf-developers/self-hosted
-
 
 
 Reference
