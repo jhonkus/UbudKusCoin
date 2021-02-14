@@ -60,13 +60,38 @@ Restore Genesis Account Console Wallet
 - Select menu no 2 restore account
 - input this: 37115820268057954843929458901983051845242353300769768346456079873593606626394
 
+
 ## Edit Project
 
 Open Project with Visual Studio Comunity Edition 2019 or Monodevelop.
 
+## Publish
 
+- Net Runtime
 
+```
+dotnet publish -c Release -o ./publish-net
+```
 
+- Linux
+
+```
+dotnet publish -c Release -r linux-x64 -o ./publish-linux
+```
+
+## Copy file to server
+```
+scp Archive.zip root@xx.15.xx1.xx:~/path
+```
+
+## Install UNZIP
+
+```
+sudo apt-get install unzip
+
+unzip file.zip -d destination_folder
+unzip file.zip
+```
 
 Articles:
 
@@ -88,3 +113,12 @@ https://youtu.be/gpYKUWGBxf4
 
 
 
+
+Self-hosted gRPC applications
+
+https://docs.microsoft.com/en-us/dotnet/architecture/grpc-for-wcf-developers/self-hosted
+
+
+
+Reference
+https://stackoverflow.com/questions/63827667/bind-grpc-services-to-specific-port-in-aspnetcore
