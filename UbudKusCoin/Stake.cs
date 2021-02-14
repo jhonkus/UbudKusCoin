@@ -22,6 +22,9 @@ namespace UbudKusCoin
 
             // insert into database
             stakes.Insert(staker);
+
+            // update list
+            StakerList.Add(staker);
         }
 
         public static ILiteCollection<Staker> GetAll()
@@ -84,16 +87,12 @@ namespace UbudKusCoin
         }
 
 
-        public static string GetCreator()
+        public static string GetValidator()
         {
             var numOfStakes = StakerList.Count;
-            // Console.WriteLine("numOfStakes {0}", numOfStakes);
             var random = new Random();
-            // Console.WriteLine("random {0}", random);
             int choosed = random.Next(0, numOfStakes);
-            // Console.WriteLine("choosed {0}", choosed);
             var staker = StakerList[choosed].Address;
-            // Console.WriteLine("staker {0}", staker);
             return staker;
         }
     }
