@@ -17,17 +17,21 @@ namespace Main
             return Convert.ToHexString(hash).ToLower();
         }
 
-        public static long GetTime()
+        public static DateTime ToDateTime(long unixTime)
         {
-            DateTimeOffset now = DateTimeOffset.UtcNow;
-            long unixTimeMilliseconds = now.ToUnixTimeMilliseconds();
-            return unixTimeMilliseconds;
+            DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            dtDateTime = dtDateTime.AddSeconds(unixTime).ToLocalTime();
+            return dtDateTime;
         }
 
-        public static string ConvertToDateTime(this Int64 timestamp)
+        public static long GetTime()
         {
-            return new DateTime(timestamp).ToString("dd MMM yyyy hh:mm:ss"); ;
+            long epochTicks = new DateTime(1970, 1, 1).Ticks;
+            long nowTicks = DateTime.UtcNow.Ticks;
+            long tmStamp = ((nowTicks - epochTicks) / TimeSpan.TicksPerSecond);
+            return tmStamp;
         }
+
 
         public static string StringToHex(string data)
         {

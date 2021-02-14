@@ -59,7 +59,7 @@ namespace Main
         **/
         public static void CreateIcoTransction()
         {
-            var timeStamp = DateTime.Now.Ticks;
+            var timeStamp = Utils.GetTime();
             foreach (var acc in IcoBalance.GetIcoAccounts())
             {
 
@@ -82,7 +82,7 @@ namespace Main
         **/
         public static void CreateGenesisTransction()
         {
-            var timeStamp = DateTime.Now.Ticks;
+            var timeStamp = Utils.GetTime();
             foreach (var acc in Genesis.GetAll())
             {
 

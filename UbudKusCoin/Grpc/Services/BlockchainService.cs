@@ -118,6 +118,7 @@ namespace GrpcService.Services
             {
                 BlockModel mdl = new BlockModel
                 {
+                    Version = block.Version,
                     Height = block.Height,
                     Hash = block.Hash,
                     PrevHash = block.PrevHash,
@@ -126,7 +127,9 @@ namespace GrpcService.Services
                     MerkleRoot = block.MerkleRoot,
                     NumOfTx = block.NumOfTx,
                     TotalAmount = block.TotalAmount,
-                    TotalReward = block.TotalReward
+                    TotalReward = block.TotalReward,
+                    Difficulty = block.Difficulty,
+                    Validator = block.Validator
 
                 };
                 return mdl;

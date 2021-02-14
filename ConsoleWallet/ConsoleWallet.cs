@@ -442,7 +442,7 @@ namespace Main
                     foreach (var trx in response.Transactions)
                     {
                         Console.WriteLine("Hash        : {0}", trx.Hash);
-                        Console.WriteLine("Timestamp   : {0}", trx.TimeStamp.ConvertToDateTime());
+                        Console.WriteLine("Timestamp   : {0}", Utils.ToDateTime(trx.TimeStamp));
                         Console.WriteLine("Sender      : {0}", trx.Sender);
                         Console.WriteLine("Recipient   : {0}", trx.Recipient);
                         Console.WriteLine("Amount      : {0}", trx.Amount.ToString("N", CultureInfo.InvariantCulture));

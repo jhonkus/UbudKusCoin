@@ -136,11 +136,13 @@ namespace Main
         private static void PrintBlock(BlockModel block)
         {
             Console.WriteLine("Height        : {0}", block.Height);
-            Console.WriteLine("Timestamp     : {0}", block.TimeStamp.ConvertToDateTime());
+            Console.WriteLine("Version       : {0}", block.Version);
+            Console.WriteLine("Timestamp     : {0}", Utils.ToDateTime(block.TimeStamp));
             Console.WriteLine("Hash          : {0}", block.Hash);
-            Console.WriteLine("MerkleRoot    : {0}", block.MerkleRoot);
+            Console.WriteLine("Merkle Hash   : {0}", block.MerkleRoot);
             Console.WriteLine("Prev. Hash    : {0}", block.PrevHash);
-
+            Console.WriteLine("Validator     : {0}", block.Validator);
+            Console.WriteLine("Difficulty    : {0}", block.Difficulty);
             Console.WriteLine("Num of Txs    : {0}", block.NumOfTx);
             Console.WriteLine("Total Amount  : {0}", block.TotalAmount);
             Console.WriteLine("Total Fee     : {0}", block.TotalReward);
@@ -151,7 +153,7 @@ namespace Main
             foreach (var trx in transactions)
             {
                 Console.WriteLine("   ID          : {0}", trx.Hash);
-                Console.WriteLine("   Timestamp   : {0}", trx.TimeStamp.ConvertToDateTime());
+                Console.WriteLine("   Timestamp   : {0}", Utils.ToDateTime(trx.TimeStamp));
                 Console.WriteLine("   Sender      : {0}", trx.Sender);
                 Console.WriteLine("   Recipient   : {0}", trx.Recipient);
                 Console.WriteLine("   Amount      : {0}", trx.Amount.ToString("N", CultureInfo.InvariantCulture));

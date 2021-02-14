@@ -7,10 +7,21 @@ namespace Main
     public static class Utils
     {
 
-        public static string ConvertToDateTime(this long timestamp)
+        public static DateTime ToDateTime(long unixTime)
         {
-            return new DateTime(timestamp).ToString("dd MMM yyyy hh:mm:ss");;
+            DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            dtDateTime = dtDateTime.AddSeconds(unixTime).ToLocalTime();
+            return dtDateTime;
         }
+
+        public static long GetTime()
+        {
+            long epochTicks = new DateTime(1970, 1, 1).Ticks;
+            long nowTicks = DateTime.UtcNow.Ticks;
+            long tmStamp = ((nowTicks - epochTicks) / TimeSpan.TicksPerSecond);
+            return tmStamp;
+        }
+
 
     }
 }

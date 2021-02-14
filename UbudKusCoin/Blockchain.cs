@@ -9,7 +9,7 @@ namespace Main
     public class Blockchain
     {
 
-        public const double COINT_BASE = 2.5;
+        public const float COINT_REWARD = 0.01f;
 
         public Blockchain()
         {
@@ -23,6 +23,10 @@ namespace Main
             Console.WriteLine(" initilize success ...");
         }
 
+        public static float GetCoinReward()
+        {
+            return COINT_REWARD;
+        }
 
         private static void Initialize()
         {
@@ -97,7 +101,7 @@ namespace Main
             return block;
         }
 
-        public static int GetHeight()
+        public static long GetHeight()
         {
             var lastBlock = GetLastBlock();
             return lastBlock.Height;
@@ -118,42 +122,43 @@ namespace Main
 
             //// get last block to get prev hash and last height
             var lastBlock = GetLastBlock();
-
-            Console.WriteLine("\n===========\nNew Block created: ... ");
-
             var height = lastBlock.Height + 1;
-            Console.WriteLine(" = Height: {0}", height);
-
             var timestamp = Utils.GetTime();
-            Console.WriteLine(" = Timestamp: {0}", timestamp);
-
             var prevHash = lastBlock.Hash;
-            Console.WriteLine(" = Prev Hash: {0}", prevHash);
+            var validator = Stake.GetValidator();
 
-            var creator = Stake.GetValidator();
-            Console.WriteLine(" = Creator: {0}", creator);
 
             var transactions = new List<Transaction>(); // JsonConvert.SerializeObject(new List<Transaction>());
 
+
+            // validator will get coin reward from genesis account
+            // to keep total coin in Blockchain not changed
             var conbaseTrx = new Transaction
             {
-                Amount = COINT_BASE,
-                Recipient = creator,
-                Fee = 0,
+                Amount = 0,
+                Recipient = "UKC_QPQY9wHP0jxi/0c/YRlch2Uk5ur/T8lcOaawqyoe66o=",
+                Fee = COINT_REWARD,
                 TimeStamp = timestamp,
-                Sender = "COINBASE"
+                Sender = "UKC_rcyChuW7cQcIVoKi1LfSXKfCxZBHysTwyPm88ZsN0BM="
             };
-            conbaseTrx.Build();
-
-            transactions.Add(conbaseTrx);
-
+         
             if (trxPool.Count() > 0)
             {
                 //Get all tx from pool
+                conbaseTrx.Recipient = validator;
+                conbaseTrx.Amount = GetTotalFees(trxPool.FindAll().ToList());
+                conbaseTrx.Build();
+
+                transactions.Add(conbaseTrx);
                 transactions.AddRange(trxPool.FindAll());
 
                 // clear mempool
                 trxPool.DeleteAll();
+            }
+            else
+            {
+                conbaseTrx.Build();
+                transactions.Add(conbaseTrx);
             }
 
 
@@ -163,10 +168,11 @@ namespace Main
                 TimeStamp = timestamp,
                 PrevHash = prevHash,
                 Transactions = transactions,
-                Creator = creator
+                Validator = validator
             };
             block.Build();
             AddBlock(block);
+            PrintBlock(block);
 
             // move all record in trx pool to transactions table
             foreach (var trx in transactions)
@@ -177,5 +183,28 @@ namespace Main
           
         }
 
+        private static float GetTotalFees(IList<Transaction> txs)
+        {
+            var totFee = txs.AsEnumerable().Sum(x => x.Fee);
+            return totFee;
+        }
+
+        private static void PrintBlock(Block block)
+        {
+            Console.WriteLine("\n===========\nNew Block created");
+            Console.WriteLine(" = Height      : {0}", block.Height);
+            Console.WriteLine(" = Version     : {0}", block.Version);
+            Console.WriteLine(" = Prev Hash   : {0}", block.PrevHash);
+            Console.WriteLine(" = Merkle Hash : {0}", block.MerkleRoot);
+            Console.WriteLine(" = Timestamp   : {0}", Utils.ToDateTime(block.TimeStamp));
+            Console.WriteLine(" = Difficulty  : {0}", block.Difficulty);
+            Console.WriteLine(" = Validator   : {0}", block.Validator);
+
+            Console.WriteLine(" = Number Of Tx: {0}", block.NumOfTx);
+            Console.WriteLine(" = Amout       : {0}", block.TotalAmount);
+            Console.WriteLine(" = Reward      : {0}", block.TotalReward);
+        
+
+        }
     }
 }
