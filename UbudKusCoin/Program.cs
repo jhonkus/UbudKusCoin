@@ -32,16 +32,22 @@ namespace Main
           {
 
               // if macos
-              if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-              {
+            //   if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            //   {
 
-                  webBuilder.ConfigureKestrel(options =>
-                  {
-                      // Setup a HTTP/2 endpoint without TLS.
-                      options.ListenLocalhost(5002, o => o.Protocols =
-                          HttpProtocols.Http2);
-                  });
-              }
+            //       webBuilder.ConfigureKestrel(options =>
+            //       {
+            //           // Setup a HTTP/2 endpoint without TLS.
+            //           options.ListenLocalhost(5002, o => o.Protocols =
+            //               HttpProtocols.Http2);
+            //       });
+            //   }
+
+             webBuilder.ConfigureKestrel(options =>
+             {
+                 options.ListenLocalhost(5002, o => o.Protocols =
+                 HttpProtocols.Http2);
+             });
 
               // start
               webBuilder.UseStartup<Startup>();
