@@ -84,12 +84,12 @@ dotnet publish -c Release -o ./publish-net
 
 ## Deploy UbudKusCoin on AWS Lightstall or other vps linux
 
-- connect to linux vps with ssh client 
+- Connect to linux vps with ssh client 
 ```
 ssh -i ~/SSH/ssh.pem your-user@your-IP     (y~/SSH/ssh.pem is path of your private key)
 ```
 
-- download and install .net core sdk5.0 on vps
+- Download and install .net core sdk5.0 on vps
 ```
 wget https://download.visualstudio.microsoft.com/download/pr/820db713-c9a5-466e-b72a-16f2f5ed00e2/628aa2a75f6aa270e77f4a83b3742fb8/dotnet-sdk-5.0.100-linux-x64.tar.gz
 
@@ -103,34 +103,34 @@ ls $HOME/dotnet   (make sure unzip result exist)
 
 ```
 
-- set PATH for dotnet sdk on vps
+- Set PATH for dotnet sdk on vps
 ```
 nano ~/.bashrc  (or your profile file)
 ```
 
-add this 2 lines at the end of  your bashrc profile
+- Add this 2 lines at the end of  your bashrc profile
 
 ```
 export DOTNET_ROOT=$HOME/dotnet
 export PATH=$PATH:$HOME/dotnet
 ```
 
-save your bash profile buy press ctrl+x and yes in your keyboard
+- save your bash profile buy press ctrl+x and yes in your keyboard
 
 
-activate your bash profile
+- activate your bash profile
 ```
-nano ~/.bashrc
-```
-
-- Create folder ukc_core on vps server
-
-```
-mkdir $HOME/ukc_core 
+source ~/.bashrc
 ```
 
+- Create folder ukc on vps server
 
-- open other terminal in your computer and build UbudKusCoin for linux 
+```
+mkdir $HOME/ukc 
+```
+
+
+- Open other terminal in your Laptop/PC and build UbudKusCoin for linux 
 
 ```
 cd UbudKusCoin/UbudKusCoin
@@ -151,21 +151,21 @@ scp -i ~/SSH/ssh.pem archive.zip root@xxx.xxx.xxx.xxx:~/ukc_core
 ```
 
 - Unzip archive.zip on your vps server
-connect to your vps again.
+- connect to your vps again, see above command to connect to your vps
 
 ```
-cd ~/ukc_core 
+cd ~/ukc 
 unzip archive.zip
 ```
 
 - run ukc core
 ```
-dotnet UbudKusCoin.dll
+~/ukc/UbudKusCoin
 ```
-ubudkus coin core will run, but when console closed, it will stoped, follow next step
+ubudkus coin core will run, but when terminal closed, it will stoped, follow next step
 how run ubudkuscoin as service
 
-- Open/allow Port 5001 and 5002 in your firewall setting, so it can access from client side. in aws lightsaill, there is network menu, edit it.
+- Open/allow Port 5002 in your firewall setting, so it can access from client side. in aws lightsaill, there is network menu, edit it.
 
 
 ## Run as service on linux vps
@@ -198,38 +198,45 @@ for more detail see end of this file
 
 
 
-Articles:
 
-Part 1
+
+
+
+Please read this articles to know more detail how to run app as service on linux
+
+References:
+
+- https://docs.microsoft.com/en-us/dotnet/architecture/grpc-for-wcf-developers/self-hosted
+
+
+- https://stackoverflow.com/questions/63827667/bind-grpc-services-to-specific-port-in-aspnetcore
+
+- https://swimburger.net/blog/dotnet/how-to-run-a-dotnet-core-console-app-as-a-service-using-systemd-on-linux
+
+
+My Articles:
+
+- Part 1
+
 https://putukusuma.medium.com/developing-simple-crypto-application-using-c-48258c2d4e45
 
-part 2
+- part 2
+
 https://putukusuma.medium.com/creating-simple-cryptocurrency-using-c-and-net-core-part-2-menu-and-database-4ae842098f55
 
-Part3
+- Part3
+
 https://putukusuma.medium.com/creating-simple-cryptocurrency-using-c-and-net-core-part-3-wallet-8bbfe0544770
 
-Part4
+- Part4
+
 https://putukusuma.medium.com/creating-simple-cryptocurrency-using-c-and-net-part-4-block-header-c8ad97fd237b
 
 
-Videos
-https://youtu.be/TYM55x7I8us
+My Videos:
 
-https://youtu.be/gpYKUWGBxf4
+- https://youtu.be/TYM55x7I8us
 
+- https://youtu.be/gpYKUWGBxf4
 
-
-
-
-
-Run netcore app as service on linux
-
-Reference
-https://docs.microsoft.com/en-us/dotnet/architecture/grpc-for-wcf-developers/self-hosted
-
-
-https://stackoverflow.com/questions/63827667/bind-grpc-services-to-specific-port-in-aspnetcore
-
-https://swimburger.net/blog/dotnet/how-to-run-a-dotnet-core-console-app-as-a-service-using-systemd-on-linux
 
