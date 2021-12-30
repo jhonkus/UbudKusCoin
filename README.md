@@ -1,7 +1,7 @@
 # UbudKusCoin
 Simple Cryptocurrencies with Proof Of Stake  Consensus Algorithm.
 
-Developed with C# and .Net 5.0
+Developed with C# and .Net Core 5.0
 
 This Solution have 3 projects
 
@@ -13,9 +13,16 @@ This Solution have 3 projects
 ## Requirement
 Net SDK 5.0 https://dotnet.microsoft.com/download/dotnet/5.0
 
+## How Install Net SDK 5.0
+- download https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-5.0.100-linux-x64-binaries
+- cd ~/Downloads  (assume the sdk downloaded in Downloads folter)
+- mkdir -p $HOME/dotnet && tar zxf dotnet-sdk-5.0.100-linux-x64.tar.gz -C $HOME/dotnet
+- export DOTNET_ROOT=$HOME/dotnet
+- export PATH=$PATH:$HOME/dotnet
+
 ## IDE
 - Visual Studio Comunity Edition https://visualstudio.microsoft.com/downloads
-- For linux user download Monodevelop https://www.monodevelop.com
+- For linux user VSCode, follow instruction in this website  https://code.visualstudio.com/docs/languages/dotnet 
 
 ## Instalation
 
@@ -63,9 +70,10 @@ Restore Genesis Account Console Wallet
 
 ## Edit Project
 
-Open Project with Visual Studio Comunity Edition 2019 or Monodevelop.
+Open Project with Visual Studio Code.
 
-## Publish
+
+## Build project for Publish
 
 - Net Runtime
 
@@ -73,44 +81,122 @@ Open Project with Visual Studio Comunity Edition 2019 or Monodevelop.
 dotnet publish -c Release -o ./publish-net
 ```
 
-- Linux
+
+## Deploy UbudKusCoin on AWS Lightstall or other vps linux
+
+- connect to linux vps with ssh client 
+```
+ssh -i ~/SSH/ssh.pem your-user@your-IP     (y~/SSH/ssh.pem is path of your private key)
+```
+
+- download and install .net core sdk5.0 on vps
+```
+wget https://download.visualstudio.microsoft.com/download/pr/820db713-c9a5-466e-b72a-16f2f5ed00e2/628aa2a75f6aa270e77f4a83b3742fb8/dotnet-sdk-5.0.100-linux-x64.tar.gz
+
+ls   (make sure the file dotnet-sdk-5.0.100-linux-x64.tar.gz exist)
+
+mkdir -p $HOME/dotnet   (create folder dotnet)
+
+tar zxf dotnet-sdk-5.0.100-linux-x64.tar.gz -C $HOME/dotnet   (unzip the file to dotnet folder)
+
+ls $HOME/dotnet   (make sure unzip result exist)
 
 ```
+
+- set PATH for dotnet sdk on vps
+```
+nano ~/.bashrc  (or your profile file)
+```
+
+add this 2 lines at the end of  your bashrc profile
+
+```
+export DOTNET_ROOT=$HOME/dotnet
+export PATH=$PATH:$HOME/dotnet
+```
+
+save your bash profile buy press ctrl+x and yes in your keyboard
+
+
+activate your bash profile
+```
+nano ~/.bashrc
+```
+
+- Create folder ukc_core on vps server
+
+```
+mkdir $HOME/ukc_core 
+```
+
+
+- open other terminal in your computer and build UbudKusCoin for linux 
+
+```
+cd UbudKusCoin/UbudKusCoin
 dotnet publish -c Release -r linux-x64 -o ./publish-linux
 ```
 
+- Zip all files of build result
+build result take location in UbudKusCoin/UbudKusCoin/bin/Release/net5.0/linux-x64
+```
+cd UbudKusCoin/UbudKusCoin/bin/Release/net5.0/linux-x64
+zip -r archive.zip .  (with dot at the end)
+```
+
+
+- Copy file to vps (virtual private server) 
+```
+scp -i ~/SSH/ssh.pem archive.zip root@xxx.xxx.xxx.xxx:~/ukc_core
+```
+
+- Unzip archive.zip on your vps server
+connect to your vps again.
+
+```
+cd ~/ukc_core 
+unzip archive.zip
+```
+
+- run ukc core
+```
+dotnet UbudKusCoin.dll
+```
+ubudkus coin core will run, but when console closed, it will stoped, follow next step
+how run ubudkuscoin as service
+
+- Open/allow Port 5001 and 5002 in your firewall setting, so it can access from client side. in aws lightsaill, there is network menu, edit it.
+
+
 ## Run as service on linux vps
-```
-cd /etc/systemd/system
-nano myapp.service
 
-[Unit]
-Description=My gRPC Application
+- copy/upload file UbudKusCoin.service to vps folder 
+/etc/systemd/system
 
-[Service]
-Type=notify
-ExecStart=/usr/sbin/myapp
+so location will be /etc/systemd/system/UbudKusCoin.service
 
-[Install]
-WantedBy=multi-user.target
 
+- Start the service
 
 ```
+sudo systemctl daemon-reload
+sudo systemctl start UbudKusCoin
+sudo systemctl enable UbudKusCoin
 
-
-## Copy file to server
-```
-scp Archive.zip root@xx.15.xx1.xx:~/path
-```
-
-## Install UNZIP
 
 ```
-sudo apt-get install unzip
+- Stop the service
 
-unzip file.zip -d destination_folder
-unzip file.zip
 ```
+sudo systemctl stop UbudKusCoin
+
+```
+
+
+for more detail see end of this file
+
+
+
 
 Articles:
 
@@ -137,10 +223,13 @@ https://youtu.be/gpYKUWGBxf4
 
 
 
-Self-hosted gRPC applications
+Run netcore app as service on linux
 
+Reference
 https://docs.microsoft.com/en-us/dotnet/architecture/grpc-for-wcf-developers/self-hosted
 
 
-Reference
 https://stackoverflow.com/questions/63827667/bind-grpc-services-to-specific-port-in-aspnetcore
+
+https://swimburger.net/blog/dotnet/how-to-run-a-dotnet-core-console-app-as-a-service-using-systemd-on-linux
+
