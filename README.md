@@ -147,7 +147,7 @@ zip -r archive.zip .  (with dot at the end)
 
 - Copy file to vps (virtual private server) 
 ```
-scp -i ~/SSH/ssh.pem archive.zip root@xxx.xxx.xxx.xxx:~/ukc_core
+scp -i ~/SSH/ssh.pem archive.zip root@xxx.xxx.xxx.xxx:~/ukc
 ```
 
 - Unzip archive.zip on your vps server
