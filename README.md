@@ -213,6 +213,10 @@ References:
 
 - https://swimburger.net/blog/dotnet/how-to-run-a-dotnet-core-console-app-as-a-service-using-systemd-on-linux
 
+- https://docs.microsoft.com/en-us/aspnet/core/grpc/browser?view=aspnetcore-6.0#configure-grpc-web-in-aspnet-core
+
+- https://docs.microsoft.com/en-us/aspnet/core/grpc/browser?view=aspnetcore-6.0
+
 
 My Articles:
 
