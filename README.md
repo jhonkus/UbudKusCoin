@@ -147,7 +147,7 @@ zip -r archive.zip .  (with dot at the end)
 
 - Copy file to vps (virtual private server) 
 ```
-scp -i ~/SSH/ssh.pem archive.zip root@xxx.xxx.xxx.xxx:~/ukc_core
+scp -i ~/SSH/ssh.pem archive.zip root@xxx.xxx.xxx.xxx:~/ukc
 ```
 
 - Unzip archive.zip on your vps server
@@ -212,6 +212,10 @@ References:
 - https://stackoverflow.com/questions/63827667/bind-grpc-services-to-specific-port-in-aspnetcore
 
 - https://swimburger.net/blog/dotnet/how-to-run-a-dotnet-core-console-app-as-a-service-using-systemd-on-linux
+
+- https://docs.microsoft.com/en-us/aspnet/core/grpc/browser?view=aspnetcore-6.0#configure-grpc-web-in-aspnet-core
+
+- https://docs.microsoft.com/en-us/aspnet/core/grpc/browser?view=aspnetcore-6.0
 
 
 My Articles:

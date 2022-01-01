@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using UbudKusCoin.Sceduler;
 
+
 namespace Main
 {
     public class Startup
@@ -20,14 +21,18 @@ namespace Main
             services.AddTransient<BlockJob>();
 
             services.AddGrpc();
-            //services.AddCors(o => o.AddPolicy("AllowAll", builder =>
-            //{
-            //    builder.AllowAnyOrigin()
-            //           .AllowAnyMethod()
-            //           .AllowAnyHeader()
-            //           .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
-            //}));
 
+            // add cors support
+            services.AddCors(o => o.AddPolicy("AllowAll", builder =>
+            {
+                //builder.WithOrigins("localhost:4200", "YourCustomDomain");
+                //builder.WithMethods("POST, OPTIONS");
+
+                builder.AllowAnyOrigin()
+                       .AllowAnyMethod()
+                       .AllowAnyHeader()
+                       .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
+            }));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -36,24 +41,30 @@ namespace Main
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+            } else {
+                app.UseHsts();
             }
 
+
             app.UseRouting();
-           // app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
-            //app.UseCors();
+            // add support grpc call from web app, Must be added between UseRouting and UseEndpoints
+            app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
             //app.UseGrpcWeb(); // Must be added between UseRouting and UseEndpoints
+            app.UseCors();
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGrpcService<BlockchainService>(); //.RequireHost("*:5008");
+                //endpoints.MapGrpcService<BlockchainService>(); //.RequireHost("*:5008");
                 //endpoints.MapGrpcService<BlockchainService>().EnableGrpcWeb().RequireCors("AllowAll");
-                //endpoints.MapGrpcService<BlockchainService>().RequireCors("AllowAll"); ;
+                endpoints.MapGrpcService<BlockchainService>().RequireCors("AllowAll");
 
+                // for grpcweb. is bellow code necessary?
                 endpoints.MapGet("/", async context =>
                 {
                     await context.Response.WriteAsync(
                         "Communication with gRPC endpoints" +
                         " must be made through a gRPC client.");
                 });
+                
             });
         }
     }
