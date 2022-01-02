@@ -50,15 +50,19 @@ namespace Main
               //    HttpProtocols.Http2);
               //});
 
-              webBuilder.ConfigureKestrel(options =>
-              {
-                  options.ListenAnyIP(5001, listenOptions => listenOptions.Protocols = HttpProtocols.Http1); //webapi
-                  options.ListenAnyIP(5002, listenOptions => listenOptions.Protocols = HttpProtocols.Http2); //grpc
-              });
+            //   webBuilder.ConfigureKestrel(options =>
+            //   {
+            //       options.ListenAnyIP(5001, listenOptions => listenOptions.Protocols = HttpProtocols.Http1); //webapi
+            //       options.ListenAnyIP(5002, listenOptions => listenOptions.Protocols = HttpProtocols.Http2); //grpc
+            //   });
 
               // start
               webBuilder.UseStartup<Startup>();
 
+              
+
           });
+
+          
     }
 }

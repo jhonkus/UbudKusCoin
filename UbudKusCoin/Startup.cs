@@ -17,6 +17,7 @@ namespace Main
         public static void ConfigureServices(IServiceCollection services)
         {
 
+
             services.AddScheduler();
             services.AddTransient<BlockJob>();
 
@@ -41,10 +42,16 @@ namespace Main
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-            } else {
-                app.UseHsts();
             }
+            // else
+            // {
+            //     app.UseExceptionHandler("/Error");
+            //     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+            //     app.UseHsts();
+            // }
 
+
+            app.UseHttpsRedirection();
 
             app.UseRouting();
             // add support grpc call from web app, Must be added between UseRouting and UseEndpoints
@@ -64,7 +71,7 @@ namespace Main
                         "Communication with gRPC endpoints" +
                         " must be made through a gRPC client.");
                 });
-                
+
             });
         }
     }
