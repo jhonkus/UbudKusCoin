@@ -208,7 +208,7 @@ namespace Main
 
             try
             {
-                var response = service.GetBlocks(new BlockRequest
+                var response = service.GetBlocks(new PagingRequest
                 {
                     PageNumber = pageNumber,
                     ResultPerPage = 5

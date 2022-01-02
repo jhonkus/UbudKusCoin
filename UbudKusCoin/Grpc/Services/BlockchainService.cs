@@ -41,7 +41,7 @@ namespace GrpcService.Services
         }
 
 
-        public override Task<BlocksResponse> GetBlocks(BlockRequest request, ServerCallContext context)
+        public override Task<BlocksResponse> GetBlocks(PagingRequest request, ServerCallContext context)
         {
             var blocks = Blockchain.GetBlocks(request.PageNumber, request.ResultPerPage);
 
@@ -55,10 +55,23 @@ namespace GrpcService.Services
         }
 
 
-        public override Task<TransactionsResponse> GetTransactions(AccountRequest request, ServerCallContext context)
+        public override Task<TransactionsResponse> GetAccountTransactions(AccountRequest request, ServerCallContext context)
         {
             TransactionsResponse response = new TransactionsResponse();
-            var transactions = Transaction.GetTransactions(request.Address);
+            var transactions = Transaction.GetAccountTransactions(request.Address);
+            foreach (Transaction trx in transactions)
+            {
+                TrxModel mdl = ConvertTrxModel(trx);
+                response.Transactions.Add(mdl);
+            }
+            return Task.FromResult(response);
+        }
+
+        public override Task<TransactionsResponse> GetTransactions(PagingRequest request, ServerCallContext context)
+        {
+
+             TransactionsResponse response = new TransactionsResponse();
+            var transactions = Transaction.GetTransactions(request.PageNumber, request.ResultPerPage);
             foreach (Transaction trx in transactions)
             {
                 TrxModel mdl = ConvertTrxModel(trx);

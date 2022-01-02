@@ -138,9 +138,9 @@ dotnet publish -c Release -r linux-x64 -o ./publish-linux
 ```
 
 - Zip all files of build result
-build result take location in UbudKusCoin/UbudKusCoin/bin/Release/net5.0/linux-x64
+build result take location in publish-linux folder
 ```
-cd UbudKusCoin/UbudKusCoin/bin/Release/net5.0/linux-x64
+cd publish-linux
 zip -r archive.zip .  (with dot at the end)
 ```
 
@@ -216,6 +216,10 @@ References:
 - https://docs.microsoft.com/en-us/aspnet/core/grpc/browser?view=aspnetcore-6.0#configure-grpc-web-in-aspnet-core
 
 - https://docs.microsoft.com/en-us/aspnet/core/grpc/browser?view=aspnetcore-6.0
+
+- .Net Core with TLS
+https://andrewlock.net/creating-and-trusting-a-self-signed-certificate-on-linux-for-use-in-kestrel-and-asp-net-core/
+
 
 
 My Articles:
