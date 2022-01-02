@@ -217,6 +217,10 @@ References:
 
 - https://docs.microsoft.com/en-us/aspnet/core/grpc/browser?view=aspnetcore-6.0
 
+- .Net Core with TLS
+https://andrewlock.net/creating-and-trusting-a-self-signed-certificate-on-linux-for-use-in-kestrel-and-asp-net-core/
+
+
 
 My Articles:
 
