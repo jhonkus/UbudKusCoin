@@ -138,9 +138,9 @@ dotnet publish -c Release -r linux-x64 -o ./publish-linux
 ```
 
 - Zip all files of build result
-build result take location in UbudKusCoin/UbudKusCoin/bin/Release/net5.0/linux-x64
+build result take location in publish-linux folder
 ```
-cd UbudKusCoin/UbudKusCoin/bin/Release/net5.0/linux-x64
+cd publish-linux
 zip -r archive.zip .  (with dot at the end)
 ```
 
