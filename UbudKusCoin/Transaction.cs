@@ -1,6 +1,5 @@
 using EllipticCurve;
 using LiteDB;
-using System;
 using System.Collections.Generic;
 using UbudKusCoin;
 
@@ -42,9 +41,9 @@ namespace Main
         }
 
         /**
-        * get transaction list by name
+        * get transaction list by address
         */
-        public static IEnumerable<Transaction> GetTransactions(string address)
+        public static IEnumerable<Transaction> GetAccountTransactions(string address)
         {
             var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
             coll.EnsureIndex(x => x.TimeStamp);
@@ -52,6 +51,21 @@ namespace Main
             //coll.EnsureIndex(x => x.Recipient);
             var transactions = coll.Find(x => x.Sender == address || x.Recipient == address);
             return transactions;
+        }
+
+
+        /**
+        * get transaction list 
+        */
+        public static IEnumerable<Transaction> GetTransactions(int pageNumber, int resultPerPage)
+        {
+            var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
+            coll.EnsureIndex(x => x.TimeStamp);
+            var query = coll.Query()
+                .OrderByDescending(x => x.TimeStamp)
+                .Offset((pageNumber - 1) * resultPerPage)
+                .Limit(resultPerPage).ToList();
+            return query;
         }
 
         /**
