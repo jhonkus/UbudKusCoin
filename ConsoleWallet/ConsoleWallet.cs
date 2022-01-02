@@ -431,7 +431,7 @@ namespace Main
 
             try
             {
-                var response = service.GetTransactions(new AccountRequest
+                var response = service.GetAccountTransactions(new AccountRequest
                 {
                     Address = address
                 });

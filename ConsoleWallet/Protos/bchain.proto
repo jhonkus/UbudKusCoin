@@ -7,9 +7,10 @@ service BChainService {
   rpc GenesisBlock(EmptyRequest) returns (BlockResponse);
   rpc LastBlock(EmptyRequest)  returns (BlockResponse);
   rpc SendCoin(SendRequest)  returns (TrxResponse);
-  rpc GetBlocks(BlockRequest) returns (BlocksResponse);
+  rpc GetBlocks(PagingRequest) returns (BlocksResponse);
   rpc GetBalance(AccountRequest) returns (BalanceResponse);
-  rpc GetTransactions(AccountRequest) returns (TransactionsResponse);
+  rpc GetAccountTransactions(AccountRequest) returns (TransactionsResponse);
+  rpc GetTransactions(PagingRequest) returns (TransactionsResponse);
 }
 
 message SearchRequest {
@@ -43,7 +44,7 @@ message AccountRequest{
    string address = 1;
 }
 
-message BlockRequest{
+message PagingRequest{
   int32 page_number = 1;
   int32 result_per_page = 2; 
 }
