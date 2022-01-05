@@ -2,6 +2,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
+    <PublishTrimmed>true</PublishTrimmed>
     <UserSecretsId>30e6811d-fd4d-4923-9f26-64173fb52774</UserSecretsId>
   </PropertyGroup>
 
@@ -22,6 +23,8 @@
     <!-- end -->
 
     <PackageReference Include="Coravel" Version="4.0.2" />
+
+    <PackageReference Include="SimpleBase" Version="3.1.0" />
     <PackageReference Include="starkbank-ecdsa" Version="1.2.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="5.0.1" />
   </ItemGroup>

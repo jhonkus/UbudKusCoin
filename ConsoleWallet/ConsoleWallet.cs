@@ -158,7 +158,7 @@ namespace Main
             }
 
          
-            var response = service.GetBalance(new AccountRequest
+            var response = service.GetBalance(new CommonRequest
             {
                 Address = sender
             });
@@ -185,28 +185,28 @@ namespace Main
 
         private void SendCoin(string sender, string recipient, double amount, float fee)
         {
-            var trxin = new TrxInput
+            var Txnin = new TxnInput
             {
                 SenderAddress = sender,
                 TimeStamp = Utils.GetTime()
             };
 
-            var trxOut = new TrxOutput
+            var TxnOut = new TxnOutput
             {
                 RecipientAddress = recipient,
                 Amount = amount,
                 Fee = fee,
             };
 
-            var trxHash = Utils.GetTransactionHash(trxin, trxOut);
-            var signature = account.CreateSignature(trxHash);
-            trxin.Signature = signature;
+            var TxnHash = Utils.GetTransactionHash(Txnin, TxnOut);
+            var signature = account.CreateSignature(TxnHash);
+            Txnin.Signature = signature;
             var sendRequest = new SendRequest
             {
-                TrxId = trxHash,
+                TxnId = TxnHash,
                 PublicKey = account.GetPubKeyHex(),
-                TrxInput = trxin,
-                TrxOutput = trxOut
+                TxnInput = Txnin,
+                TxnOutput = TxnOut
             };
 
             try
@@ -288,7 +288,7 @@ namespace Main
             }
 
 
-            var response = service.GetBalance(new AccountRequest
+            var response = service.GetBalance(new CommonRequest
             {
                 Address = sender
             });
@@ -303,31 +303,31 @@ namespace Main
                 return;
             }
 
-            var trxin = new TrxInput
+            var Txnin = new TxnInput
             {
                 SenderAddress = account.GetAddress(),
-                TimeStamp = Utils.GetTime()
+                TimeStamp = Utils.GetTime(),
             };
 
-            var trxOut = new TrxOutput
+            var TxnOut = new TxnOutput
             {
                 RecipientAddress = recipient,
                 Amount = amount,
                 Fee = fee,
             };
 
-            var trxHash = Utils.GetTransactionHash(trxin, trxOut);
-            var signature = account.CreateSignature(trxHash);
+            var TxnHash = Utils.GetTransactionHash(Txnin, TxnOut);
+            var signature = account.CreateSignature(TxnHash);
             
 
-            trxin.Signature = signature;
+            Txnin.Signature = signature;
 
             var sendRequest = new SendRequest
             {
-                TrxId = trxHash,
+                TxnId = TxnHash,
                 PublicKey = account.GetPubKeyHex(),
-                TrxInput = trxin,
-                TrxOutput = trxOut
+                TxnInput = Txnin,
+                TxnOutput = TxnOut
             };
 
             try
@@ -336,17 +336,17 @@ namespace Main
 
                 if (responseSend.Result.ToLower() == "success")
                 {
-                    DateTime utcDate = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMilliseconds(Convert.ToDouble(trxin.TimeStamp));
+                    DateTime utcDate = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMilliseconds(Convert.ToDouble(Txnin.TimeStamp));
 
                     Console.Clear();
                     Console.WriteLine("\n\n\n\nTransaction has send to Blockchain.!.");
                     Console.WriteLine("Timestamp: {0}", utcDate.ToLocalTime());
-                    Console.WriteLine("Sender: {0}", trxin.SenderAddress);
-                    Console.WriteLine("Recipient {0}", trxOut.RecipientAddress);
-                    Console.WriteLine("Amount: {0}", trxOut.Amount);
-                    Console.WriteLine("Fee: {0}", trxOut.Fee);
+                    Console.WriteLine("Sender: {0}", Txnin.SenderAddress);
+                    Console.WriteLine("Recipient {0}", TxnOut.RecipientAddress);
+                    Console.WriteLine("Amount: {0}", TxnOut.Amount);
+                    Console.WriteLine("Fee: {0}", TxnOut.Fee);
                     Console.WriteLine("-------------------");
-                    Console.WriteLine("Need around 30 second to be processed!");
+                    Console.WriteLine("Need around 1 minute to be processed!");
                 }
                 else
                 {
@@ -431,7 +431,7 @@ namespace Main
 
             try
             {
-                var response = service.GetAccountTransactions(new AccountRequest
+                var response = service.GetTxnsByAccount(new CommonRequest
                 {
                     Address = address
                 });
@@ -439,14 +439,14 @@ namespace Main
 
                 if (response != null && response.Transactions != null)
                 {
-                    foreach (var trx in response.Transactions)
+                    foreach (var Txn in response.Transactions)
                     {
-                        Console.WriteLine("Hash        : {0}", trx.Hash);
-                        Console.WriteLine("Timestamp   : {0}", Utils.ToDateTime(trx.TimeStamp));
-                        Console.WriteLine("Sender      : {0}", trx.Sender);
-                        Console.WriteLine("Recipient   : {0}", trx.Recipient);
-                        Console.WriteLine("Amount      : {0}", trx.Amount.ToString("N", CultureInfo.InvariantCulture));
-                        Console.WriteLine("Fee         : {0}", trx.Fee.ToString("N4", CultureInfo.InvariantCulture));
+                        Console.WriteLine("Hash        : {0}", Txn.Hash);
+                        Console.WriteLine("Timestamp   : {0}", Utils.ToDateTime(Txn.TimeStamp));
+                        Console.WriteLine("Sender      : {0}", Txn.Sender);
+                        Console.WriteLine("Recipient   : {0}", Txn.Recipient);
+                        Console.WriteLine("Amount      : {0}", Txn.Amount.ToString("N", CultureInfo.InvariantCulture));
+                        Console.WriteLine("Fee         : {0}", Txn.Fee.ToString("N4", CultureInfo.InvariantCulture));
                         Console.WriteLine("--------------\n");
 
                     }
@@ -479,7 +479,7 @@ namespace Main
             Console.WriteLine("======================");
             try
             {
-                var response = service.GetBalance(new AccountRequest
+                var response = service.GetBalance(new CommonRequest
                 {
                     Address = address
                 });

@@ -13,6 +13,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="SimpleBase" Version="3.1.0" />
     <PackageReference Include="starkbank-ecdsa" Version="1.2.1" />
   </ItemGroup>
   <ItemGroup>

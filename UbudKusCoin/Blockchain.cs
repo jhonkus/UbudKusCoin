@@ -90,7 +90,18 @@ namespace Main
         public static Block GetGenesisBlock()
         {
             var block = GetBlocks().FindAll().FirstOrDefault();
-            //var block = blockchain.FindOne(Query.All(Query.Ascending));
+            return block;
+        }
+
+
+        /**
+        Get block by height
+        */
+        public static Block GetBlockByHeight(int height)
+        {
+            var coll = DbAccess.DB.GetCollection<Block>(DbAccess.TBL_BLOCKS);
+            coll.EnsureIndex(x => x.Height); ;
+            var block = coll.FindOne(x => x.Height == height);
             return block;
         }
 
@@ -113,6 +124,15 @@ namespace Main
             blocks.Insert(block);
         }
 
+
+        public static List<Transaction> GiveOtherInfos(List<Transaction> trxs, long height)
+        {
+            foreach (var trx in trxs)
+            {
+                trx.Height = height;
+             }
+            return trxs;
+        }
         public static void BuildNewBlock()
         {
 
@@ -136,12 +156,14 @@ namespace Main
             var conbaseTrx = new Transaction
             {
                 Amount = 0,
-                Recipient = "UKC_QPQY9wHP0jxi/0c/YRlch2Uk5ur/T8lcOaawqyoe66o=",
+                // Recipient = "UKC_QPQY9wHP0jxi/0c/YRlch2Uk5ur/T8lcOaawqyoe66o=",
+                Recipient = "Ukcn4Yy7CMVxNGRqRM6s1p88fCkym3P4q4FeSXgD4s81J6P",
                 Fee = COINT_REWARD,
                 TimeStamp = timestamp,
-                Sender = "UKC_rcyChuW7cQcIVoKi1LfSXKfCxZBHysTwyPm88ZsN0BM="
+                // Sender = "UKC_rcyChuW7cQcIVoKi1LfSXKfCxZBHysTwyPm88ZsN0BM="
+                Sender = "UkcU6SQGuPqrDWgD8AY5oRD7PRxVQV5LWrbf6vkrTtuDtBc",
             };
-         
+
             if (trxPool.Count() > 0)
             {
                 //Get all tx from pool
@@ -161,13 +183,12 @@ namespace Main
                 transactions.Add(conbaseTrx);
             }
 
-
             var block = new Block
             {
                 Height = height,
                 TimeStamp = timestamp,
                 PrevHash = prevHash,
-                Transactions = transactions,
+                Transactions = GiveOtherInfos(transactions, height),
                 Validator = validator
             };
             block.Build();
@@ -180,7 +201,7 @@ namespace Main
                 Transaction.Add(trx);
             }
 
-          
+
         }
 
         private static float GetTotalFees(IList<Transaction> txs)
@@ -203,7 +224,7 @@ namespace Main
             Console.WriteLine(" = Number Of Tx: {0}", block.NumOfTx);
             Console.WriteLine(" = Amout       : {0}", block.TotalAmount);
             Console.WriteLine(" = Reward      : {0}", block.TotalReward);
-        
+
 
         }
     }

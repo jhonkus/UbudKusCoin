@@ -12,6 +12,12 @@ namespace GrpcService.Services
         public override Task<BlockResponse> GenesisBlock(EmptyRequest request, ServerCallContext context)
         {
             var block = Blockchain.GetGenesisBlock();
+
+            if (block is null)
+            {
+                return Task.FromResult(new BlockResponse());
+            }
+
             BlockModel mdl = ConvertBlock(block);
 
             return Task.FromResult(new BlockResponse
@@ -21,7 +27,7 @@ namespace GrpcService.Services
         }
 
 
-        public override Task<BalanceResponse> GetBalance(AccountRequest request, ServerCallContext context)
+        public override Task<BalanceResponse> GetBalance(CommonRequest request, ServerCallContext context)
         {
             var balance = Transaction.GetBalance(request.Address);
             return Task.FromResult(new BalanceResponse
@@ -33,6 +39,12 @@ namespace GrpcService.Services
         public override Task<BlockResponse> LastBlock(EmptyRequest request, ServerCallContext context)
         {
             var block = Blockchain.GetLastBlock();
+
+            if (block is null)
+            {
+                return Task.FromResult(new BlockResponse());
+            }
+
             BlockModel mdl = ConvertBlock(block);
             return Task.FromResult(new BlockResponse
             {
@@ -41,84 +53,129 @@ namespace GrpcService.Services
         }
 
 
+        public override Task<TxnResponse> GetTxnByHash(CommonRequest request, ServerCallContext context)
+        {
+            var txn = Transaction.GetTxnByHash(request.TxnHash);
+
+            if (txn is null)
+            {
+                return Task.FromResult(new TxnResponse());
+            }
+
+            TxnModel mdl = ConvertTxnModel(txn);
+            return Task.FromResult(new TxnResponse
+            {
+                Txn = mdl
+            });
+
+        }
+
+        public override Task<BlockResponse> GetBlockByHeight(CommonRequest request, ServerCallContext context)
+        {
+            var block = Blockchain.GetBlockByHeight(request.BlockHeight);
+            if (block is null){
+                return  Task.FromResult(new BlockResponse());
+            }
+            BlockModel mdl = ConvertBlock(block);
+            return Task.FromResult(new BlockResponse
+            {
+                Block = mdl
+            });
+        }
+
         public override Task<BlocksResponse> GetBlocks(PagingRequest request, ServerCallContext context)
         {
             var blocks = Blockchain.GetBlocks(request.PageNumber, request.ResultPerPage);
 
+            if (blocks is null){
+                return  Task.FromResult(new BlocksResponse());
+            }
+
             BlocksResponse response = new BlocksResponse();
             foreach (Block block in blocks)
             {
-                BlockModel mdl = ConvertBlock(block);
+                BlockModel mdl = ConvertBlockForList(block);
                 response.Blocks.Add(mdl);
             }
             return Task.FromResult(response);
         }
 
 
-        public override Task<TransactionsResponse> GetAccountTransactions(AccountRequest request, ServerCallContext context)
+
+        public override Task<TxnsResponse> GetTxnsByAccount(CommonRequest request, ServerCallContext context)
         {
-            TransactionsResponse response = new TransactionsResponse();
+      
             var transactions = Transaction.GetAccountTransactions(request.Address);
-            foreach (Transaction trx in transactions)
+
+            if (transactions is null){
+                return  Task.FromResult(new TxnsResponse());
+            }
+
+            TxnsResponse response = new TxnsResponse();
+            foreach (Transaction Txn in transactions)
             {
-                TrxModel mdl = ConvertTrxModel(trx);
+                TxnModel mdl = ConvertTxnModel(Txn);
                 response.Transactions.Add(mdl);
             }
             return Task.FromResult(response);
         }
 
-        public override Task<TransactionsResponse> GetTransactions(PagingRequest request, ServerCallContext context)
+        public override Task<TxnsResponse> GetTxns(PagingRequest request, ServerCallContext context)
         {
 
-             TransactionsResponse response = new TransactionsResponse();
+            TxnsResponse response = new TxnsResponse();
             var transactions = Transaction.GetTransactions(request.PageNumber, request.ResultPerPage);
-            foreach (Transaction trx in transactions)
+            if (transactions is null){
+                return  Task.FromResult(response);
+            }
+
+            foreach (Transaction txn in transactions)
             {
-                TrxModel mdl = ConvertTrxModel(trx);
+                TxnModel mdl = ConvertTxnModel(txn);
                 response.Transactions.Add(mdl);
             }
             return Task.FromResult(response);
         }
 
 
-        public override Task<TrxResponse> SendCoin(SendRequest request, ServerCallContext context)
+        public override Task<SendResponse> SendCoin(SendRequest request, ServerCallContext context)
         {
-            //Console.WriteLine("request.TrxId: {0}", request.TrxId);
-            //Create new transaction
-            var newTrx = new Transaction()
+            var newTxn = new Transaction()
             {
-                Hash = request.TrxId,
-                TimeStamp = request.TrxInput.TimeStamp,
-                Sender = request.TrxInput.SenderAddress,
-                Recipient = request.TrxOutput.RecipientAddress,
-                Amount = request.TrxOutput.Amount,
-                Fee = request.TrxOutput.Fee
+                Hash = request.TxnId,
+                TimeStamp = request.TxnInput.TimeStamp,
+                // TxnType = request.TxnInput.TxnType,
+                Sender = request.TxnInput.SenderAddress,
+                Recipient = request.TxnOutput.RecipientAddress,
+                Amount = request.TxnOutput.Amount,
+                Fee = request.TxnOutput.Fee,
+                // Status = "-",
             };
 
 
             // verify transaction ID
-            var trxHash = newTrx.GetHash();
-            if (!trxHash.Equals(request.TrxId))
+            var TxnHash = newTxn.GetHash();
+            if (!TxnHash.Equals(request.TxnId))
             {
-                return Task.FromResult(new TrxResponse
+                return Task.FromResult(new SendResponse
                 {
                     Result = "Transaction ID not valid"
                 });
             }
 
             // Verify signature
-            var trxValid = Transaction.VerifySignature(request.PublicKey, request.TrxId, request.TrxInput.Signature);
-            if (!trxValid)
+            var TxnValid = Transaction.VerifySignature(request.PublicKey, request.TxnId, request.TxnInput.Signature);
+            if (!TxnValid)
             {
-                return Task.FromResult(new TrxResponse
+                return Task.FromResult(new SendResponse
                 {
                     Result = "Signature not valid"
                 });
             }
 
 
-            Transaction.AddToPool(newTrx);
-            return Task.FromResult(new TrxResponse
+            Transaction.AddToPool(newTxn);
+            return Task.FromResult(new SendResponse
             {
                 Result = "Success"
             });
@@ -151,20 +208,53 @@ namespace GrpcService.Services
             {
                 return null;
             }
-
-          
         }
 
-        private static TrxModel ConvertTrxModel(Transaction trx)
+        /**
+        Use this to comvert block for list, to reduce data size when transfered over internet 
+        */
+        private static BlockModel ConvertBlockForList(Block block)
         {
-            TrxModel mdl = new TrxModel
+
+            try
             {
-                Hash = trx.Hash,
-                Recipient = trx.Recipient,
-                Sender = trx.Sender,
-                Fee = trx.Fee,
-                Amount = trx.Amount,
-                TimeStamp = trx.TimeStamp,
+                BlockModel mdl = new BlockModel
+                {
+                    Version = block.Version,
+                    Height = block.Height,
+                    Hash = block.Hash,
+                    PrevHash = block.PrevHash,
+                    TimeStamp = block.TimeStamp,
+                    MerkleRoot = block.MerkleRoot,
+                    NumOfTx = block.NumOfTx,
+                    TotalAmount = block.TotalAmount,
+                    TotalReward = block.TotalReward,
+                    Difficulty = block.Difficulty,
+                    Validator = block.Validator
+
+                };
+                return mdl;
+            }
+            catch
+            {
+                return null;
+            }
+
+
+        }
+
+
+        private static TxnModel ConvertTxnModel(Transaction txn)
+        {
+            TxnModel mdl = new TxnModel
+            {
+                Hash = txn.Hash,
+                Recipient = txn.Recipient,
+                Sender = txn.Sender,
+                Fee = txn.Fee,
+                Amount = txn.Amount,
+                Height = txn.Height,
+                TimeStamp = txn.TimeStamp,
             };
 
             return mdl;

@@ -2,17 +2,18 @@
 using System.Numerics;
 using System.Security.Cryptography;
 using EllipticCurve;
+using SimpleBase;
 
 namespace Main
 {
 
-    public  class Account
+    public class Account
     {
         public BigInteger SecretNumber { set; get; }
         public PrivateKey PrivKey { set; get; }
         public PublicKey PubKey { set; get; }
 
-        public Account(string screet="")
+        public Account(string screet = "")
         {
             if (screet != "")
             {
@@ -34,7 +35,8 @@ namespace Main
         public string GetAddress()
         {
             byte[] hash = SHA256.Create().ComputeHash(PubKey.toString());
-            return "UKC_" + Convert.ToBase64String(hash);
+            string result = Base58.Ripple.Encode(hash);
+            return "Ukc" + result;
         }
 
         public string CreateSignature(string message)
