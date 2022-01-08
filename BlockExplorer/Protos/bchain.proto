@@ -15,7 +15,7 @@ service BChainService {
   rpc GetBalance(CommonRequest) returns (BalanceResponse);
   rpc GetTxnsByAccount(CommonRequest) returns (TxnsResponse);
   rpc GetTxnsByHeight(CommonRequest) returns (TxnsResponse);
-  rpc Search(CommonRequest) returns (TxnsResponse);
+  rpc Search(CommonRequest) returns (SearchResponse);
   rpc GetTxns(PagingRequest) returns (TxnsResponse);
 }
 
@@ -48,7 +48,7 @@ message CommonRequest{
   int32  blockHeight = 2;
   string address = 3;
   string blockHash = 4;
-  string searchTex = 5;
+  string searchText = 5;
 }
 
 message BlocksResponse {
@@ -111,3 +111,21 @@ message AccountResponse {
   repeated BlockModel blocks = 4;
 }
 
+message SearchResponse {
+  double balance = 1;
+	int32 numBlockValidate = 2;
+  repeated TxnModel txns = 3;
+  repeated BlockModel blocks = 4;
+  BlockModel block = 5;
+  TxnModel txn = 6;
+  repeated InfoModel infos = 7;
+}
+
+
+message InfoModel {
+	int32 Id = 1;
+	string Title = 2;
+	string Value = 3;
+	double Amount = 4;
+  string Url = 5;
+}
