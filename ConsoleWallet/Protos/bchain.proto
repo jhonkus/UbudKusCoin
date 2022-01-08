@@ -9,18 +9,15 @@ service BChainService {
   rpc SendCoin(SendRequest)  returns (SendResponse);
   rpc GetBlocks(PagingRequest) returns (BlocksResponse);
   rpc GetBlockByHeight(CommonRequest) returns (BlockResponse);
+  rpc GetBlockByHash(CommonRequest) returns (BlockResponse);
   rpc GetTxnByHash(CommonRequest) returns (TxnResponse);
+  rpc GetAccount(CommonRequest) returns (AccountResponse);
   rpc GetBalance(CommonRequest) returns (BalanceResponse);
   rpc GetTxnsByAccount(CommonRequest) returns (TxnsResponse);
+  rpc GetTxnsByHeight(CommonRequest) returns (TxnsResponse);
+  rpc Search(CommonRequest) returns (TxnsResponse);
   rpc GetTxns(PagingRequest) returns (TxnsResponse);
 }
-
-message SearchRequest {
-  string query = 1;
-  int32 page_number = 2;
-  int32 result_per_page = 3; 
-}
-
 
 message SendRequest{
    string txn_id = 1;
@@ -48,8 +45,10 @@ message PagingRequest{
 
 message CommonRequest{
   string txnHash = 1;
-  int32 blockHeight = 2;
+  int32  blockHeight = 2;
   string address = 3;
+  string blockHash = 4;
+  string searchTex = 5;
 }
 
 message BlocksResponse {
@@ -85,13 +84,14 @@ message BlockModel {
 	string PrevHash = 4;
 	string Hash = 5;
 	string Transactions = 6;
-    string Validator = 7;
-    string MerkleRoot = 8;
-    int32  NumOfTx = 9;
-    double TotalAmount = 10;
-    float TotalReward = 11;
-    int32 Difficulty = 12;
+  string Validator = 7;
+  string MerkleRoot = 8;
+  int32  NumOfTx = 9;
+  double TotalAmount = 10;
+  float TotalReward = 11;
+  int32 Difficulty = 12;
 }
+
 
 message EmptyRequest {
 }
@@ -103,3 +103,11 @@ message SendResponse {
 message TxnResponse {
   TxnModel txn = 1;
 }
+
+message AccountResponse {
+  double balance = 1;
+	int32 numBlockValidate = 2;
+  repeated TxnModel transactions = 3;
+  repeated BlockModel blocks = 4;
+}
+

@@ -65,6 +65,29 @@ namespace Main
             return transaction;
         }
 
+
+               /**
+         * get a transaction by hash
+         */
+        public static Transaction GetTxnsByHeight(string hash)
+        {
+            var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
+            coll.EnsureIndex(x => x.TimeStamp);
+            var transaction = coll.FindOne(x => x.Hash == hash);
+            return transaction;
+        }
+
+     /**
+        * get transaction list by block height
+        */
+        public static IEnumerable<Transaction> GetTxnsByHeight(long height)
+        {
+            var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
+            coll.EnsureIndex(x => x.Height);
+            var transactions = coll.Find(x => x.Height == height);
+            return transactions;
+        }
+
         /**
         * get transaction list 
         */

@@ -20,7 +20,7 @@ namespace Main
             host.Services.UseScheduler(scheduler =>
             {
                 scheduler.Schedule<BlockJob>()
-                    .EveryMinute();
+                    .EveryThirtySeconds();
             });
             host.Run();
 

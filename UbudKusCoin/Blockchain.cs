@@ -86,6 +86,14 @@ namespace Main
         }
 
 
+        public static IEnumerable<Block> GetBlocksByValidator(string address)
+        {
+            var coll = DbAccess.DB.GetCollection<Block>(DbAccess.TBL_BLOCKS);
+            coll.EnsureIndex(x => x.Validator);
+            var blocks = coll.Find(x => x.Validator == address);
+            return blocks;
+        }
+
 
         public static Block GetGenesisBlock()
         {
@@ -105,6 +113,13 @@ namespace Main
             return block;
         }
 
+       public static Block GetBlockByHash(string hash)
+        {
+            var coll = DbAccess.DB.GetCollection<Block>(DbAccess.TBL_BLOCKS);
+            coll.EnsureIndex(x => x.Height); ;
+            var block = coll.FindOne(x => x.Hash == hash);
+            return block;
+        }
         public static Block GetLastBlock()
         {
             var blockchain = GetBlocks();

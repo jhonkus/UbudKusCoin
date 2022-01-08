@@ -73,8 +73,9 @@ namespace GrpcService.Services
         public override Task<BlockResponse> GetBlockByHeight(CommonRequest request, ServerCallContext context)
         {
             var block = Blockchain.GetBlockByHeight(request.BlockHeight);
-            if (block is null){
-                return  Task.FromResult(new BlockResponse());
+            if (block is null)
+            {
+                return Task.FromResult(new BlockResponse());
             }
             BlockModel mdl = ConvertBlock(block);
             return Task.FromResult(new BlockResponse
@@ -83,12 +84,43 @@ namespace GrpcService.Services
             });
         }
 
+        public override Task<TxnsResponse> GetTxnsByAccount(CommonRequest request, ServerCallContext context)
+        {
+            var transactions = Transaction.GetAccountTransactions(request.Address);
+            if (transactions is null)
+            {
+                return Task.FromResult(new TxnsResponse());
+            }
+
+            TxnsResponse response = new TxnsResponse();
+            foreach (Transaction Txn in transactions)
+            {
+                TxnModel mdl = ConvertTxnModel(Txn);
+                response.Transactions.Add(mdl);
+            }
+            return Task.FromResult(response);
+        }
+
+        public override Task<BlockResponse> GetBlockByHash(CommonRequest request, ServerCallContext context)
+        {
+            var block = Blockchain.GetBlockByHash(request.BlockHash);
+            if (block is null)
+            {
+                return Task.FromResult(new BlockResponse());
+            }
+            BlockModel mdl = ConvertBlock(block);
+            return Task.FromResult(new BlockResponse
+            {
+                Block = mdl
+            });
+        }
         public override Task<BlocksResponse> GetBlocks(PagingRequest request, ServerCallContext context)
         {
             var blocks = Blockchain.GetBlocks(request.PageNumber, request.ResultPerPage);
 
-            if (blocks is null){
-                return  Task.FromResult(new BlocksResponse());
+            if (blocks is null)
+            {
+                return Task.FromResult(new BlocksResponse());
             }
 
             BlocksResponse response = new BlocksResponse();
@@ -102,22 +134,71 @@ namespace GrpcService.Services
 
 
 
-        public override Task<TxnsResponse> GetTxnsByAccount(CommonRequest request, ServerCallContext context)
+        public override Task<AccountResponse> GetAccount(CommonRequest request, ServerCallContext context)
         {
-      
+            AccountResponse response = new AccountResponse();
+
+
+            // 1. get all transaction bellong this account
             var transactions = Transaction.GetAccountTransactions(request.Address);
 
-            if (transactions is null){
-                return  Task.FromResult(new TxnsResponse());
+            if (transactions is null)
+            {
+                response.Transactions.Add(new TxnModel()); //no txn
+            }
+            else
+            {
+
+                foreach (Transaction Txn in transactions)
+                {
+                    TxnModel mdl = ConvertTxnModel(Txn);
+                    response.Transactions.Add(mdl);
+                }
             }
 
-            TxnsResponse response = new TxnsResponse();
-            foreach (Transaction Txn in transactions)
+            // get Blocks by validator
+            var blocks = Blockchain.GetBlocksByValidator(request.Address);
+            if (blocks is null)
             {
-                TxnModel mdl = ConvertTxnModel(Txn);
+                response.Blocks.Add(new BlockModel()); //no txn
+            }
+            else
+            {
+                response.NumBlockValidate = 0;
+                foreach (Block block in blocks)
+                {
+                    BlockModel mdl = ConvertBlockForList(block);
+                    response.Blocks.Add(mdl);
+                    // count number of block validated by this account
+                    response.NumBlockValidate += 1;
+                }
+
+
+            }
+
+            // Get Account Balance
+            var balance = Transaction.GetBalance(request.Address);
+            response.Balance = balance;
+
+            return Task.FromResult(response);
+        }
+
+        public override Task<TxnsResponse> GetTxnsByHeight(CommonRequest request, ServerCallContext context)
+        {
+            TxnsResponse response = new TxnsResponse();
+            var transactions = Transaction.GetTxnsByHeight(request.BlockHeight);
+            if (transactions is null)
+            {
+                return Task.FromResult(response);
+            }
+
+            foreach (Transaction txn in transactions)
+            {
+                TxnModel mdl = ConvertTxnModel(txn);
                 response.Transactions.Add(mdl);
             }
             return Task.FromResult(response);
+
         }
 
         public override Task<TxnsResponse> GetTxns(PagingRequest request, ServerCallContext context)
@@ -125,8 +206,9 @@ namespace GrpcService.Services
 
             TxnsResponse response = new TxnsResponse();
             var transactions = Transaction.GetTransactions(request.PageNumber, request.ResultPerPage);
-            if (transactions is null){
-                return  Task.FromResult(response);
+            if (transactions is null)
+            {
+                return Task.FromResult(response);
             }
 
             foreach (Transaction txn in transactions)
