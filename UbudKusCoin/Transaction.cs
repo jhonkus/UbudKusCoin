@@ -42,16 +42,30 @@ namespace Main
         }
 
         /**
+
+        get one transaction for speed, to check if address have tnx
+        */
+        public static Transaction GetOneTxnByAddress(string address)
+        {
+            var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
+            coll.EnsureIndex(x => x.TimeStamp);
+            var transaction = coll.FindOne(x => x.Sender == address || x.Recipient == address);
+            return transaction;
+        }
+
+        /**
         * get transaction list by address
         */
         public static IEnumerable<Transaction> GetAccountTransactions(string address)
         {
             var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
-            //coll.EnsureIndex(x => x.TimeStamp);
             coll.EnsureIndex(x => x.Sender);
             coll.EnsureIndex(x => x.Recipient);
-            var transactions = coll.Find(x => x.Sender == address || x.Recipient == address);
-            return transactions;
+            var query = coll.Query()
+                .OrderByDescending(x => x.TimeStamp)
+                .Where(x => x.Sender == address || x.Recipient == address)
+                .Limit(50).ToList();
+            return query;
         }
 
         /**
@@ -66,9 +80,9 @@ namespace Main
         }
 
 
-               /**
-         * get a transaction by hash
-         */
+        /**
+  * get a transaction by hash
+  */
         public static Transaction GetTxnsByHeight(string hash)
         {
             var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
@@ -77,15 +91,24 @@ namespace Main
             return transaction;
         }
 
-     /**
-        * get transaction list by block height
-        */
+        /**
+           * get transaction list by block height
+           */
         public static IEnumerable<Transaction> GetTxnsByHeight(long height)
         {
+            // var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
+            // coll.EnsureIndex(x => x.Height);
+            // var transactions = coll.Find(x => x.Height == height);
+            // return transactions;
+
             var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
-            coll.EnsureIndex(x => x.Height);
-            var transactions = coll.Find(x => x.Height == height);
-            return transactions;
+            coll.EnsureIndex(x => x.TimeStamp);
+            var query = coll.Query()
+                .OrderByDescending(x => x.TimeStamp)
+                .Where(x => x.Height == height)
+                .Limit(50).ToList();
+            return query;
+
         }
 
         /**

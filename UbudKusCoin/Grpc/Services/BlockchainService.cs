@@ -137,24 +137,29 @@ namespace GrpcService.Services
         public override Task<SearchResponse> Search(CommonRequest request, ServerCallContext context)
         {
             var searchText = request.SearchText.Trim();
-            var response = new SearchResponse();
 
+            var response = new SearchResponse
+            {
+                Id = 0,
+                Title = "no data found",
+                SarchText = searchText,
+                Url = "/notfound",
+                Status = "no"
+            };
             //search block by hash
             try
             {
                 var block = Blockchain.GetBlockByHash(searchText);
-                if (block is not null)
+                if (block is not null && block.Hash is not null)
                 {
-                    BlockModel blockRes = ConvertBlock(block);
-                    response.Block = blockRes;
-
-                    var info = new InfoModel
+                    response = new SearchResponse
                     {
                         Id = 1,
-                        Title = "block by hash",
-                        Value = searchText
+                        Title = "search found block by hash",
+                        SarchText = searchText,
+                        Url = "/block/hash/" + searchText,
+                        Status = "ok"
                     };
-                    response.Infos.Add(info);
                     return Task.FromResult(response);
                 }
             }
@@ -167,21 +172,17 @@ namespace GrpcService.Services
             try
             {
                 var height = int.Parse(searchText);
-
                 var block = Blockchain.GetBlockByHeight(height);
-                if (block is not null)
+                if (block is not null && block.Hash is not null)
                 {
-                    BlockModel blockRes = ConvertBlock(block);
-                    response.Block = blockRes;
-                    var info = new InfoModel
+                    response = new SearchResponse
                     {
                         Id = 2,
-                        Title = "block by height",
-                        Value = searchText,
-                        Url = "/block/" + searchText
+                        Title = "search found block by height",
+                        SarchText = searchText,
+                        Url = "/block/height/" + searchText,
+                        Status = "ok"
                     };
-                    response.Infos.Add(info);
-
                     return Task.FromResult(response);
                 }
             }
@@ -192,22 +193,19 @@ namespace GrpcService.Services
 
 
             //search tnxs by hash
-
             try
             {
                 var txn = Transaction.GetTxnByHash(searchText);
-                if (txn is not null)
+                if (txn is not null && txn.Hash is not null)
                 {
-                    TxnModel mdl = ConvertTxnModel(txn);
-                    response.Txn = mdl;
-                    var info = new InfoModel
+                    response = new SearchResponse
                     {
                         Id = 3,
-                        Title = "Txn by hash",
-                        Value = searchText
+                        Title = "Found transaction",
+                        SarchText = searchText,
+                        Url = "/txn/" + searchText,
+                        Status = "ok"
                     };
-                    response.Infos.Add(info);
-
                     return Task.FromResult(response);
                 }
 
@@ -219,75 +217,21 @@ namespace GrpcService.Services
 
 
             // get Account 
-
             try
             {
-                // 1. get all transaction bellong this account
-                var transactions = Transaction.GetAccountTransactions(searchText);
-                if (transactions is not null)
+                // 1. get one transaction by address
+                var txn = Transaction.GetOneTxnByAddress(searchText);
+                if (txn is not null && txn.Hash is not null)
                 {
-                    var n = 0;
-                    foreach (Transaction Txn in transactions)
+                    response = new SearchResponse
                     {
-                        TxnModel mdl = ConvertTxnModel(Txn);
-                        response.Txns.Add(mdl);
-                        n += 1;
-                    }
-                    if (n > 0)
-                    {
-                        var info = new InfoModel
-                        {
-                            Id = 4,
-                            Title = "Txns by address",
-                            Value = searchText
-                        };
-                        response.Infos.Add(info);
-
-                    }
-
-                }
-
-                // get Blocks by validator
-                var blocks = Blockchain.GetBlocksByValidator(searchText);
-                if (blocks is not null)
-                {
-                    response.NumBlockValidate = 0;
-
-                    foreach (Block block in blocks)
-                    {
-                        BlockModel mdl = ConvertBlockForList(block);
-                        response.Blocks.Add(mdl);
-                        // count number of block validated by this account
-                        response.NumBlockValidate += 1;
-                    }
-
-                    if (response.NumBlockValidate > 0)
-                    {
-                        var info = new InfoModel
-                        {
-                            Id = 4,
-                            Title = "Blocks by validator",
-                            Value = searchText
-                        };
-                        response.Infos.Add(info);
-                    }
-
-                }
-
-                // Get Account Balance
-                var balance = Transaction.GetBalance(searchText);
-                response.Balance = balance;
-
-                if (balance > 0)
-                {
-
-                    var info = new InfoModel
-                    {
-                        Id = 5,
-                        Title = "Balance",
-                        Value = searchText
+                        Id = 4,
+                        Title = "search found one address ",
+                        SarchText = searchText,
+                        Url = "/address/" + searchText,
+                        Status = "ok"
                     };
-                    response.Infos.Add(info);
+                    return Task.FromResult(response);
                 }
 
             }
@@ -295,6 +239,7 @@ namespace GrpcService.Services
             {
                 Console.WriteLine("Error when search by account");
             }
+
 
             return Task.FromResult(response);
         }

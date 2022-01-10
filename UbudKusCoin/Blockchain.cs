@@ -88,10 +88,20 @@ namespace Main
 
         public static IEnumerable<Block> GetBlocksByValidator(string address)
         {
-            var coll = DbAccess.DB.GetCollection<Block>(DbAccess.TBL_BLOCKS);
+
+             var coll = DbAccess.DB.GetCollection<Block>(DbAccess.TBL_BLOCKS);
             coll.EnsureIndex(x => x.Validator);
-            var blocks = coll.Find(x => x.Validator == address);
-            return blocks;
+            var query = coll.Query()
+                .OrderByDescending(x => x.Height)
+                .Where(x => x.Validator == address)
+                .Limit(20).ToList();
+            return query;
+
+
+            // var coll = DbAccess.DB.GetCollection<Block>(DbAccess.TBL_BLOCKS);
+            // coll.EnsureIndex(x => x.Validator);
+            // var blocks = coll.Find(x => x.Validator == address);
+            // return blocks;
         }
 
 
