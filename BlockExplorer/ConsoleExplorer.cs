@@ -146,6 +146,8 @@ namespace Main
             Console.WriteLine("Num of Txs    : {0}", block.NumOfTx);
             Console.WriteLine("Total Amount  : {0}", block.TotalAmount);
             Console.WriteLine("Total Fee     : {0}", block.TotalReward);
+            Console.WriteLine("Size          : {0}", block.Size);
+            Console.WriteLine("Build Time    : {0}", block.BuildTime);
 
 
             var transactions = JsonConvert.DeserializeObject<List<TxnModel>>(block.Transactions);
