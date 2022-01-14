@@ -35,6 +35,9 @@ namespace Main
 
             if (blocks.Count() < 1)
             {
+                // start block time
+                var startTimer = DateTime.UtcNow;
+
                 // crate genesis transaction
                 Transaction.CreateGenesisTransction();
 
@@ -50,6 +53,12 @@ namespace Main
 
                 // create genesis block
                 var block = Block.GenesisBlock(transactions);
+
+                // get build time    
+                var endTimer = DateTime.UtcNow;
+                var buildTime = endTimer - startTimer;
+                block.BuildTime = buildTime.Milliseconds;
+                // end of    
 
                 // add genesis block to blockchain
                 AddBlock(block);
@@ -89,7 +98,7 @@ namespace Main
         public static IEnumerable<Block> GetBlocksByValidator(string address)
         {
 
-             var coll = DbAccess.DB.GetCollection<Block>(DbAccess.TBL_BLOCKS);
+            var coll = DbAccess.DB.GetCollection<Block>(DbAccess.TBL_BLOCKS);
             coll.EnsureIndex(x => x.Validator);
             var query = coll.Query()
                 .OrderByDescending(x => x.Height)
@@ -123,7 +132,7 @@ namespace Main
             return block;
         }
 
-       public static Block GetBlockByHash(string hash)
+        public static Block GetBlockByHash(string hash)
         {
             var coll = DbAccess.DB.GetCollection<Block>(DbAccess.TBL_BLOCKS);
             coll.EnsureIndex(x => x.Height); ;
@@ -155,12 +164,14 @@ namespace Main
             foreach (var trx in trxs)
             {
                 trx.Height = height;
-             }
+            }
             return trxs;
         }
         public static void BuildNewBlock()
         {
 
+            // start build time
+            var startTimer = DateTime.UtcNow;
 
             // get transaction from pool
             var trxPool = Transaction.GetPool();
@@ -193,9 +204,11 @@ namespace Main
             {
                 //Get all tx from pool
                 conbaseTrx.Recipient = validator;
+                //sum all fees and give block creator as reward
                 conbaseTrx.Amount = GetTotalFees(trxPool.FindAll().ToList());
                 conbaseTrx.Build();
 
+                // add coinbase trx to list    
                 transactions.Add(conbaseTrx);
                 transactions.AddRange(trxPool.FindAll());
 
@@ -217,6 +230,13 @@ namespace Main
                 Validator = validator
             };
             block.Build();
+
+            // get build time    
+            var endTimer = DateTime.UtcNow;
+            var buildTime = endTimer - startTimer;
+            block.BuildTime = buildTime.Milliseconds;
+            // end of    
+
             AddBlock(block);
             PrintBlock(block);
 
@@ -249,6 +269,7 @@ namespace Main
             Console.WriteLine(" = Number Of Tx: {0}", block.NumOfTx);
             Console.WriteLine(" = Amout       : {0}", block.TotalAmount);
             Console.WriteLine(" = Reward      : {0}", block.TotalReward);
+            Console.WriteLine(" = Build Time  : {0}", block.BuildTime);
 
 
         }

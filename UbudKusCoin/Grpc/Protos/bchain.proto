@@ -90,6 +90,7 @@ message BlockModel {
   double TotalAmount = 10;
   float TotalReward = 11;
   int32 Difficulty = 12;
+  int32 BuildTime = 13;
 }
 
 

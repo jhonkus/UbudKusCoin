@@ -21,6 +21,8 @@ namespace Main
         public float TotalReward { get; set; }
         public int Difficulty { get; set; }
 
+        public long BlockSize { get; set; }
+        public int BuildTime { get; set; }
 
         public void Build()
         {
@@ -41,7 +43,7 @@ namespace Main
 
         private double GetTotalAmount()
         {
-           var totalAmount =  Transactions.AsEnumerable().Sum(x => x.Amount);
+            var totalAmount = Transactions.AsEnumerable().Sum(x => x.Amount);
             return totalAmount;
         }
 
@@ -68,7 +70,7 @@ namespace Main
         }
 
 
-        public  string GetBlockHash()
+        public string GetBlockHash()
         {
             var strSum = Version + PrevHash + MerkleRoot + TimeStamp + Difficulty + Validator;
             var hash = Utils.GenHash(strSum);
@@ -77,7 +79,7 @@ namespace Main
 
         private string GetMerkleRoot()
         {
-           // List<Transaction> txList = JsonConvert.DeserializeObject<List<Transaction>>(jsonTxs);
+            // List<Transaction> txList = JsonConvert.DeserializeObject<List<Transaction>>(jsonTxs);
             var txsHash = new List<string>();
             foreach (var tx in Transactions)
             {

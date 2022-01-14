@@ -391,8 +391,8 @@ namespace GrpcService.Services
                     TotalAmount = block.TotalAmount,
                     TotalReward = block.TotalReward,
                     Difficulty = block.Difficulty,
-                    Validator = block.Validator
-
+                    Validator = block.Validator,
+                    BuildTime = block.BuildTime
                 };
                 return mdl;
             }
