@@ -146,18 +146,20 @@ namespace Main
             Console.WriteLine("Num of Txs    : {0}", block.NumOfTx);
             Console.WriteLine("Total Amount  : {0}", block.TotalAmount);
             Console.WriteLine("Total Fee     : {0}", block.TotalReward);
+            Console.WriteLine("Size          : {0}", block.Size);
+            Console.WriteLine("Build Time    : {0}", block.BuildTime);
 
 
-            var transactions = JsonConvert.DeserializeObject<List<TrxModel>>(block.Transactions);
+            var transactions = JsonConvert.DeserializeObject<List<TxnModel>>(block.Transactions);
             Console.WriteLine("Transactions:");
-            foreach (var trx in transactions)
+            foreach (var Txn in transactions)
             {
-                Console.WriteLine("   ID          : {0}", trx.Hash);
-                Console.WriteLine("   Timestamp   : {0}", Utils.ToDateTime(trx.TimeStamp));
-                Console.WriteLine("   Sender      : {0}", trx.Sender);
-                Console.WriteLine("   Recipient   : {0}", trx.Recipient);
-                Console.WriteLine("   Amount      : {0}", trx.Amount.ToString("N", CultureInfo.InvariantCulture));
-                Console.WriteLine("   Fee         : {0}", trx.Fee.ToString("N4", CultureInfo.InvariantCulture));
+                Console.WriteLine("   ID          : {0}", Txn.Hash);
+                Console.WriteLine("   Timestamp   : {0}", Utils.ToDateTime(Txn.TimeStamp));
+                Console.WriteLine("   Sender      : {0}", Txn.Sender);
+                Console.WriteLine("   Recipient   : {0}", Txn.Recipient);
+                Console.WriteLine("   Amount      : {0}", Txn.Amount.ToString("N", CultureInfo.InvariantCulture));
+                Console.WriteLine("   Fee         : {0}", Txn.Fee.ToString("N4", CultureInfo.InvariantCulture));
                 Console.WriteLine("   - - - - - - ");
 
             }

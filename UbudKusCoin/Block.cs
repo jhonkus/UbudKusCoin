@@ -2,6 +2,7 @@
 using System.Linq;
 using System;
 using UbudKusCoin;
+using Newtonsoft.Json;
 
 namespace Main
 {
@@ -21,6 +22,8 @@ namespace Main
         public float TotalReward { get; set; }
         public int Difficulty { get; set; }
 
+        public long Size { get; set; }
+        public int BuildTime { get; set; }
 
         public void Build()
         {
@@ -41,7 +44,7 @@ namespace Main
 
         private double GetTotalAmount()
         {
-           var totalAmount =  Transactions.AsEnumerable().Sum(x => x.Amount);
+            var totalAmount = Transactions.AsEnumerable().Sum(x => x.Amount);
             return totalAmount;
         }
 
@@ -50,6 +53,8 @@ namespace Main
         **/
         public static Block GenesisBlock(IList<Transaction> transactions)
         {
+            var startTimer = DateTime.UtcNow;
+
             var ts = 1498018714; //21 june 2017
 
             // for genesis bloc we set creatoris first of Genesis Account
@@ -64,11 +69,21 @@ namespace Main
             };
             block.Build();
 
+            //block size
+            var str = JsonConvert.SerializeObject(block);
+            block.Size = str.Length;
+
+            // get build time    
+            var endTimer = DateTime.UtcNow;
+            var buildTime = endTimer - startTimer;
+            block.BuildTime = buildTime.Milliseconds;
+            // end of    
+
             return block;
         }
 
 
-        public  string GetBlockHash()
+        public string GetBlockHash()
         {
             var strSum = Version + PrevHash + MerkleRoot + TimeStamp + Difficulty + Validator;
             var hash = Utils.GenHash(strSum);
@@ -77,7 +92,7 @@ namespace Main
 
         private string GetMerkleRoot()
         {
-           // List<Transaction> txList = JsonConvert.DeserializeObject<List<Transaction>>(jsonTxs);
+            // List<Transaction> txList = JsonConvert.DeserializeObject<List<Transaction>>(jsonTxs);
             var txsHash = new List<string>();
             foreach (var tx in Transactions)
             {

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UbudKusCoin;
 using System;
+using Newtonsoft.Json;
 
 namespace Main
 {
@@ -35,6 +36,9 @@ namespace Main
 
             if (blocks.Count() < 1)
             {
+                // start block time
+                var startTimer = DateTime.UtcNow;
+
                 // crate genesis transaction
                 Transaction.CreateGenesisTransction();
 
@@ -50,6 +54,18 @@ namespace Main
 
                 // create genesis block
                 var block = Block.GenesisBlock(transactions);
+
+                var str = JsonConvert.SerializeObject(block);
+                block.Size = str.Length;
+                block.Size = str.Length;
+
+                // get build time    
+                var endTimer = DateTime.UtcNow;
+                var buildTime = endTimer - startTimer;
+                block.BuildTime = buildTime.Milliseconds;
+                // end of    
+
+
 
                 // add genesis block to blockchain
                 AddBlock(block);
@@ -86,14 +102,50 @@ namespace Main
         }
 
 
+        public static IEnumerable<Block> GetBlocksByValidator(string address)
+        {
+
+            var coll = DbAccess.DB.GetCollection<Block>(DbAccess.TBL_BLOCKS);
+            coll.EnsureIndex(x => x.Validator);
+            var query = coll.Query()
+                .OrderByDescending(x => x.Height)
+                .Where(x => x.Validator == address)
+                .Limit(20).ToList();
+            return query;
+
+
+            // var coll = DbAccess.DB.GetCollection<Block>(DbAccess.TBL_BLOCKS);
+            // coll.EnsureIndex(x => x.Validator);
+            // var blocks = coll.Find(x => x.Validator == address);
+            // return blocks;
+        }
+
 
         public static Block GetGenesisBlock()
         {
             var block = GetBlocks().FindAll().FirstOrDefault();
-            //var block = blockchain.FindOne(Query.All(Query.Ascending));
             return block;
         }
 
+
+        /**
+        Get block by height
+        */
+        public static Block GetBlockByHeight(int height)
+        {
+            var coll = DbAccess.DB.GetCollection<Block>(DbAccess.TBL_BLOCKS);
+            coll.EnsureIndex(x => x.Height); ;
+            var block = coll.FindOne(x => x.Height == height);
+            return block;
+        }
+
+        public static Block GetBlockByHash(string hash)
+        {
+            var coll = DbAccess.DB.GetCollection<Block>(DbAccess.TBL_BLOCKS);
+            coll.EnsureIndex(x => x.Height); ;
+            var block = coll.FindOne(x => x.Hash == hash);
+            return block;
+        }
         public static Block GetLastBlock()
         {
             var blockchain = GetBlocks();
@@ -113,9 +165,20 @@ namespace Main
             blocks.Insert(block);
         }
 
+
+        public static List<Transaction> GiveOtherInfos(List<Transaction> trxs, long height)
+        {
+            foreach (var trx in trxs)
+            {
+                trx.Height = height;
+            }
+            return trxs;
+        }
         public static void BuildNewBlock()
         {
 
+            // start build time
+            var startTimer = DateTime.UtcNow;
 
             // get transaction from pool
             var trxPool = Transaction.GetPool();
@@ -136,19 +199,23 @@ namespace Main
             var conbaseTrx = new Transaction
             {
                 Amount = 0,
-                Recipient = "UKC_QPQY9wHP0jxi/0c/YRlch2Uk5ur/T8lcOaawqyoe66o=",
+                // Recipient = "UKC_QPQY9wHP0jxi/0c/YRlch2Uk5ur/T8lcOaawqyoe66o=",
+                Recipient = "Ukcn4Yy7CMVxNGRqRM6s1p88fCkym3P4q4FeSXgD4s81J6P",
                 Fee = COINT_REWARD,
                 TimeStamp = timestamp,
-                Sender = "UKC_rcyChuW7cQcIVoKi1LfSXKfCxZBHysTwyPm88ZsN0BM="
+                // Sender = "UKC_rcyChuW7cQcIVoKi1LfSXKfCxZBHysTwyPm88ZsN0BM="
+                Sender = "UkcU6SQGuPqrDWgD8AY5oRD7PRxVQV5LWrbf6vkrTtuDtBc",
             };
-         
+
             if (trxPool.Count() > 0)
             {
                 //Get all tx from pool
                 conbaseTrx.Recipient = validator;
+                //sum all fees and give block creator as reward
                 conbaseTrx.Amount = GetTotalFees(trxPool.FindAll().ToList());
                 conbaseTrx.Build();
 
+                // add coinbase trx to list    
                 transactions.Add(conbaseTrx);
                 transactions.AddRange(trxPool.FindAll());
 
@@ -161,16 +228,27 @@ namespace Main
                 transactions.Add(conbaseTrx);
             }
 
-
             var block = new Block
             {
                 Height = height,
                 TimeStamp = timestamp,
                 PrevHash = prevHash,
-                Transactions = transactions,
+                Transactions = GiveOtherInfos(transactions, height),
                 Validator = validator
             };
             block.Build();
+
+
+            //block size
+            var str = JsonConvert.SerializeObject(block);
+            block.Size = str.Length;
+
+            // get build time    
+            var endTimer = DateTime.UtcNow;
+            var buildTime = endTimer - startTimer;
+            block.BuildTime = buildTime.Milliseconds;
+            // end of    
+
             AddBlock(block);
             PrintBlock(block);
 
@@ -180,7 +258,7 @@ namespace Main
                 Transaction.Add(trx);
             }
 
-          
+
         }
 
         private static float GetTotalFees(IList<Transaction> txs)
@@ -195,6 +273,7 @@ namespace Main
             Console.WriteLine(" = Height      : {0}", block.Height);
             Console.WriteLine(" = Version     : {0}", block.Version);
             Console.WriteLine(" = Prev Hash   : {0}", block.PrevHash);
+            Console.WriteLine(" = Hash        : {0}", block.Hash);
             Console.WriteLine(" = Merkle Hash : {0}", block.MerkleRoot);
             Console.WriteLine(" = Timestamp   : {0}", Utils.ToDateTime(block.TimeStamp));
             Console.WriteLine(" = Difficulty  : {0}", block.Difficulty);
@@ -203,7 +282,9 @@ namespace Main
             Console.WriteLine(" = Number Of Tx: {0}", block.NumOfTx);
             Console.WriteLine(" = Amout       : {0}", block.TotalAmount);
             Console.WriteLine(" = Reward      : {0}", block.TotalReward);
-        
+            Console.WriteLine(" = Size        : {0}", block.Size);
+            Console.WriteLine(" = Build Time  : {0}", block.BuildTime);
+
 
         }
     }

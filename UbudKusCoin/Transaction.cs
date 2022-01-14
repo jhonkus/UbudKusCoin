@@ -2,18 +2,19 @@ using EllipticCurve;
 using LiteDB;
 using System.Collections.Generic;
 using UbudKusCoin;
-
+using System;
 namespace Main
 {
 
     public class Transaction
     {
-        public string Hash { get; set;}
+        public string Hash { get; set; }
         public long TimeStamp { get; set; }
         public string Sender { set; get; }
         public string Recipient { set; get; }
         public double Amount { set; get; }
         public float Fee { set; get; }
+        public long Height { get; set; }
 
         public static void AddToPool(Transaction transaction)
         {
@@ -41,18 +42,74 @@ namespace Main
         }
 
         /**
+
+        get one transaction for speed, to check if address have tnx
+        */
+        public static Transaction GetOneTxnByAddress(string address)
+        {
+            var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
+            coll.EnsureIndex(x => x.TimeStamp);
+            var transaction = coll.FindOne(x => x.Sender == address || x.Recipient == address);
+            return transaction;
+        }
+
+        /**
         * get transaction list by address
         */
         public static IEnumerable<Transaction> GetAccountTransactions(string address)
         {
             var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
-            coll.EnsureIndex(x => x.TimeStamp);
-            //coll.EnsureIndex(x => x.Sender);
-            //coll.EnsureIndex(x => x.Recipient);
-            var transactions = coll.Find(x => x.Sender == address || x.Recipient == address);
-            return transactions;
+            coll.EnsureIndex(x => x.Sender);
+            coll.EnsureIndex(x => x.Recipient);
+            var query = coll.Query()
+                .OrderByDescending(x => x.TimeStamp)
+                .Where(x => x.Sender == address || x.Recipient == address)
+                .Limit(50).ToList();
+            return query;
         }
 
+        /**
+         * get a transaction by hash
+         */
+        public static Transaction GetTxnByHash(string hash)
+        {
+            var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
+            coll.EnsureIndex(x => x.TimeStamp);
+            var transaction = coll.FindOne(x => x.Hash == hash);
+            return transaction;
+        }
+
+
+        /**
+  * get a transaction by hash
+  */
+        public static Transaction GetTxnsByHeight(string hash)
+        {
+            var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
+            coll.EnsureIndex(x => x.TimeStamp);
+            var transaction = coll.FindOne(x => x.Hash == hash);
+            return transaction;
+        }
+
+        /**
+           * get transaction list by block height
+           */
+        public static IEnumerable<Transaction> GetTxnsByHeight(long height)
+        {
+            // var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
+            // coll.EnsureIndex(x => x.Height);
+            // var transactions = coll.Find(x => x.Height == height);
+            // return transactions;
+
+            var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
+            coll.EnsureIndex(x => x.TimeStamp);
+            var query = coll.Query()
+                .OrderByDescending(x => x.TimeStamp)
+                .Where(x => x.Height == height)
+                .Limit(50).ToList();
+            return query;
+
+        }
 
         /**
         * get transaction list 
@@ -80,7 +137,7 @@ namespace Main
                 var newTrx = new Transaction()
                 {
                     TimeStamp = timeStamp,
-                    Sender = "UKC_rcyChuW7cQcIVoKi1LfSXKfCxZBHysTwyPm88ZsN0BM=",
+                    Sender = "UkcU6SQGuPqrDWgD8AY5oRD7PRxVQV5LWrbf6vkrTtuDtBc",
                     Recipient = acc.Address,
                     Amount = acc.Balance,
                     Fee = 0.0f
@@ -91,9 +148,9 @@ namespace Main
             }
         }
 
-               /**
-        create transaction for each ico account
-        **/
+        /**
+ create transaction for each ico account
+ **/
         public static void CreateGenesisTransction()
         {
             var timeStamp = Utils.GetTime();

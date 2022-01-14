@@ -39,29 +39,71 @@ namespace UbudKusCoin
             var staker = GetAll();
             if (staker.Count() < 1)
             {
-                // we asume all ICO account stake their coin each 1000
+                // we asume all ICO account stake their coin each 1000000
                 Add(new Staker
                 {
-                    Address = "UKC_JavaPsOANbgT5anGjTg0Ih6qdC4mHgbmpF5ptjAJb0g=",
-                    Amount = 1000
+                    Address = "UkcsYhnBQNBZjhDWHHPiyu8Arx75KjWH9Lnc6MVaCi2SMkb",
+                    Amount = 1000000
                 });
 
                 Add(new Staker
                 {
-                    Address = "UKC_mGyJe2kD3cNs4c8d/KHVe4+DSt9mwrLLqlDejXUgdzA=",
-                    Amount = 1000
+                    Address = "UkcBEzxjpGmiG5XMUmGwkHLP2soctjkbvbTUiqD3DBK2cAr",
+                    Amount = 11000000
                 });
 
                 Add(new Staker
                 {
-                    Address = "UKC_ZOm+XeyKAEbIb/L41TPEzRRxwMOsZW6HE2WjdxeCFFI=",
-                    Amount = 1000
+                    Address = "Ukcf8vVeDsk99k5T14ENhUezWHGHKhfouTFK1iDzbyEirbP",
+                    Amount = 12000000
                 });
 
                 Add(new Staker
                 {
-                    Address = "UKC_rMOHTqvkDCLtaoqbkgF3GmM2lewE3R2ZFYDGfq0A/fI=",
-                    Amount = 1000
+                    Address = "UkcUdQsv5XUqPS4NrqeGVcACtLazfUrWVto6NF5pPnU5ZuK",
+                    Amount = 14000000
+                });
+
+                // 5
+                Add(new Staker
+                {
+                    Address = "UkcpZbACs3grAzbkXZZqBdWNnKqLD4iVPFCZmUP9theWHMm",
+                    Amount = 15000000
+                });
+
+                // 6
+                Add(new Staker
+                {
+                    Address = "UkcbE1dCzu28bNPAXayrdL2ghUsCc4mMDbuS2gpTV18Wmu",
+                    Amount = 16000000
+                });
+
+                // 7
+                Add(new Staker
+                {
+                    Address = "UkcE5LKJtAU32qYwUFzKa4Tm5v74ZWqB43hHQVaX17Zuoy",
+                    Amount = 17000000
+                });
+
+                // 8
+                Add(new Staker
+                {
+                    Address = "UkcUY6FMwoLjmGaipWZp6n43Dmg9ETbnQyecGaSy3XvLx7f",
+                    Amount = 18000000
+                });
+
+                // 9
+                Add(new Staker
+                {
+                    Address = "Ukc9z9Li8csur53KDjhjgmyyZQhmy9xXqE556pcK6qFH2x4",
+                    Amount = 19000000
+                });
+
+                // 10
+                Add(new Staker
+                {
+                    Address = "Ukc9z9Li8csur53KDjhjgmyyZQhmy9xXqE556pcK6qFH2x4",
+                    Amount = 20000000
                 });
 
                 StakerList.AddRange(GetAll().FindAll());
