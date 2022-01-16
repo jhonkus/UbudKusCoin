@@ -17,6 +17,7 @@ service BChainService {
   rpc GetTxnsByHeight(CommonRequest) returns (TxnsResponse);
   rpc Search(CommonRequest) returns (SearchResponse);
   rpc GetTxns(PagingRequest) returns (TxnsResponse);
+  rpc GetPendingTxns(PagingRequest) returns (TxnsResponse);
 }
 
 message SendRequest{

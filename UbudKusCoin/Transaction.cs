@@ -114,6 +114,20 @@ namespace Main
         /**
         * get transaction list 
         */
+        public static IEnumerable<Transaction> GetPendingTransactions(int pageNumber, int resultPerPage)
+        {
+            var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTION_POOL);
+            coll.EnsureIndex(x => x.TimeStamp);
+            var query = coll.Query()
+                .OrderByDescending(x => x.TimeStamp)
+                .Offset((pageNumber - 1) * resultPerPage)
+                .Limit(resultPerPage).ToList();
+            return query;
+        }
+
+        /**
+        * get transaction list 
+        */
         public static IEnumerable<Transaction> GetTransactions(int pageNumber, int resultPerPage)
         {
             var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);

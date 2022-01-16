@@ -101,6 +101,7 @@ namespace GrpcService.Services
             return Task.FromResult(response);
         }
 
+
         public override Task<BlockResponse> GetBlockByHash(CommonRequest request, ServerCallContext context)
         {
             var block = Blockchain.GetBlockByHash(request.BlockHash);
@@ -316,6 +317,25 @@ namespace GrpcService.Services
 
             TxnsResponse response = new TxnsResponse();
             var transactions = Transaction.GetTransactions(request.PageNumber, request.ResultPerPage);
+            if (transactions is null)
+            {
+                return Task.FromResult(response);
+            }
+
+            foreach (Transaction txn in transactions)
+            {
+                TxnModel mdl = ConvertTxnModel(txn);
+                response.Transactions.Add(mdl);
+            }
+            return Task.FromResult(response);
+        }
+
+
+        public override Task<TxnsResponse> GetPendingTxns(PagingRequest request, ServerCallContext context)
+        {
+
+            TxnsResponse response = new TxnsResponse();
+            var transactions = Transaction.GetPendingTransactions(request.PageNumber, request.ResultPerPage);
             if (transactions is null)
             {
                 return Task.FromResult(response);
