@@ -7,10 +7,12 @@
 /BlockExplorer/obj/*
 /BlockExplorer/bin/
 /BlockExplorer/*.db
+/BlockExplorer/publish-linux
 
 /ConsoleWallet/obj/*
 /ConsoleWallet/bin/
 /ConsoleWallet/*.db
+/ConsoleWallet/publish-linux
 
 .vs
 /UnitTest/bin

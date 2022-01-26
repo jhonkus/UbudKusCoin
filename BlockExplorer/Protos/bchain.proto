@@ -1,6 +1,6 @@
 ﻿syntax = "proto3";
 
-option csharp_namespace = "GrpcService";
+option csharp_namespace = "UbudKusCoin.Services";
 
 
 service BChainService {
@@ -17,6 +17,9 @@ service BChainService {
   rpc GetTxnsByHeight(CommonRequest) returns (TxnsResponse);
   rpc Search(CommonRequest) returns (SearchResponse);
   rpc GetTxns(PagingRequest) returns (TxnsResponse);
+  rpc GetPendingTxns(PagingRequest) returns (TxnsResponse);
+  rpc GetBchainInfo(CommonRequest) returns (BcInfoResponse);
+  rpc GetPoolInfo(CommonRequest) returns (TxnPoolResponse); 
 }
 
 message SendRequest{
@@ -77,6 +80,7 @@ message TxnModel {
   int64 Height = 7;
 }
 
+
 message BlockModel {
 	int32 Version = 1;
 	int64 Height = 2;
@@ -86,7 +90,7 @@ message BlockModel {
 	string Transactions = 6;
   string Validator = 7;
   string MerkleRoot = 8;
-  int32  NumOfTx = 9;
+  int64  NumOfTx = 9;
   double TotalAmount = 10;
   float TotalReward = 11;
   int32 Difficulty = 12;
@@ -111,6 +115,21 @@ message AccountResponse {
 	int32 numBlockValidate = 2;
   repeated TxnModel transactions = 3;
   repeated BlockModel blocks = 4;
+}
+
+message BcInfoResponse {
+  int64 NumBloks = 1;
+  int64 NumTxns = 2;
+  double AmountTxns= 3;
+  double AmountReward = 4;
+  repeated TxnModel txns = 5;
+  repeated BlockModel blocks = 6;
+  int64 Tps = 7;
+}
+
+message TxnPoolResponse {
+  int64  NumPool = 1;
+  double AmountPool = 2;
 }
 
 message SearchResponse {

@@ -23,7 +23,6 @@ namespace UbudKusCoin.Models
                 {
                     // 1. secreet nunber
                     // 11520842075416936956337166257543145030894758329506615265245623459159831684481
-                    // UKC_JavaPsOANbgT5anGjTg0Ih6qdC4mHgbmpF5ptjAJb0g=
                     Address = "UkcsYhnBQNBZjhDWHHPiyu8Arx75KjWH9Lnc6MVaCi2SMkb",
                     PublicKey = "a5185d90719f52615930a6f0249ef7e1310a90159eef573805577288db66e107f5b71cdfa607eb759c1e43a1e08375b775019a2086794c61a042a6db7ea58af4",
                     Balance = 70000000
@@ -33,7 +32,6 @@ namespace UbudKusCoin.Models
                 {
                     // 2. secret number
                     // 50097633609371174574534106620065769324210518368794492873657273912701099632384
-                    // UKC_mGyJe2kD3cNs4c8d/KHVe4+DSt9mwrLLqlDejXUgdzA=
                     Address = "UkcBEzxjpGmiG5XMUmGwkHLP2soctjkbvbTUiqD3DBK2cAr",
                     PublicKey = "9c8f0d364104cad2d7928e606e7927d23c181297969d95be3e273c4a1aff0f3362f4c9c8b49e5987a13da1102b555392620865eb54f14d938f180d460daeb0d3",
                     Balance = 50000000
@@ -43,7 +41,6 @@ namespace UbudKusCoin.Models
                 {
                     // 3. secret number
                     // 17444769289605527965285869029990128769824151562466867025336412934980476651053
-                    // UKC_ZOm+XeyKAEbIb/L41TPEzRRxwMOsZW6HE2WjdxeCFFI=
                     Address = "Ukcf8vVeDsk99k5T14ENhUezWHGHKhfouTFK1iDzbyEirbP",
                     PublicKey = "7b2240cc9370f6446b7df3b5b27a5da32e1d9c657fbfc9860fff8d9a9cbc250ea224536045e289db13f36561e73b6ecad88a977604d98de56623e64431ba165b",
                     Balance = 45000000
@@ -53,7 +50,6 @@ namespace UbudKusCoin.Models
                 {
                     // 4. secret number
                     // 7611318794264389102622393469331744367164041724526682955404226892006202219169
-                    // UKC_rMOHTqvkDCLtaoqbkgF3GmM2lewE3R2ZFYDGfq0A/fI=
                     Address = "UkcUdQsv5XUqPS4NrqeGVcACtLazfUrWVto6NF5pPnU5ZuK",
                     PublicKey = "f19681e8249493fc3b42a2e4de8dc544a136137fa27b46a6feff3be1d849e61d89e4c4b6ebf15ad5a67c7600de55bc39cb71758b96f8e9ec90f81e729b1f8d39",
                     Balance = 30000000

@@ -216,7 +216,7 @@ namespace UbudKusCoin.Models
                 var newTrx = new Transaction()
                 {
                     TimeStamp = timeStamp,
-                    Sender = "UkcU6SQGuPqrDWgD8AY5oRD7PRxVQV5LWrbf6vkrTtuDtBc",
+                    Sender = "UkcDEfU9gGnm9tGjmFtXRjirf2LuohU5CzjWunEkPNbUcFW",
                     Recipient = acc.Address,
                     Amount = acc.Balance,
                     Height = 1,

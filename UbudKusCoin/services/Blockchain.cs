@@ -204,11 +204,11 @@ namespace UbudKusCoin.Services
             {
                 Amount = 0,
                 // Recipient = "UKC_QPQY9wHP0jxi/0c/YRlch2Uk5ur/T8lcOaawqyoe66o=",
-                Recipient = "Ukcn4Yy7CMVxNGRqRM6s1p88fCkym3P4q4FeSXgD4s81J6P",
+                Recipient = "UkcDrMshfqdHrfckb2SLoSCoG8Lp6MBdrkZ2T83FivTpWC8",
                 Fee = COINT_REWARD,
                 TimeStamp = timestamp,
                 // Sender = "UKC_rcyChuW7cQcIVoKi1LfSXKfCxZBHysTwyPm88ZsN0BM="
-                Sender = "UkcU6SQGuPqrDWgD8AY5oRD7PRxVQV5LWrbf6vkrTtuDtBc",
+                Sender = "UkcDEfU9gGnm9tGjmFtXRjirf2LuohU5CzjWunEkPNbUcFW",
             };
 
             if (trxPool.Count() > 0)

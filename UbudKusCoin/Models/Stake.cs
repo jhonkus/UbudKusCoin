@@ -99,12 +99,6 @@ namespace UbudKusCoin.Models
                     Amount = 19000000
                 });
 
-                // 10
-                Add(new Staker
-                {
-                    Address = "Ukc9z9Li8csur53KDjhjgmyyZQhmy9xXqE556pcK6qFH2x4",
-                    Amount = 20000000
-                });
 
                 StakerList.AddRange(GetAll().FindAll());
             }
