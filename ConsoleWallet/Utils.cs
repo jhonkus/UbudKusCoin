@@ -2,7 +2,7 @@
 using System;
 using System.Security.Cryptography;
 using System.Text;
-using GrpcService;
+using UbudKusCoin.Services;
 
 
 namespace Main

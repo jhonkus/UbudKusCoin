@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Globalization;
 using System.Threading.Tasks;
-using GrpcService;
-using static GrpcService.BChainService;
+using UbudKusCoin.Services;
+using static UbudKusCoin.Services.BChainService;
 
 namespace Main
 {

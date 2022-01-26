@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Runtime.InteropServices;
 using Grpc.Net.Client;
 using Grpc.Net.Client.Web;
-using static GrpcService.BChainService;
+using static UbudKusCoin.Services.BChainService;
 
 namespace Main
 {

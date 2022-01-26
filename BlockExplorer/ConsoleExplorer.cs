@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
-using GrpcService;
 using Newtonsoft.Json;
-using static GrpcService.BChainService;
-
+using UbudKusCoin.Services;
+using static UbudKusCoin.Services.BChainService;
 namespace Main
 {
     public class ConsoleExplorer
