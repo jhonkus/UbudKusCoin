@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using System.Linq;
-using System;
-using UbudKusCoin;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Collections.Generic;
+using UbudKusCoin.Others;
 
-namespace Main
+namespace UbudKusCoin.Models
 {
 
     public class Block
@@ -17,7 +17,7 @@ namespace Main
         public string MerkleRoot { get; set; }
         public IList<Transaction> Transactions { get; set; }
         public string Validator { get; set; }
-        public int NumOfTx { get; set; }
+        public long NumOfTx { get; set; }
         public double TotalAmount { get; set; }
         public float TotalReward { get; set; }
         public int Difficulty { get; set; }
@@ -55,13 +55,13 @@ namespace Main
         {
             var startTimer = DateTime.UtcNow;
 
-            var ts = 1498018714; //21 june 2017
+            var ts = Utils.GetTime(); //21 june 2017
 
             // for genesis bloc we set creatoris first of Genesis Account
             var validator = Genesis.GetAll().FirstOrDefault();
             var block = new Block
             {
-                Height = 0,
+                Height = 1,
                 TimeStamp = ts,
                 PrevHash = "-",
                 Transactions = transactions,
@@ -70,7 +70,7 @@ namespace Main
             block.Build();
 
             //block size
-            var str = JsonConvert.SerializeObject(block);
+            var str = JsonSerializer.Serialize(block);
             block.Size = str.Length;
 
             // get build time    
