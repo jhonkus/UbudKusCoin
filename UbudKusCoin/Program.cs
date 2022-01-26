@@ -3,9 +3,9 @@ using Coravel;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Hosting;
-using UbudKusCoin.Sceduler;
+using UbudKusCoin.Services;
 
-namespace Main
+namespace UbudKusCoin
 {
     public class Program
     {
@@ -19,7 +19,7 @@ namespace Main
             IHost host = CreateHostBuilder(args).Build();
             host.Services.UseScheduler(scheduler =>
             {
-                scheduler.Schedule<BlockJob>()
+                scheduler.Schedule<SomeJobs>()
                     .EveryThirtySeconds();
             });
             host.Run();

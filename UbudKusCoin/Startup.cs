@@ -1,14 +1,12 @@
-﻿using Coravel;
-using GrpcService.Services;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using UbudKusCoin.Sceduler;
+using Coravel;
+using UbudKusCoin.Services;
 
-
-namespace Main
+namespace UbudKusCoin
 {
     public class Startup
     {
@@ -19,7 +17,7 @@ namespace Main
 
 
             services.AddScheduler();
-            services.AddTransient<BlockJob>();
+            services.AddTransient<SomeJobs>();
 
             services.AddGrpc();
 
@@ -62,7 +60,8 @@ namespace Main
             {
                 //endpoints.MapGrpcService<BlockchainService>(); //.RequireHost("*:5008");
                 //endpoints.MapGrpcService<BlockchainService>().EnableGrpcWeb().RequireCors("AllowAll");
-                endpoints.MapGrpcService<BlockchainService>().RequireCors("AllowAll");
+                endpoints.MapGrpcService<BChainServiceImpl>().RequireCors("AllowAll");
+                endpoints.MapGrpcService<AccountServiceImpl>().RequireCors("AllowAll");
 
                 // for grpcweb. is bellow code necessary?
                 endpoints.MapGet("/", async context =>

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace UbudKusCoin
+namespace UbudKusCoin.Models
 {
     public class GenesisAccount
     {

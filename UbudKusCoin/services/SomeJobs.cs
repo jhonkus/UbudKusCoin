@@ -1,14 +1,15 @@
 ﻿using System.Threading.Tasks;
 using Coravel.Invocable;
-using Main;
+using  UbudKusCoin.Services;
 
-namespace UbudKusCoin.Sceduler
+namespace UbudKusCoin.Services
 {
-    public class BlockJob : IInvocable
+    public class SomeJobs : IInvocable
     {
         public Task Invoke()
         {
             Blockchain.BuildNewBlock();
+            BChainServiceImpl.BuildReport();
             return Task.CompletedTask;
         }
     }

@@ -1,9 +1,11 @@
-using EllipticCurve;
-using LiteDB;
-using System.Collections.Generic;
-using UbudKusCoin;
 using System;
-namespace Main
+using LiteDB;
+using EllipticCurve;
+using System.Collections.Generic;
+using UbudKusCoin.Services;
+using UbudKusCoin.Others;
+
+namespace UbudKusCoin.Models
 {
 
     public class Transaction
@@ -16,10 +18,17 @@ namespace Main
         public float Fee { set; get; }
         public long Height { get; set; }
 
+        private static List<Transaction> mempool = new List<Transaction>();
+
         public static void AddToPool(Transaction transaction)
         {
-            var trxPool = GetPool();
-            trxPool.Insert(transaction);
+            if (GetPool() is null)
+            {
+                mempool = new List<Transaction>();
+            }
+            // var trxPool = GetPool();
+            // trxPool.Insert(transaction);
+            mempool.Add(transaction);
         }
 
         public static void Add(Transaction transaction)
@@ -29,15 +38,27 @@ namespace Main
         }
 
 
-        public static ILiteCollection<Transaction> GetPool()
+        public static List<Transaction> GetPool()
         {
-            var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTION_POOL);
-            return coll;
+            if (mempool is null)
+            {
+                return new List<Transaction>();
+            }
+            // var coll = DbAccess.DB_POOL.GetCollection<Transaction>(DbAccess.TBL_TRANSACTION_POOL);
+            // return coll;
+            return mempool;
+        }
+
+        public static void DeletePool()
+        {
+            // var coll = DbAccess.DB_POOL.GetCollection<Transaction>(DbAccess.TBL_TRANSACTION_POOL);
+            // return coll;
+            mempool = new List<Transaction>();
         }
 
         public static ILiteCollection<Transaction> GetAll()
         {
-            var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
+            var coll = DbAccess.DB_TXNS.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
             return coll;
         }
 
@@ -47,7 +68,7 @@ namespace Main
         */
         public static Transaction GetOneTxnByAddress(string address)
         {
-            var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
+            var coll = DbAccess.DB_TXNS.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
             coll.EnsureIndex(x => x.TimeStamp);
             var transaction = coll.FindOne(x => x.Sender == address || x.Recipient == address);
             return transaction;
@@ -58,7 +79,7 @@ namespace Main
         */
         public static IEnumerable<Transaction> GetAccountTransactions(string address)
         {
-            var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
+            var coll = DbAccess.DB_TXNS.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
             coll.EnsureIndex(x => x.Sender);
             coll.EnsureIndex(x => x.Recipient);
             var query = coll.Query()
@@ -73,7 +94,7 @@ namespace Main
          */
         public static Transaction GetTxnByHash(string hash)
         {
-            var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
+            var coll = DbAccess.DB_TXNS.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
             coll.EnsureIndex(x => x.TimeStamp);
             var transaction = coll.FindOne(x => x.Hash == hash);
             return transaction;
@@ -85,7 +106,7 @@ namespace Main
   */
         public static Transaction GetTxnsByHeight(string hash)
         {
-            var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
+            var coll = DbAccess.DB_TXNS.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
             coll.EnsureIndex(x => x.TimeStamp);
             var transaction = coll.FindOne(x => x.Hash == hash);
             return transaction;
@@ -101,7 +122,7 @@ namespace Main
             // var transactions = coll.Find(x => x.Height == height);
             // return transactions;
 
-            var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
+            var coll = DbAccess.DB_TXNS.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
             coll.EnsureIndex(x => x.TimeStamp);
             var query = coll.Query()
                 .OrderByDescending(x => x.TimeStamp)
@@ -114,15 +135,59 @@ namespace Main
         /**
         * get transaction list 
         */
-        public static IEnumerable<Transaction> GetPendingTransactions(int pageNumber, int resultPerPage)
+        // public static IEnumerable<Transaction> GetPendingTransactions2(int pageNumber, int resultPerPage)
+        // {
+        //     var coll = DbAccess.DB_POOL.GetCollection<Transaction>(DbAccess.TBL_TRANSACTION_POOL);
+        //     coll.EnsureIndex(x => x.TimeStamp);
+        //     var query = coll.Query()
+        //         .OrderByDescending(x => x.TimeStamp)
+        //         .Offset((pageNumber - 1) * resultPerPage)
+        //         .Limit(resultPerPage).ToList();
+        //     return query;
+        // }
+
+        public static List<Transaction> GetPendingTransactions(int pageNumber, int resultPerPage)
         {
-            var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTION_POOL);
-            coll.EnsureIndex(x => x.TimeStamp);
-            var query = coll.Query()
-                .OrderByDescending(x => x.TimeStamp)
-                .Offset((pageNumber - 1) * resultPerPage)
-                .Limit(resultPerPage).ToList();
-            return query;
+            // var coll = DbAccess.DB_POOL.GetCollection<Transaction>(DbAccess.TBL_TRANSACTION_POOL);
+            // coll.EnsureIndex(x => x.TimeStamp);
+            // var query = coll.Query()
+            //     .OrderByDescending(x => x.TimeStamp)
+            //     .Offset((pageNumber - 1) * resultPerPage)
+            //     .Limit(resultPerPage).ToList();
+            // var list = new List<Transaction>();
+
+            var start = (pageNumber - 1) * resultPerPage;
+
+            var pool = GetPool();
+
+            var end = (start + resultPerPage - 1);
+            if (pool.Count < end)
+            {
+                end = pool.Count;
+            }
+
+            Console.WriteLine("== start {0}", start);
+            Console.WriteLine("== end {0}", end);
+
+
+            // var startGet = mempool.Count;
+            // var temp = GetPool();
+            pool.Reverse();
+
+            var rtns = pool.GetRange(start, end);
+
+            // if (startGet > offset)
+            // {
+            //     startGet = startGet - offset;
+            // }
+
+            // for (int i = mempool.Count; i > mempool.Count - resultPerPage; i--)
+            // {
+            //     list.Add(mempool[i]);
+            // }
+            // var rtn = GetPool();
+            // rtn.Reverse();
+            return rtns;
         }
 
         /**
@@ -130,7 +195,7 @@ namespace Main
         */
         public static IEnumerable<Transaction> GetTransactions(int pageNumber, int resultPerPage)
         {
-            var coll = DbAccess.DB.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
+            var coll = DbAccess.DB_TXNS.GetCollection<Transaction>(DbAccess.TBL_TRANSACTIONS);
             coll.EnsureIndex(x => x.TimeStamp);
             var query = coll.Query()
                 .OrderByDescending(x => x.TimeStamp)
@@ -154,6 +219,7 @@ namespace Main
                     Sender = "UkcU6SQGuPqrDWgD8AY5oRD7PRxVQV5LWrbf6vkrTtuDtBc",
                     Recipient = acc.Address,
                     Amount = acc.Balance,
+                    Height = 1,
                     Fee = 0.0f
                 };
                 newTrx.Build();
@@ -163,8 +229,8 @@ namespace Main
         }
 
         /**
- create transaction for each ico account
- **/
+        create transaction for each ico account
+        **/
         public static void CreateGenesisTransction()
         {
             var timeStamp = Utils.GetTime();
@@ -177,7 +243,8 @@ namespace Main
                     Sender = "Genesis",
                     Recipient = acc.Address,
                     Amount = acc.Balance,
-                    Fee = 0.0f
+                    Fee = 0.0f,
+                    Height = 1
                 };
                 newTrx.Build();
 

@@ -1,3 +1,5 @@
+#EXAMPLE OF SERVICE FOR LINUX
+
 [Unit]
 Description=UbudKusCoin Service
 

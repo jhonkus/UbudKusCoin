@@ -1,14 +1,105 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Grpc.Core;
-using Main;
-using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Text.Json;
+using UbudKusCoin.Models;
 
-namespace GrpcService.Services
+namespace UbudKusCoin.Services
 {
-    public class BlockchainService : BChainService.BChainServiceBase
+    public class BChainServiceImpl : BChainService.BChainServiceBase
     {
+        static BcInfoResponse bcInfo = new BcInfoResponse();
+        public static void BuildReport()
+        {
+            var localBcInfo = new BcInfoResponse();
+            Console.WriteLine("make report");
+            var lastBlock = Blockchain.GetLastBlock();
+            var blocks = Blockchain.GetBlocks();
 
+            var amountTnxs = 0d;
+            var numTnxs = 0L;
+            var amountReward = 0d;
+            var transactions = new List<Transaction>();
+
+
+
+            if (bcInfo.NumBloks == 0)
+            {
+                // calculate from begining
+                foreach (var block in blocks.FindAll())
+                {
+                    amountTnxs += block.TotalAmount;
+                    numTnxs += block.NumOfTx;
+                    amountReward += block.TotalReward;
+                }
+                localBcInfo.AmountTxns = amountTnxs;
+                localBcInfo.NumTxns = numTnxs;
+                localBcInfo.AmountReward = amountReward;
+                localBcInfo.NumBloks = lastBlock.Height;
+                localBcInfo.Tps = lastBlock.NumOfTx / 30;
+
+                // add 10 txns
+                var trans1 = Transaction.GetTransactions(1, 10);
+                if (trans1 is not null)
+                {
+                    foreach (Transaction txn in trans1)
+                    {
+                        TxnModel mdl = ConvertTxnModel(txn);
+                        localBcInfo.Txns.Add(mdl);
+                    }
+                }
+
+                // add 10 blocks
+                var blocks1 = Blockchain.GetBlocks(1, 10);
+                if (blocks1 is not null)
+                {
+                    foreach (Block block in blocks1)
+                    {
+                        BlockModel mdl = ConvertBlockForList(block);
+                        localBcInfo.Blocks.Add(mdl);
+                    }
+                }
+
+                bcInfo = localBcInfo;
+                Console.WriteLine("== TPS {0}", localBcInfo.Tps);
+                return;
+            }
+
+            amountTnxs = (bcInfo.AmountTxns + lastBlock.TotalAmount);
+            numTnxs = (bcInfo.NumTxns + lastBlock.NumOfTx);
+            amountReward = (bcInfo.AmountReward + lastBlock.TotalReward);
+            localBcInfo.AmountTxns = amountTnxs;
+            localBcInfo.NumTxns = numTnxs;
+            localBcInfo.Tps = lastBlock.NumOfTx / 30;
+            localBcInfo.AmountReward = amountReward;
+            localBcInfo.NumBloks = lastBlock.Height;
+
+
+            // add 10 txns
+            var trans = Transaction.GetTransactions(1, 10);
+            if (trans is not null)
+            {
+                foreach (Transaction txn in trans)
+                {
+                    TxnModel mdl = ConvertTxnModel(txn);
+                    localBcInfo.Txns.Add(mdl);
+                }
+            }
+
+            // add 10 blocks
+            var blcks = Blockchain.GetBlocks(1, 10);
+            if (blocks is not null)
+            {
+                foreach (Block block in blcks)
+                {
+                    BlockModel mdl = ConvertBlockForList(block);
+                    localBcInfo.Blocks.Add(mdl);
+                }
+            }
+            bcInfo = localBcInfo;
+            Console.WriteLine("== TPS {0}", localBcInfo.Tps);
+        }
         public override Task<BlockResponse> GenesisBlock(EmptyRequest request, ServerCallContext context)
         {
             var block = Blockchain.GetGenesisBlock();
@@ -26,6 +117,35 @@ namespace GrpcService.Services
             });
         }
 
+        public override Task<BcInfoResponse> GetBchainInfo(CommonRequest request, ServerCallContext context)
+        {
+            if (bcInfo.NumBloks == 0)
+            {
+                BuildReport();
+            }
+
+            return Task.FromResult(bcInfo);
+        }
+
+        public override Task<TxnPoolResponse> GetPoolInfo(CommonRequest request, ServerCallContext context)
+        {
+
+            var pools = Transaction.GetPool();
+
+            var amountPool = 0d;
+            var numPool = 0;
+            foreach (var tx in pools)
+            {
+                amountPool += tx.Amount;
+                numPool += 1;
+            }
+
+            return Task.FromResult(new TxnPoolResponse
+            {
+                NumPool = numPool,
+                AmountPool = amountPool
+            });
+        }
 
         public override Task<BalanceResponse> GetBalance(CommonRequest request, ServerCallContext context)
         {
@@ -387,6 +507,8 @@ namespace GrpcService.Services
 
 
             Transaction.AddToPool(newTxn);
+
+
             return Task.FromResult(new SendResponse
             {
                 Result = "Success"
@@ -405,7 +527,7 @@ namespace GrpcService.Services
                     Hash = block.Hash,
                     PrevHash = block.PrevHash,
                     TimeStamp = block.TimeStamp,
-                    Transactions = JsonConvert.SerializeObject(block.Transactions),
+                    Transactions = JsonSerializer.Serialize(block.Transactions),
                     MerkleRoot = block.MerkleRoot,
                     NumOfTx = block.NumOfTx,
                     TotalAmount = block.TotalAmount,

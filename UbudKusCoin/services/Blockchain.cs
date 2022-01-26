@@ -1,11 +1,11 @@
-﻿using LiteDB;
+﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using UbudKusCoin;
-using System;
-using Newtonsoft.Json;
+using LiteDB;
+using UbudKusCoin.Models;
+using UbudKusCoin.Others;
 
-namespace Main
+namespace UbudKusCoin.Services
 {
     public class Blockchain
     {
@@ -46,8 +46,10 @@ namespace Main
                 Transaction.CreateIcoTransction();
 
                 // get all ico transaction from pool
-                var trxPool = Transaction.GetPool();
-                var transactions = trxPool.FindAll().ToList();
+                // var trxPool = Transaction.GetPool();
+                // var transactions = trxPool.FindAll().ToList();
+
+                var transactions = Transaction.GetPool();
 
                 //convert transaction to json for more easy
                 //var strTransactions = JsonConvert.SerializeObject(transactions);
@@ -55,8 +57,7 @@ namespace Main
                 // create genesis block
                 var block = Block.GenesisBlock(transactions);
 
-                var str = JsonConvert.SerializeObject(block);
-                block.Size = str.Length;
+                var str = System.Text.Json.JsonSerializer.Serialize(block);
                 block.Size = str.Length;
 
                 // get build time    
@@ -65,7 +66,9 @@ namespace Main
                 block.BuildTime = buildTime.Milliseconds;
                 // end of    
 
-
+                // update accoiunt table
+                var txns = block.Transactions;
+                AccountServiceImpl.UpdateAccountBalance(txns);
 
                 // add genesis block to blockchain
                 AddBlock(block);
@@ -77,7 +80,8 @@ namespace Main
                 }
 
                 // clear mempool
-                trxPool.DeleteAll();
+                // trxPool.DeleteAll();
+                Transaction.DeletePool();
 
             }
 
@@ -85,7 +89,7 @@ namespace Main
 
         public static List<Block> GetBlocks(int pageNumber, int resultPerPage)
         {
-            var coll = DbAccess.DB.GetCollection<Block>(DbAccess.TBL_BLOCKS);
+            var coll = DbAccess.DB_BLOCKS.GetCollection<Block>(DbAccess.TBL_BLOCKS);
             coll.EnsureIndex(x => x.Height);
             var query = coll.Query()
                 .OrderByDescending(x => x.Height)
@@ -96,16 +100,15 @@ namespace Main
 
         public static ILiteCollection<Block> GetBlocks()
         {
-            var coll = DbAccess.DB.GetCollection<Block>(DbAccess.TBL_BLOCKS);
+            var coll = DbAccess.DB_BLOCKS.GetCollection<Block>(DbAccess.TBL_BLOCKS);
             coll.EnsureIndex(x => x.Height);
             return coll;
         }
 
-
         public static IEnumerable<Block> GetBlocksByValidator(string address)
         {
 
-            var coll = DbAccess.DB.GetCollection<Block>(DbAccess.TBL_BLOCKS);
+            var coll = DbAccess.DB_BLOCKS.GetCollection<Block>(DbAccess.TBL_BLOCKS);
             coll.EnsureIndex(x => x.Validator);
             var query = coll.Query()
                 .OrderByDescending(x => x.Height)
@@ -133,7 +136,7 @@ namespace Main
         */
         public static Block GetBlockByHeight(int height)
         {
-            var coll = DbAccess.DB.GetCollection<Block>(DbAccess.TBL_BLOCKS);
+            var coll = DbAccess.DB_BLOCKS.GetCollection<Block>(DbAccess.TBL_BLOCKS);
             coll.EnsureIndex(x => x.Height); ;
             var block = coll.FindOne(x => x.Height == height);
             return block;
@@ -141,7 +144,7 @@ namespace Main
 
         public static Block GetBlockByHash(string hash)
         {
-            var coll = DbAccess.DB.GetCollection<Block>(DbAccess.TBL_BLOCKS);
+            var coll = DbAccess.DB_BLOCKS.GetCollection<Block>(DbAccess.TBL_BLOCKS);
             coll.EnsureIndex(x => x.Height); ;
             var block = coll.FindOne(x => x.Hash == hash);
             return block;
@@ -174,6 +177,7 @@ namespace Main
             }
             return trxs;
         }
+
         public static void BuildNewBlock()
         {
 
@@ -212,15 +216,15 @@ namespace Main
                 //Get all tx from pool
                 conbaseTrx.Recipient = validator;
                 //sum all fees and give block creator as reward
-                conbaseTrx.Amount = GetTotalFees(trxPool.FindAll().ToList());
+                conbaseTrx.Amount = GetTotalFees(trxPool);
                 conbaseTrx.Build();
 
                 // add coinbase trx to list    
                 transactions.Add(conbaseTrx);
-                transactions.AddRange(trxPool.FindAll());
+                transactions.AddRange(trxPool);
 
                 // clear mempool
-                trxPool.DeleteAll();
+                Transaction.DeletePool();
             }
             else
             {
@@ -240,7 +244,7 @@ namespace Main
 
 
             //block size
-            var str = JsonConvert.SerializeObject(block);
+            var str = System.Text.Json.JsonSerializer.Serialize(block);
             block.Size = str.Length;
 
             // get build time    
@@ -248,6 +252,14 @@ namespace Main
             var buildTime = endTimer - startTimer;
             block.BuildTime = buildTime.Milliseconds;
             // end of    
+
+
+            // update  balance
+
+            var txns = block.Transactions;
+
+            AccountServiceImpl.UpdateAccountBalance(txns);
+
 
             AddBlock(block);
             PrintBlock(block);
