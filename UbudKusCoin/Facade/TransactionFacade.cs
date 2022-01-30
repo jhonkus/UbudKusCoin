@@ -144,7 +144,6 @@ namespace UbudKusCoin.Facade
         {
             foreach (var trx in trxs)
             {
-                Console.WriteLine("Will aded {0}, {1}, {2} ", trx.Recipient, trx.Amount, trx.Sender);
                 AddBalance(trx.Recipient, trx.Amount);
             }
         }
@@ -176,16 +175,18 @@ namespace UbudKusCoin.Facade
                 Recipient = validator.Address,
                 Signature = "-",
                 TxType = Constants.TRANSACTION_TYPE_VALIDATOR_FEE,
+
             };
             // add hash here
             // transactions.Add(conbaseTrx);
+
 
             if (txnsInPool.Count() > 0)
             {
                 //sum all fees and give block creator as reward
                 conbaseTrx.Amount = Utils.GetTotalFees(txnsList);
                 conbaseTrx.Hash = Utils.GetTransactionHash(conbaseTrx); ;
-
+      
                 // add coinbase trx to list    
                 transactions.Add(conbaseTrx);
                 transactions.AddRange(txnsList);
@@ -193,9 +194,13 @@ namespace UbudKusCoin.Facade
             else
             {
                 // var txnHash = Utils.GetTransactionHash(conbaseTrx);
-                conbaseTrx.Hash = Utils.GetTransactionHash(conbaseTrx); ;
+                conbaseTrx.Hash = Utils.GetTransactionHash(conbaseTrx);
+
                 transactions.Add(conbaseTrx);
             }
+
+            Console.WriteLine(" hash: {0}", conbaseTrx.Hash);
+
             return transactions;
 
         }

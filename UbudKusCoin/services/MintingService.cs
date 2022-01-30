@@ -31,13 +31,11 @@ namespace UbudKusCoin.Services
 
         public void DoGenerateBlock()
         {
-            int i = 0;
             while (true)
             {
                 var startTime = DateTime.UtcNow.Second;
                 //Int32 startTime = (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
 
-                Console.WriteLine("Generate Block{0}", i++);
                 ServicePool.FacadeService.Block.CreateNew();
 
                 var _random = new Random();

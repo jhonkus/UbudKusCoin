@@ -128,17 +128,9 @@ namespace UbudKusCoin.Facade
             var lastBlock = ServicePool.DbService.blockDb.GetLast();
             var nextHeight = lastBlock.Height + 1;
             var timestamp = Utils.GetTime();
-
-
             var prevHash = lastBlock.Hash;
-            Console.WriteLine("prevHash {0}", prevHash);
-
-
             var validator = ServicePool.FacadeService.Stake.GetValidator();
-            Console.WriteLine("validator {0}", validator);
-
-            var transactions = ServicePool.FacadeService.Transaction.GetForMinting(nextHeight); // JsonConvert.SerializeObject(new List<Transaction>());
-
+            var transactions = ServicePool.FacadeService.Transaction.GetForMinting(nextHeight); 
 
             var block = new Block
             {
@@ -178,6 +170,8 @@ namespace UbudKusCoin.Facade
 
             // clear mempool
             ServicePool.DbService.transactionsPooldb.DeleteAll();
+
+     
 
             //triger event block created
             // OnEventBlockCreated(block);
