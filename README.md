@@ -1,4 +1,10 @@
 # UbudKusCoin
+
+NOTE: PLEASE DON'T USE DEVELOP BRANCH.
+I am still working on it, its not working.
+It will finish it on 05 January 2022.
+
+
 Simple Cryptocurrencies with Proof Of Stake  Consensus Algorithm.
 
 Developed with C# and .Net Core 5.0
