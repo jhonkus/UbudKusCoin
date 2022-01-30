@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Coravel;
+using UbudKusCoin.Grpc;
 using UbudKusCoin.Services;
 
 namespace UbudKusCoin
@@ -60,9 +61,14 @@ namespace UbudKusCoin
             {
                 //endpoints.MapGrpcService<BlockchainService>(); //.RequireHost("*:5008");
                 //endpoints.MapGrpcService<BlockchainService>().EnableGrpcWeb().RequireCors("AllowAll");
-                endpoints.MapGrpcService<BChainServiceImpl>().RequireCors("AllowAll");
                 endpoints.MapGrpcService<AccountServiceImpl>().RequireCors("AllowAll");
+                endpoints.MapGrpcService<BlockServiceImpl>().RequireCors("AllowAll");
 
+                endpoints.MapGrpcService<PeerServiceImpl>().RequireCors("AllowAll");
+                endpoints.MapGrpcService<ReportServiceImpl>().RequireCors("AllowAll");
+
+                endpoints.MapGrpcService<StakeServiceImpl>().RequireCors("AllowAll");
+                endpoints.MapGrpcService<TransactionServiceImpl>().RequireCors("AllowAll");
                 // for grpcweb. is bellow code necessary?
                 endpoints.MapGet("/", async context =>
                 {

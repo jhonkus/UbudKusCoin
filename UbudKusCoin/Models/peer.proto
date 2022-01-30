@@ -1,0 +1,41 @@
+// dev by I Putu Kusuma Negara, ST, MKOM.
+// Model for Peer
+
+syntax = "proto3";
+
+
+option csharp_namespace = "UbudKusCoin.Grpc";
+
+service PeerService {
+  rpc Add(PeerRequest) returns (PeerResponse);
+  rpc GetRange(PeersRequest) returns (PeersResponse);
+
+}
+
+message PeerRequest {
+  string address = 1;
+}
+
+
+message PeersRequest{
+  int32 page_number = 1;
+  int32 result_per_page = 2; 
+}
+
+message PeerResponse {
+  repeated Peer peer = 1;
+}
+
+
+message PeersResponse {
+  repeated Peer peers = 1;
+}
+
+
+message Peer {
+  string id = 1;
+  string connection = 2;
+  int64 last_reach  = 3;
+  bool is_itself = 4;
+  bool is_canreach = 5;
+}

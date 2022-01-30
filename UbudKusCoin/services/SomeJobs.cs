@@ -8,8 +8,8 @@ namespace UbudKusCoin.Services
     {
         public Task Invoke()
         {
-            Blockchain.BuildNewBlock();
-            BChainServiceImpl.BuildReport();
+            // Blockchain.BuildNewBlock();
+            // ReportsService.BuildReport();
             return Task.CompletedTask;
         }
     }

@@ -1,0 +1,47 @@
+// dev by I Putu Kusuma Negara, ST, MKOM.
+// Model for Transaction
+
+syntax = "proto3";
+
+
+option csharp_namespace = "UbudKusCoin.Grpc";
+
+service TransactionService {
+  rpc SendCoin(Transaction) returns (TransactionStatus);
+  rpc GetByHash(Transaction) returns (Transaction);
+  rpc GetRangeByAddress(TransactionParams) returns (TransactionList);
+  rpc GetRangeByHeight(TransactionParams) returns (TransactionList);
+  rpc GetRange(TransactionParams) returns (TransactionList);
+  rpc GetPoolRange(TransactionParams) returns (TransactionList);
+  rpc GetPendingTxns(TransactionParams) returns (TransactionList);
+}
+
+
+message TransactionParams{
+  string address = 1;
+  int64 height = 2;
+  int32 page_number = 3;
+  int32 result_per_page = 4; 
+}
+
+message TransactionStatus{
+  string status = 1;
+}
+
+message TransactionList {
+  repeated Transaction transactions = 1;
+}
+
+message Transaction{
+  string id = 1;
+  string hash = 2;
+  int64 time_stamp = 3;
+  string sender = 4;
+  string recipient = 5;
+  double amount = 6;
+  double fee = 7;
+  int64 height = 8;
+  string signature = 9;
+  string pub_key = 10;
+  string tx_type =  11;
+}

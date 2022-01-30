@@ -1,0 +1,32 @@
+// dev by I Putu Kusuma Negara, ST, MKOM.
+// Model for Stake
+
+syntax = "proto3";
+
+option csharp_namespace = "UbudKusCoin.Grpc";
+
+
+service StakeService {
+  rpc GetByAddress(StakeParams)  returns (StakeList);
+  rpc GetRange(StakeParams) returns (StakeList);
+}
+
+message StakeParams{
+  string address = 1;
+  int32 page_number = 2;
+  int32 result_per_page = 3; 
+}
+
+message StakeList {
+  repeated Stake stakes = 1;
+}
+
+message Stake {
+	int32 id= 1;
+  int64 height = 2;
+  int64 time_stamp = 3;
+	string address = 4;
+  string pub_key = 5;
+	double amount = 6;
+}
+

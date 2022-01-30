@@ -1,0 +1,50 @@
+﻿// dev by I Putu Kusuma Negara, ST, MKOM.
+// Model for Report
+
+syntax = "proto3";
+
+option csharp_namespace = "UbudKusCoin.Grpc";
+
+
+service ReportService {
+  rpc GetBlockTxn(Params) returns (InfoBlockTxn);
+  rpc GetPool(Params) returns (InfoPool); 
+  rpc Search(Params) returns (SearchResponse);
+}
+
+message Params {
+  string params = 1;
+}
+
+message ReportPool{
+  InfoBlockTxn info = 1;
+}
+
+message DataChart{
+  string dailyTxn = 1;
+  string dailyAccount = 2;
+}
+
+message SearchResponse {
+  int32 Id = 1;
+	string Title = 2;
+	string SarchText = 3;
+  string Url = 4;
+  string status = 5; 
+}
+
+message InfoBlockTxn {
+  int64 num_blok = 1;
+  int64 num_txn = 2;
+  double amount_txn= 3;
+  double amount_reward = 4;
+  int64 tps = 5;
+  int64 created = 6;
+}
+
+message InfoPool {
+  int64  num_pool = 1;
+  double amount_pool = 2;
+  int64 created = 3;
+}
+

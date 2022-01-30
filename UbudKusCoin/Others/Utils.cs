@@ -3,6 +3,8 @@ using System.Security.Cryptography;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text;
+using EllipticCurve;
+using UbudKusCoin.Grpc;
 
 namespace UbudKusCoin.Others
 {
@@ -53,7 +55,7 @@ namespace UbudKusCoin.Others
 
         public static string CreateMerkleRoot(string[] txsHash)
         {
-    
+
             while (true)
             {
                 if (txsHash.Length == 0)
@@ -102,8 +104,49 @@ namespace UbudKusCoin.Others
         }
 
 
+        public static bool VerifySignature(string publicKeyHex, string message, string signature)
+        {
+            var byt = Utils.HexToBytes(publicKeyHex);
+            var publicKey = PublicKey.fromString(byt);
+            return Ecdsa.verify(message, Signature.fromBase64(signature), publicKey);
+        }
+
+        public static double GetTotalFees(List<Transaction> txns)
+        {
+            var totFee = txns.AsEnumerable().Sum(x => x.Fee);
+            return totFee;
+        }
+
+        public static double GetTotalAmount(List<Transaction> txns)
+        {
+            var totalAmount = txns.AsEnumerable().Sum(x => x.Amount);
+            return totalAmount;
+        }
+
+        public static string GetTransactionHash(Transaction txn)
+        {
+            var TxnId = GenHash(GenHash(txn.TimeStamp + txn.Sender + txn.Amount + txn.Fee + txn.Recipient));
+            return TxnId;
+        }
+
+        private static void PrintBlock(Block block)
+        {
+            Console.WriteLine("\n===========\nNew Block created");
+            Console.WriteLine(" = Height      : {0}", block.Height);
+            Console.WriteLine(" = Version     : {0}", block.Version);
+            Console.WriteLine(" = Prev Hash   : {0}", block.PrevHash);
+            Console.WriteLine(" = Hash        : {0}", block.Hash);
+            Console.WriteLine(" = Merkle Hash : {0}", block.MerkleRoot);
+            Console.WriteLine(" = Timestamp   : {0}", Utils.ToDateTime(block.TimeStamp));
+            Console.WriteLine(" = Difficulty  : {0}", block.Difficulty);
+            Console.WriteLine(" = Validator   : {0}", block.Validator);
+
+            Console.WriteLine(" = Number Of Tx: {0}", block.NumOfTx);
+            Console.WriteLine(" = Amout       : {0}", block.TotalAmount);
+            Console.WriteLine(" = Reward      : {0}", block.TotalReward);
+            Console.WriteLine(" = Size        : {0}", block.Size);
+            Console.WriteLine(" = Build Time  : {0}", block.BuildTime);
+        }
     }
-
-
 
 }
