@@ -22,6 +22,10 @@ namespace UbudKusCoin.Services
         public StakeDb stakeDb;
 
 
+        // I use multiple database, to minimize database size for transaction, block
+        // size will smaller for each database, rather than use single DB/
+        // with single db when data grow, fileze will big and slow query
+        // you can change to use single db.
 
         public DbService(string name)
         {
