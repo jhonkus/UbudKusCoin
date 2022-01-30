@@ -110,7 +110,9 @@ namespace UbudKusCoin.Facade
             // end of    
 
             //triger event block created
-            OnEventBlockCreated(block);
+            // OnEventBlockCreated(block);
+
+            Utils.PrintBlock(block);
 
             return block;
         }
@@ -120,7 +122,7 @@ namespace UbudKusCoin.Facade
 
             // start build time
             var startTimer = DateTime.UtcNow.Millisecond;
-    
+
             // get transaction from pool
             var txnsInPool = ServicePool.DbService.transactionsPooldb.GetAll();
 
@@ -130,7 +132,9 @@ namespace UbudKusCoin.Facade
             var timestamp = Utils.GetTime();
             var prevHash = lastBlock.Hash;
             var validator = ServicePool.FacadeService.Stake.GetValidator();
-            var transactions = ServicePool.FacadeService.Transaction.GetForMinting(nextHeight); 
+            var transactions = ServicePool.FacadeService.Transaction.GetForMinting(nextHeight);
+
+
 
             var block = new Block
             {
@@ -147,6 +151,7 @@ namespace UbudKusCoin.Facade
                 MerkleRoot = CreateMerkleRoot(transactions),
                 ValidatorBalance = validator.Amount,
             };
+
             var blockHash = GetBlockHash(block);
             block.Hash = blockHash;
 
@@ -155,13 +160,17 @@ namespace UbudKusCoin.Facade
             var str = System.Text.Json.JsonSerializer.Serialize(block);
             block.Size = str.Length;
 
+
             // get build time    
             var endTimer = DateTime.UtcNow.Millisecond;
             var buildTime = endTimer - startTimer;
             block.BuildTime = buildTime;
             // end of    
 
+
             ServicePool.DbService.blockDb.Add(block);
+
+
 
             ServicePool.FacadeService.Transaction.UpdateBalance(transactions);
 
@@ -171,91 +180,15 @@ namespace UbudKusCoin.Facade
             // clear mempool
             ServicePool.DbService.transactionsPooldb.DeleteAll();
 
-     
+
 
             //triger event block created
             // OnEventBlockCreated(block);
+
+
+            Utils.PrintBlock(block);
+
         }
-
-        // public void BuildNewBlockdddd()
-        // {
-        //     // get transaction from pool
-        //     var trxPool = ServicePool.DbService.PoolDb.GetAll();
-
-        //     //// get last block to get prev hash and last height
-        //     var lastBlock = db.GetLast();
-        //     var height = lastBlock.Height + 1;
-        //     var timestamp = Utils.GetTime();
-        //     var prevHash = lastBlock.Hash;
-        //     var validator = ServicePool.DbService.StakeDb.GetValidator();
-
-
-        //     var transactions = new List<Transaction>(); // JsonConvert.SerializeObject(new List<Transaction>());
-
-
-        //     // validator will get coin reward from genesis account
-        //     // to keep total coin in Blockchain not changed
-        //     var conbaseTrx = new Transaction
-        //     {
-        //         Amount = 0,
-        //         Recipient = "UKC_QPQY9wHP0jxi/0c/YRlch2Uk5ur/T8lcOaawqyoe66o=",
-        //         Fee = Constants.COINT_REWARD,
-        //         TimeStamp = timestamp,
-        //         Sender = "UKC_rcyChuW7cQcIVoKi1LfSXKfCxZBHysTwyPm88ZsN0BM="
-        //     };
-
-        //     if (trxPool.Count() > 0)
-        //     {
-        //         //Get all tx from pool
-        //         conbaseTrx.Recipient = validator.Address;
-        //         conbaseTrx.Amount = GetTotalFees(trxPool.FindAll().ToList());
-        //         conbaseTrx.Build();
-
-        //         transactions.Add(conbaseTrx);
-        //         transactions.AddRange(trxPool.FindAll());
-
-        //         // clear mempool
-        //         trxPool.DeleteAll();
-        //     }
-        //     else
-        //     {
-        //         conbaseTrx.Build();
-        //         transactions.Add(conbaseTrx);
-        //     }
-
-
-        //     var block = new Block
-        //     {
-        //         Height = height,
-        //         TimeStamp = timestamp,
-        //         PrevHash = prevHash,
-        //         Transactions = System.Text.Json.JsonSerializer.Serialize(transactions),
-        //         Difficulty = GetDifficullty(),
-        //         Validator = validator.Address,
-        //         Version = 1,
-        //         NumOfTx = transactions.Count,
-        //         TotalAmount = Utils.GetTotalAmount(transactions),
-        //         TotalReward = Utils.GetTotalFees(transactions),
-        //         MerkleRoot = GetMerkleRoot(transactions),
-        //     };
-        //     var blockHash = GetBlockHash(block);
-        //     block.Hash = blockHash;
-
-        //     //triger event block created
-        //     OnEventBlockCreated(block);
-
-        //     ServiceManager.DbService.Blocks.AddBlock(block);
-
-        //     // PrintBlock(block);
-
-        //     // move all record in trx pool to transactions table
-        //     foreach (var trx in transactions)
-        //     {
-        //         Transaction.Add(trx);
-        //     }
-        // }
-
-
 
         public string GetBlockHash(Block block)
         {
@@ -279,17 +212,16 @@ namespace UbudKusCoin.Facade
         {
 
             var blocks = ServicePool.DbService.blockDb.GetAll();
-            Console.WriteLine("==== GetAdjustedDifficulty");
-            var prevAdjustmentBlock = ServicePool.DbService.blockDb.GetByHeight(blocks.Count() - Constants.DIFFICULTY_ADJUSTMENT_INTERVAL);
+            var adjustment = blocks.Count() - Constants.DIFFICULTY_ADJUSTMENT_INTERVAL;
+            if (adjustment <= 0)
+            {
+                adjustment = 1;
+            }
 
-            Console.WriteLine("prevAdjustmentBlock: " + prevAdjustmentBlock.TimeStamp);
-            Console.WriteLine("latestBlock: " + latestBlock.TimeStamp);
-
+            var prevAdjustmentBlock = ServicePool.DbService.blockDb.GetByHeight(adjustment);
             var timeExpected = Constants.BLOCK_GENERATION_INTERVAL * Constants.DIFFICULTY_ADJUSTMENT_INTERVAL;
-            Console.WriteLine("timeExpected:" + timeExpected);
 
             var timeTaken = latestBlock.TimeStamp - prevAdjustmentBlock.TimeStamp;
-            Console.WriteLine("timeTaken:" + timeTaken);
 
             if (timeTaken < (timeExpected / 2))
             {
@@ -309,7 +241,6 @@ namespace UbudKusCoin.Facade
         private int GetDifficullty()
         {
             var latestBlock = ServicePool.DbService.blockDb.GetLast();
-            Console.WriteLine("latestBlock.Height:" + latestBlock.Height);
             // Console.WriteLine("Constants.DIFFICULTY_ADJUSTMENT_INTERVAL:" + Constants.DIFFICULTY_ADJUSTMENT_INTERVAL);
 
             if (latestBlock.Height % Constants.DIFFICULTY_ADJUSTMENT_INTERVAL == 0 && latestBlock.Height != 0)

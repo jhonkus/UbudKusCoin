@@ -46,8 +46,6 @@ namespace UbudKusCoin.DB
         public ILiteCollection<Transaction> GetAll()
         {
             var col  = _db.GetCollection<Transaction>(Constants.TBL_TRANSACTIONS_POOL);
-            Console.WriteLine(" transactin pool {0}", col.Count());
-
             return col; 
         }
     }

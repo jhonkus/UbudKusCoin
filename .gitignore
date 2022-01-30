@@ -1,7 +1,5 @@
 ﻿/UbudKusCoin/obj
 /UbudKusCoin/bin
-/UbudKusCoin/*.db
-/UbudKusCoin/DbFiles
 /UbudKusCoin/publish-linux
 
 /BlockExplorer/obj/*

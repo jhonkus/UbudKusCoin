@@ -1,6 +1,8 @@
 
+using System;
 using System.Collections.Generic;
 using LiteDB;
+using System.Linq;
 using UbudKusCoin.Others;
 using UbudKusCoin.Grpc;
 
@@ -44,8 +46,14 @@ namespace UbudKusCoin.DB
         public Account GetByAddress(string address)
         {
             var accounts = GetAll();
+            if (accounts is null){
+                return null;
+            }
             accounts.EnsureIndex(x => x.Address);
             var acc = accounts.FindOne(x => x.Address == address);
+            if (acc is null){
+                return null;
+            }
             return acc;
         }
 
@@ -59,7 +67,7 @@ namespace UbudKusCoin.DB
 
         private ILiteCollection<Account> GetAll()
         {
-            return this._db.GetCollection<Account>(Constants.TBL_ACCOUNTS); ;
+            return _db.GetCollection<Account>(Constants.TBL_ACCOUNTS); ;
         }
 
    

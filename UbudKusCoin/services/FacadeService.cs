@@ -19,18 +19,12 @@ namespace UbudKusCoin.Services
 
         public void start()
         {
-            Report = new ReportFacade();
-            Stake = new StakeFacade();
-            Account = new AccountFacade();
-  
-            TransactionPool = new TransactionPoolFacade();
-            Console.WriteLine("Transaction pool initilize ....");
-
-            Transaction = new TransactionFacade();
-            
-            Block = new BlockFacade();           
-
-            Console.WriteLine("All facade initilize ....");
+            this.Report = new ReportFacade();
+            this.Stake = new StakeFacade();
+            this.Account = new AccountFacade();
+            this.TransactionPool = new TransactionPoolFacade();
+            this.Transaction = new TransactionFacade();
+            this.Block = new BlockFacade();           
         }
     }
 }

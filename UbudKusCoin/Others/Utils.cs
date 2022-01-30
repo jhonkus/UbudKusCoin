@@ -129,7 +129,7 @@ namespace UbudKusCoin.Others
             return TxnId;
         }
 
-        private static void PrintBlock(Block block)
+        public static void PrintBlock(Block block)
         {
             Console.WriteLine("\n===========\nNew Block created");
             Console.WriteLine(" = Height      : {0}", block.Height);

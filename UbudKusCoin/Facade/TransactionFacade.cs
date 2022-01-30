@@ -72,7 +72,8 @@ namespace UbudKusCoin.Facade
                     Balance = amount,
                     TxnCount = 1,
                     Created = Utils.GetTime(),
-                    Updated = Utils.GetTime()
+                    Updated = Utils.GetTime(),
+                    PubKey = to
                 };
                 ServicePool.DbService.accountDb.Add(acc);
             }
@@ -87,16 +88,21 @@ namespace UbudKusCoin.Facade
 
         public void ReduceBalance(string from, double amount)
         {
+          
             var acc = ServicePool.DbService.accountDb.GetByAddress(from);
+                
             if (acc is null)
             {
+                   
                 acc = new Account
                 {
                     Address = from,
                     Balance = -amount,
                     TxnCount = 1,
                     Created = Utils.GetTime(),
-                    Updated = Utils.GetTime()
+                    Updated = Utils.GetTime(),
+                    PubKey  =  from,
+
                 };
                 ServicePool.DbService.accountDb.Add(acc);
             }
@@ -121,7 +127,8 @@ namespace UbudKusCoin.Facade
                     Balance = 0,
                     TxnCount = 0,
                     Created = Utils.GetTime(),
-                    Updated = Utils.GetTime()
+                    Updated = Utils.GetTime(),
+                    PubKey  = address
                 };
                 return 0;
             }
@@ -135,7 +142,7 @@ namespace UbudKusCoin.Facade
         {
             foreach (var trx in trxs)
             {
-                ReduceBalance(trx.Sender, trx.Amount);
+                ReduceBalance(trx.Sender, trx.Amount);       
                 AddBalance(trx.Recipient, trx.Amount);
             }
         }
@@ -175,10 +182,7 @@ namespace UbudKusCoin.Facade
                 Recipient = validator.Address,
                 Signature = "-",
                 TxType = Constants.TRANSACTION_TYPE_VALIDATOR_FEE,
-
             };
-            // add hash here
-            // transactions.Add(conbaseTrx);
 
 
             if (txnsInPool.Count() > 0)
@@ -193,16 +197,10 @@ namespace UbudKusCoin.Facade
             }
             else
             {
-                // var txnHash = Utils.GetTransactionHash(conbaseTrx);
                 conbaseTrx.Hash = Utils.GetTransactionHash(conbaseTrx);
-
                 transactions.Add(conbaseTrx);
             }
-
-            Console.WriteLine(" hash: {0}", conbaseTrx.Hash);
-
             return transactions;
-
         }
     }
 

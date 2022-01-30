@@ -16,7 +16,7 @@ namespace UbudKusCoin.Others
         public const string TRANSACTION_TYPE_TRANSFER = "Transfer";
         public const string TRANSACTION_TYPE_VALIDATOR_FEE = "Validation fee";
 
-        public const int BLOCK_GENERATION_INTERVAL = 10;
+        public const int BLOCK_GENERATION_INTERVAL = 30;
         public enum MESSAGE_TYPE { CHAIN, BLOCK, TRANSACTION, CLEAR_TRANSACTIONS };
 
         //=========
