@@ -124,7 +124,7 @@ message BcInfoResponse {
   double AmountReward = 4;
   repeated TxnModel txns = 5;
   repeated BlockModel blocks = 6;
-  int64 Tps = 7;
+  double Tps = 7;
 }
 
 message TxnPoolResponse {

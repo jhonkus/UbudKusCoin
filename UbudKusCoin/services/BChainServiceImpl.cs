@@ -37,7 +37,7 @@ namespace UbudKusCoin.Services
                 localBcInfo.NumTxns = numTnxs;
                 localBcInfo.AmountReward = amountReward;
                 localBcInfo.NumBloks = lastBlock.Height;
-                localBcInfo.Tps = lastBlock.NumOfTx / 30;
+                localBcInfo.Tps = (double)lastBlock.NumOfTx / (double)30;
 
                 // add 10 txns
                 var trans1 = Transaction.GetTransactions(1, 10);
@@ -71,7 +71,7 @@ namespace UbudKusCoin.Services
             amountReward = (bcInfo.AmountReward + lastBlock.TotalReward);
             localBcInfo.AmountTxns = amountTnxs;
             localBcInfo.NumTxns = numTnxs;
-            localBcInfo.Tps = lastBlock.NumOfTx / 30;
+            localBcInfo.Tps = (double)lastBlock.NumOfTx / (double)30;
             localBcInfo.AmountReward = amountReward;
             localBcInfo.NumBloks = lastBlock.Height;
 
