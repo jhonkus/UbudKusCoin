@@ -32,12 +32,7 @@ namespace UbudKusCoin.DB
 
         public Block GetLast()
         {
-               Console.WriteLine("== GetLast 1");
-            var blocks = GetAll();
-            Console.WriteLine("== blocks {0}", blocks.Count());
-
-            var block = blocks.FindOne(Query.All(Query.Descending));
-            Console.WriteLine("== block {0}", block.Height);
+            var block = GetAll().FindOne(Query.All(Query.Descending));
             return block;
         }
 

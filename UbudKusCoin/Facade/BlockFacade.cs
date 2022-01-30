@@ -90,6 +90,7 @@ namespace UbudKusCoin.Facade
                 TotalAmount = Utils.GetTotalAmount(transactions),
                 TotalReward = Utils.GetTotalFees(transactions),
                 MerkleRoot = CreateMerkleRoot(transactions),
+                ValidatorBalance = 0,
                 Difficulty = 1
             };
 
@@ -104,6 +105,8 @@ namespace UbudKusCoin.Facade
             // get build time    
             var endTimer = DateTime.UtcNow.Millisecond;
             block.BuildTime = (endTimer - startTimer);
+
+            // Console.WriteLine("=== genesis {0}", block);
             // end of    
 
             //triger event block created
@@ -117,20 +120,15 @@ namespace UbudKusCoin.Facade
 
             // start build time
             var startTimer = DateTime.UtcNow.Millisecond;
-            Console.WriteLine("startTimer{0}", startTimer);
+    
             // get transaction from pool
             var txnsInPool = ServicePool.DbService.transactionsPooldb.GetAll();
-            Console.WriteLine("txnsInPool {0}", txnsInPool);
+
             //// get last block to get prev hash and last height
             var lastBlock = ServicePool.DbService.blockDb.GetLast();
-            Console.WriteLine("lastBlock {0}", lastBlock);
-
             var nextHeight = lastBlock.Height + 1;
-            Console.WriteLine("nextHeight {0}", nextHeight);
-
-
             var timestamp = Utils.GetTime();
-            Console.WriteLine("timestamp {0}", timestamp);
+
 
             var prevHash = lastBlock.Hash;
             Console.WriteLine("prevHash {0}", prevHash);
@@ -140,7 +138,7 @@ namespace UbudKusCoin.Facade
             Console.WriteLine("validator {0}", validator);
 
             var transactions = ServicePool.FacadeService.Transaction.GetForMinting(nextHeight); // JsonConvert.SerializeObject(new List<Transaction>());
-            Console.WriteLine("transactions {0}", transactions);
+
 
             var block = new Block
             {
@@ -155,6 +153,7 @@ namespace UbudKusCoin.Facade
                 TotalAmount = Utils.GetTotalAmount(transactions),
                 TotalReward = Utils.GetTotalFees(transactions),
                 MerkleRoot = CreateMerkleRoot(transactions),
+                ValidatorBalance = validator.Amount,
             };
             var blockHash = GetBlockHash(block);
             block.Hash = blockHash;

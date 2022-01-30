@@ -36,8 +36,7 @@ message Block {
   double total_reward = 11;
   int32 difficulty = 12;
   int32 nonce  = 13;
-  int64 minter_balance = 14;
-  string minter_address = 15;
-  int32 size = 16;
-  int32 build_time = 17;
+  double validator_balance = 14;
+  int32 size = 15;
+  int32 build_time = 16;
 }
