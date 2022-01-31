@@ -13,12 +13,12 @@ namespace UbudKusCoin.Facade
     public class BlockFacade
     {
 
-        public event EventHandler<Block> EventBlockCreated;
+        // public event EventHandler<Block> EventBlockCreated;
 
-        protected virtual void OnEventBlockCreated(Block arg)
-        {
-            EventBlockCreated?.Invoke(this, arg);
-        }
+        // protected virtual void OnEventBlockCreated(Block arg)
+        // {
+        //     EventBlockCreated?.Invoke(this, arg);
+        // }
         public BlockFacade()
         {
             Initialize();
@@ -58,11 +58,10 @@ namespace UbudKusCoin.Facade
                 // add genesis block to blockchain
                 ServicePool.DbService.blockDb.Add(block);
 
-
+                ServicePool.EventService.OnEventBlockCreated(block);
             }
 
-            // build report   
-            ServicePool.FacadeService.Report.BuildReport();
+
 
         }
 
@@ -108,11 +107,6 @@ namespace UbudKusCoin.Facade
 
             // Console.WriteLine("=== genesis {0}", block);
             // end of    
-
-            //triger event block created
-            // OnEventBlockCreated(block);
-
-            Utils.PrintBlock(block);
 
             return block;
         }
@@ -183,10 +177,7 @@ namespace UbudKusCoin.Facade
 
 
             //triger event block created
-            // OnEventBlockCreated(block);
-
-
-            Utils.PrintBlock(block);
+            ServicePool.EventService.OnEventBlockCreated(block);
 
         }
 

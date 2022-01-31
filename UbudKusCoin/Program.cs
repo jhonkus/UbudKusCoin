@@ -16,7 +16,9 @@ namespace UbudKusCoin
             ServicePool.Add(
                 new DbService("uksc"),
                 new FacadeService(),
-                new MintingService()
+                new MintingService(),
+                new EventService()
+
             );
             ServicePool.Start();
 

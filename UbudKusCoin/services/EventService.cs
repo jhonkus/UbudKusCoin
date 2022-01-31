@@ -1,5 +1,6 @@
 using System;
-
+using UbudKusCoin.Grpc;
+using UbudKusCoin.Others;
 namespace UbudKusCoin.Services
 {
     public delegate void EventHandler(object sender, EventArgs e);
@@ -8,31 +9,54 @@ namespace UbudKusCoin.Services
 
         public EventService() { }
 
-        public event EventHandler TransactionCreated;
-        public event EventHandler BlockCreated;
-  
+        public event EventHandler<Transaction> EventTransactionCreated;
 
-        protected virtual void OnBlockCreated(EventArgs e)
+        public event EventHandler<Block> EventBlockCreated;
+        private void ListenEvent()
         {
-            BlockCreated?.Invoke(this, e);
+            EventBlockCreated += Evt_EventBlockCreated;
+            EventTransactionCreated += Evt_EventTransactionCreated;
         }
 
-        protected virtual void OnTransactionCreated(EventArgs e)
+        public void Start()
         {
-            TransactionCreated?.Invoke(this, e);
+            ListenEvent();
         }
 
-        public void InformBlockCreated()
+        public virtual void OnEventBlockCreated(Block arg)
         {
-            OnBlockCreated(EventArgs.Empty);
+            EventBlockCreated?.Invoke(this, arg);
+        }
+
+        protected virtual void OnEventTransactionCreated(Transaction arg)
+        {
+            EventTransactionCreated?.Invoke(this, arg);
         }
 
 
-        public void InformTxCreated()
+        void Evt_EventBlockCreated(object sender, Block block)
         {
-            OnTransactionCreated(EventArgs.Empty);
+            //if (sender == null)
+            //{
+            //    Console.WriteLine("No New Block Added.");
+            //    return;
+            //}
+            Console.WriteLine("... print block ...");
+            Utils.PrintBlock(block);
+
+            // build report   
+            // ServicePool.FacadeService.Report.BuildReport();
+            // BroadCast("A New Block from: " + _port);
         }
 
+        void Evt_EventTransactionCreated(object sender, Transaction txn)
+        {
+            Console.WriteLine("... Transaction created ...{0}", txn);
+
+            // build report   
+            // ServicePool.FacadeService.Report.BuildReport();
+            // BroadCast("A New Block from: " + _port);
+        }
 
     }
 

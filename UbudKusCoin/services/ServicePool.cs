@@ -11,21 +11,27 @@ namespace UbudKusCoin.Services
 
         public static FacadeService FacadeService { set; get; }
 
+        public static EventService EventService { set; get; }
+
+
 
         public static void Add(
                   DbService db,
                   FacadeService facade,
-                  MintingService minter)
+                  MintingService minter,
+                  EventService evtserv)
         {
             DbService = db;
             FacadeService = facade;
             MintingService = minter;
+            EventService = evtserv;
         }
         public static void Start()
         {
             DbService.Start();
             FacadeService.start();
             MintingService.Start();
+            EventService.Start();
         }
 
         public static void Stop()
