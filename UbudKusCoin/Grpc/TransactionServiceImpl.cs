@@ -1,6 +1,8 @@
 ﻿using Grpc.Core;
 using System.Threading.Tasks;
 using UbudKusCoin.Services;
+using NBitcoin;
+using System;
 
 namespace UbudKusCoin.Grpc
 {
@@ -16,7 +18,7 @@ namespace UbudKusCoin.Grpc
 
         }
 
-        public override Task<TransactionList> GetRangeByAddress(TransactionParams req, ServerCallContext context)
+        public override Task<TransactionList> GetRangeByAddress(TransactionPaging req, ServerCallContext context)
         {
             var transactions = ServicePool.DbService.transactionDb.GetRangeByAddress(req.Address, req.PageNumber, req.ResultPerPage);
             var response = new TransactionList();
@@ -24,7 +26,7 @@ namespace UbudKusCoin.Grpc
             return Task.FromResult(response);
         }
 
-        public override Task<TransactionList> GetRangeByHeight(TransactionParams req, ServerCallContext context)
+        public override Task<TransactionList> GetRangeByHeight(TransactionPaging req, ServerCallContext context)
         {
             var response = new TransactionList();
             var transactions = ServicePool.DbService.transactionDb.GetRangeByHeight(req.Height, req.PageNumber, req.ResultPerPage);
@@ -32,7 +34,7 @@ namespace UbudKusCoin.Grpc
             return Task.FromResult(response);
         }
 
-        public override Task<TransactionList> GetRange(TransactionParams req, ServerCallContext context)
+        public override Task<TransactionList> GetRange(TransactionPaging req, ServerCallContext context)
         {
             var response = new TransactionList();
             var transactions = ServicePool.DbService.transactionDb.GetRange(req.PageNumber, req.ResultPerPage);
@@ -40,7 +42,7 @@ namespace UbudKusCoin.Grpc
             return Task.FromResult(response);
         }
 
-        public override Task<TransactionList> GetPoolRange(TransactionParams req, ServerCallContext context)
+        public override Task<TransactionList> GetPoolRange(TransactionPaging req, ServerCallContext context)
         {
             var response = new TransactionList();
             var transactions = ServicePool.DbService.transactionDb.GetRange(req.PageNumber, req.ResultPerPage);
@@ -50,49 +52,51 @@ namespace UbudKusCoin.Grpc
 
 
 
-        public Task<TransactionStatus> Add2(Transaction req, ServerCallContext context)
+        public static bool verifySignature(Transaction txn)
         {
-            var status = ServicePool.DbService.transactionDb.Add(req);
-            var trxStatus = new TransactionStatus();
-            trxStatus.Status = status;
-            return Task.FromResult(trxStatus);
-
+            var pubKey = new PubKey(txn.PubKey);
+            return pubKey.VerifyMessage(txn.Hash, txn.Signature);
         }
 
-        // public override Task<TransactionStatus> Add(Transaction req, ServerCallContext context)
-        // {
+        public override Task<TransactionStatus> SendCoin(TransactionPost req, ServerCallContext context)
+        {
+            Console.WriteLine("== Receive txn {0}", req);
+            // verify transaction Hash
+            var TxnHash = UbudKusCoin.Others.Utils.GetTransactionHash(req.Transaction);
+            Console.WriteLine("== Receive TxnHash2 {0}", TxnHash);
+            if (!TxnHash.Equals(req.Transaction.Hash))
+            {
+                return Task.FromResult(new TransactionStatus
+                {
+                    Status = "fail",
+                    Message = "Transaction Hash is not valid!"
+                });
+            }
 
-        //     var status = 
-        //     // verify transaction ID
-        //     var TxnHash = newTxn.GetHash();
+            Console.WriteLine("== Receive txn 1 {0}", req);
+            // Verify signature
+            var TxnValid = verifySignature(req.Transaction);
+            if (!TxnValid)
+            {
+                return Task.FromResult(new TransactionStatus
+                {
+                    Status = "fail",
+                    Message = "Signature  is not valid!"
+                });
+            }
 
-        //     if (!TxnHash.Equals(req.Hash))
-        //     {
-        //         return Task.FromResult(new TransactionStatus
-        //         {
-        //             Status = "Transaction Hash is not valid"
-        //         });
-        //     }
-
-        //     // Verify signature
-        //     var TxnValid = Transaction.VerifySignature(request.PublicKey, request.TxnId, request.TxnInput.Signature);
-        //     if (!TxnValid)
-        //     {
-        //         return Task.FromResult(new SendResponse
-        //         {
-        //             Result = "Signature not valid"
-        //         });
-        //     }
+            Console.WriteLine("== Receive txn 2 {0}", req);
+            ServicePool.DbService.transactionsPooldb.Add(req.Transaction);
+            Console.WriteLine("added to pool ");
 
 
-        //     Transaction.AddToPool(newTxn);
 
-
-        //     return Task.FromResult(new SendResponse
-        //     {
-        //         Result = "Success"
-        //     });
-        // }
+            return Task.FromResult(new TransactionStatus
+            {
+                Status = "success",
+                Message = "Transaction done!"
+            });
+        }
 
 
     }

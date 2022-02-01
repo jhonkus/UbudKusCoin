@@ -7,24 +7,34 @@ syntax = "proto3";
 option csharp_namespace = "UbudKusCoin.Grpc";
 
 service TransactionService {
-  rpc SendCoin(Transaction) returns (TransactionStatus);
+  rpc SendCoin(TransactionPost) returns (TransactionStatus);
   rpc GetByHash(Transaction) returns (Transaction);
-  rpc GetRangeByAddress(TransactionParams) returns (TransactionList);
-  rpc GetRangeByHeight(TransactionParams) returns (TransactionList);
-  rpc GetRange(TransactionParams) returns (TransactionList);
-  rpc GetPoolRange(TransactionParams) returns (TransactionList);
-  rpc GetPendingTxns(TransactionParams) returns (TransactionList);
+  rpc GetRangeByAddress(TransactionPaging) returns (TransactionList);
+  rpc GetRangeByHeight(TransactionPaging) returns (TransactionList);
+  rpc GetRange(TransactionPaging) returns (TransactionList);
+  rpc GetPoolRange(TransactionPaging) returns (TransactionList);
+  rpc GetPendingTxns(TransactionPaging) returns (TransactionList);
 }
 
-message TransactionParams{
+message TransactionPaging{
   string address = 1;
   int64 height = 2;
   int32 page_number = 3;
   int32 result_per_page = 4; 
 }
 
+message TransactionGet{
+  string address = 1;
+  string hash = 2;
+}
+
+message TransactionPost{
+  Transaction Transaction = 1; 
+}
+
 message TransactionStatus{
   string status = 1;
+  string message = 2;
 }
 
 message TransactionList {

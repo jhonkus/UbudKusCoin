@@ -3,7 +3,6 @@ using System.Security.Cryptography;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text;
-using EllipticCurve;
 using UbudKusCoin.Grpc;
 
 namespace UbudKusCoin.Others
@@ -104,12 +103,12 @@ namespace UbudKusCoin.Others
         }
 
 
-        public static bool VerifySignature(string publicKeyHex, string message, string signature)
-        {
-            var byt = Utils.HexToBytes(publicKeyHex);
-            var publicKey = PublicKey.fromString(byt);
-            return Ecdsa.verify(message, Signature.fromBase64(signature), publicKey);
-        }
+        // public static bool VerifySignature(string publicKeyHex, string message, string signature)
+        // {
+        //     var byt = Utils.HexToBytes(publicKeyHex);
+        //     var publicKey = PublicKey.fromString(byt);
+        //     return Ecdsa.verify(message, Signature.fromBase64(signature), publicKey);
+        // }
 
         public static double GetTotalFees(List<Transaction> txns)
         {
@@ -125,7 +124,9 @@ namespace UbudKusCoin.Others
 
         public static string GetTransactionHash(Transaction txn)
         {
+            // Console.WriteLine(" get transaction hash {0}", txn);
             var TxnId = GenHash(GenHash(txn.TimeStamp + txn.Sender + txn.Amount + txn.Fee + txn.Recipient));
+            // Console.WriteLine(" get transaction hash {0}", TxnId);
             return TxnId;
         }
 

@@ -73,7 +73,7 @@ namespace UbudKusCoin.Facade
                     TxnCount = 1,
                     Created = Utils.GetTime(),
                     Updated = Utils.GetTime(),
-                    PubKey = to
+                    PubKey = "-"
                 };
                 ServicePool.DbService.accountDb.Add(acc);
             }
@@ -86,7 +86,7 @@ namespace UbudKusCoin.Facade
             }
         }
 
-        public void ReduceBalance(string from, double amount)
+        public void ReduceBalance(string from, double amount, string pubKey)
         {
           
             var acc = ServicePool.DbService.accountDb.GetByAddress(from);
@@ -101,8 +101,7 @@ namespace UbudKusCoin.Facade
                     TxnCount = 1,
                     Created = Utils.GetTime(),
                     Updated = Utils.GetTime(),
-                    PubKey  =  from,
-
+                    PubKey  =  pubKey,
                 };
                 ServicePool.DbService.accountDb.Add(acc);
             }
@@ -110,6 +109,7 @@ namespace UbudKusCoin.Facade
             {
                 acc.Balance -= amount;
                 acc.TxnCount += 1;
+                acc.PubKey =  pubKey;
                 acc.Updated = Utils.GetTime();
 
                 ServicePool.DbService.accountDb.Update(acc);
@@ -128,7 +128,7 @@ namespace UbudKusCoin.Facade
                     TxnCount = 0,
                     Created = Utils.GetTime(),
                     Updated = Utils.GetTime(),
-                    PubKey  = address
+                    PubKey  = address,
                 };
                 return 0;
             }
@@ -138,12 +138,12 @@ namespace UbudKusCoin.Facade
             }
         }
 
-        public void UpdateBalance(List<Transaction> trxs)
+        public void UpdateBalance(List<Transaction> txns)
         {
-            foreach (var trx in trxs)
+            foreach (var txn in txns)
             {
-                ReduceBalance(trx.Sender, trx.Amount);       
-                AddBalance(trx.Recipient, trx.Amount);
+                ReduceBalance(txn.Sender, txn.Amount, txn.PubKey);       
+                AddBalance(txn.Recipient, txn.Amount);
             }
         }
 
@@ -154,12 +154,6 @@ namespace UbudKusCoin.Facade
                 AddBalance(trx.Recipient, trx.Amount);
             }
         }
-
-        // public string CreateSignature(string message)
-        // {
-        //     Signature signature = Ecdsa.sign(message, PrivKey);
-        //     return signature.toBase64();
-        // }
 
         public List<Transaction> GetForMinting(long height)
         {

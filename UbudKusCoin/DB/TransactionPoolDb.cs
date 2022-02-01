@@ -22,6 +22,7 @@ namespace UbudKusCoin.DB
         {
             var pool = GetAll();
             pool.Insert(transaction);
+            Console.WriteLine("== Oke done");
         }
 
  

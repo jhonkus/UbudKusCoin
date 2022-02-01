@@ -90,7 +90,8 @@ namespace UbudKusCoin.Facade
                 TotalReward = Utils.GetTotalFees(transactions),
                 MerkleRoot = CreateMerkleRoot(transactions),
                 ValidatorBalance = 0,
-                Difficulty = 1
+                Difficulty = 1,
+                Nonce = 1
             };
 
             var blockHash = GetBlockHash(block);
@@ -144,6 +145,7 @@ namespace UbudKusCoin.Facade
                 TotalReward = Utils.GetTotalFees(transactions),
                 MerkleRoot = CreateMerkleRoot(transactions),
                 ValidatorBalance = validator.Amount,
+                Nonce = 1,
             };
 
             var blockHash = GetBlockHash(block);
