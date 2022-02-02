@@ -10,8 +10,29 @@ namespace UbudKusCoin.Services
     public class BChainServiceImpl : BChainService.BChainServiceBase
     {
         static BcInfoResponse bcInfo = new BcInfoResponse();
+        static List<TxnData> dataChart = new List<TxnData>();
+
+        public static void BuildChart()
+        {
+            var blocks = Blockchain.GetBlocks(1, 120);
+            List<TxnData> localData = new List<TxnData>();
+            for (int i = 0; i < blocks.Count; i++)
+            {
+                var item = new TxnData
+                {
+                    Timestamp = blocks[i].TimeStamp,
+                    Amount = blocks[i].TotalAmount,
+                    TxnCount = blocks[i].NumOfTx
+                };
+                localData.Add(item);
+            }
+            dataChart =  localData;
+        }
+
         public static void BuildReport()
         {
+            BuildChart();
+
             var localBcInfo = new BcInfoResponse();
             Console.WriteLine("make report");
             var lastBlock = Blockchain.GetLastBlock();
@@ -63,6 +84,8 @@ namespace UbudKusCoin.Services
 
                 bcInfo = localBcInfo;
                 Console.WriteLine("== TPS {0}", localBcInfo.Tps);
+
+                
                 return;
             }
 
@@ -115,6 +138,13 @@ namespace UbudKusCoin.Services
             {
                 Block = mdl
             });
+        }
+
+        public override Task<AllTxnData> GetTxnChart(ChartParams request, ServerCallContext context)
+        {
+            var replay = new AllTxnData();
+            replay.Datas.Add(dataChart);
+            return Task.FromResult(replay);
         }
 
         public override Task<BcInfoResponse> GetBchainInfo(CommonRequest request, ServerCallContext context)

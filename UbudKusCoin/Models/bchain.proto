@@ -20,6 +20,21 @@ service BChainService {
   rpc GetPendingTxns(PagingRequest) returns (TxnsResponse);
   rpc GetBchainInfo(CommonRequest) returns (BcInfoResponse);
   rpc GetPoolInfo(CommonRequest) returns (TxnPoolResponse); 
+  rpc GetTxnChart(ChartParams) returns (AllTxnData);
+}
+
+message ChartParams {
+  string charttype = 1;
+}
+
+message AllTxnData {
+  repeated TxnData datas = 1;
+}
+
+message TxnData {
+  int64 timestamp  = 1;
+  int64 txn_count = 2;
+  double amount = 3;
 }
 
 message SendRequest{
