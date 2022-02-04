@@ -1,4 +1,4 @@
-using UbudKusCoin.DB;
+using UbudKusCoin.P2P;
 
 namespace UbudKusCoin.Services
 {
@@ -13,24 +13,31 @@ namespace UbudKusCoin.Services
 
         public static EventService EventService { set; get; }
 
-
+        public static WalletService WalletService { set; get; }
+        public static P2PService P2PService { set; get; }
 
         public static void Add(
+                  WalletService wallet,
                   DbService db,
                   FacadeService facade,
                   MintingService minter,
+                  P2PService p2p,
                   EventService evtserv)
         {
+            WalletService = wallet;
             DbService = db;
             FacadeService = facade;
             MintingService = minter;
             EventService = evtserv;
+            P2PService = p2p;
         }
         public static void Start()
         {
+            WalletService.Start();
             DbService.Start();
             FacadeService.start();
             MintingService.Start();
+            P2PService.Start();
             EventService.Start();
         }
 

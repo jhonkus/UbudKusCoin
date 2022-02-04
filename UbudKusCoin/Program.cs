@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using System;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Hosting;
 using UbudKusCoin.Services;
-using UbudKusCoin.DB;
+using UbudKusCoin.P2P;
 
 
 namespace UbudKusCoin
@@ -12,13 +13,22 @@ namespace UbudKusCoin
         public static void Main(string[] args)
         {
 
+            DotNetEnv.Env.Load();
+            DotNetEnv.Env.TraversePath().Load();
+            var nodeaddress = DotNetEnv.Env.GetString("NODE_ADDRESS");
+            var knownpeers = DotNetEnv.Env.GetString("KNOWN_PEERS");
+            var passphrase = DotNetEnv.Env.GetString("NODE_PASSPHRASE");
+            // Console.WriteLine(knownpeers);
+            Console.WriteLine(passphrase);
+
 
             ServicePool.Add(
+                new WalletService(passphrase),
                 new DbService("uksc"),
                 new FacadeService(),
                 new MintingService(),
+                new P2PService(nodeaddress),
                 new EventService()
-
             );
             ServicePool.Start();
 

@@ -34,8 +34,8 @@ namespace UbudKusCoin.DB
         {
             try
             {
-                var transactions = GetAll();
-                transactions.Insert(transaction);
+                var txns = GetAll();
+                txns.Insert(transaction);
                 return "success";
             }
             catch
@@ -54,8 +54,12 @@ namespace UbudKusCoin.DB
             double spending = 0;
             double income = 0;
 
-            var collection = GetAll();
-            var transactions = collection.Find(x => x.Sender == address || x.Recipient == address);
+            var txns = GetAll();
+            if (txns is null || txns.Count() < 1)
+            {
+                return 0;
+            }
+            var transactions = txns.Find(x => x.Sender == address || x.Recipient == address);
 
             foreach (Transaction trx in transactions)
             {
@@ -84,6 +88,10 @@ namespace UbudKusCoin.DB
         public IEnumerable<Transaction> GetRangeByAddress(string address, int pageNumber, int resultPerPage)
         {
             var txns = GetAll();
+            if (txns is null || txns.Count() < 1)
+            {
+                return null;
+            }
             txns.EnsureIndex(x => x.Sender);
             txns.EnsureIndex(x => x.Recipient);
             var query = txns.Query()
@@ -100,6 +108,10 @@ namespace UbudKusCoin.DB
         public Transaction GetByHash(string hash)
         {
             var txns = GetAll();
+            if (txns is null || txns.Count() < 1)
+            {
+                return null;
+            }
             txns.EnsureIndex(x => x.Hash);
             var transaction = txns.FindOne(x => x.Hash == hash);
             return transaction;
@@ -109,6 +121,10 @@ namespace UbudKusCoin.DB
         {
 
             var txns = GetAll();
+            if (txns is null || txns.Count() < 1)
+            {
+                return null;
+            }
             txns.EnsureIndex(x => x.TimeStamp);
             var trx = txns.FindOne(Query.All(Query.Ascending));
             return trx;
@@ -120,6 +136,10 @@ namespace UbudKusCoin.DB
         public IEnumerable<Transaction> GetRangeByHeight(long height, int pageNumber, int resultPerPage)
         {
             var txns = GetAll();
+            if (txns is null || txns.Count() < 1)
+            {
+                return null;
+            }
             txns.EnsureIndex(x => x.TimeStamp);
             var query = txns.Query()
                 .OrderByDescending(x => x.TimeStamp)
@@ -137,6 +157,10 @@ namespace UbudKusCoin.DB
         public IEnumerable<Transaction> GetRange(int pageNumber, int resultPerPage)
         {
             var txns = GetAll();
+            if (txns is null || txns.Count() < 1)
+            {
+                return null;
+            }
             txns.EnsureIndex(x => x.TimeStamp);
             var query = txns.Query()
                 .OrderByDescending(x => x.TimeStamp)
@@ -151,6 +175,10 @@ namespace UbudKusCoin.DB
         public Transaction GetByAddress(string address)
         {
             var txns = GetAll();
+            if (txns is null || txns.Count() < 1)
+            {
+                return null;
+            }
             txns.EnsureIndex(x => x.TimeStamp);
             var transaction = txns.FindOne(x => x.Sender == address || x.Recipient == address);
             return transaction;

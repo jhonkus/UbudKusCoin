@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using UbudKusCoin.Grpc;
-using UbudKusCoin.DB;
-using LiteDB;
+using UbudKusCoin.Services;
 
 namespace UbudKusCoin.Facade
 {
@@ -14,6 +12,18 @@ namespace UbudKusCoin.Facade
             Console.WriteLine("Transaction pool initilize ....");
         }
 
+        public bool IsTransactionExist(Transaction txn)
+        {
+            var transaction = ServicePool.DbService.transactionsPooldb.GetByHash(txn.Hash);
+            if (transaction is null)
+            {
+                return false;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
     }
 }

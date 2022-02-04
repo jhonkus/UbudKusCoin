@@ -129,8 +129,6 @@ namespace UbudKusCoin.Facade
             var validator = ServicePool.FacadeService.Stake.GetValidator();
             var transactions = ServicePool.FacadeService.Transaction.GetForMinting(nextHeight);
 
-
-
             var block = new Block
             {
                 Height = nextHeight,
@@ -246,7 +244,35 @@ namespace UbudKusCoin.Facade
             }
         }
 
+        public bool isValidBlock(Block block)
+        {
+            var lastBlock = ServicePool.DbService.blockDb.GetLast();
 
+            //compare block height with prev
+            if (block.Height != (lastBlock.Height +1)){
+                return false;
+            } 
+
+            //compare block hash with prev
+            if (block.PrevHash != lastBlock.Hash){
+                return false;
+            } 
+
+            //compare hash
+            if (block.Hash != GetBlockHash(block))
+            {
+                return false;
+            }
+
+            //compare timestamp
+            if (block.TimeStamp <= lastBlock.TimeStamp)
+            {
+                return false;
+            }
+
+            return true;
+            
+        }
 
     }
 }

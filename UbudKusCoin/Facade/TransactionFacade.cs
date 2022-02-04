@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UbudKusCoin.Others;
 using UbudKusCoin.Services;
 using UbudKusCoin.Grpc;
-
+using Newtonsoft.Json;
 
 namespace UbudKusCoin.Facade
 {
@@ -88,12 +88,12 @@ namespace UbudKusCoin.Facade
 
         public void ReduceBalance(string from, double amount, string pubKey)
         {
-          
+
             var acc = ServicePool.DbService.accountDb.GetByAddress(from);
-                
+
             if (acc is null)
             {
-                   
+
                 acc = new Account
                 {
                     Address = from,
@@ -101,7 +101,7 @@ namespace UbudKusCoin.Facade
                     TxnCount = 1,
                     Created = Utils.GetTime(),
                     Updated = Utils.GetTime(),
-                    PubKey  =  pubKey,
+                    PubKey = pubKey,
                 };
                 ServicePool.DbService.accountDb.Add(acc);
             }
@@ -109,7 +109,7 @@ namespace UbudKusCoin.Facade
             {
                 acc.Balance -= amount;
                 acc.TxnCount += 1;
-                acc.PubKey =  pubKey;
+                acc.PubKey = pubKey;
                 acc.Updated = Utils.GetTime();
 
                 ServicePool.DbService.accountDb.Update(acc);
@@ -128,7 +128,7 @@ namespace UbudKusCoin.Facade
                     TxnCount = 0,
                     Created = Utils.GetTime(),
                     Updated = Utils.GetTime(),
-                    PubKey  = address,
+                    PubKey = address,
                 };
                 return 0;
             }
@@ -142,8 +142,32 @@ namespace UbudKusCoin.Facade
         {
             foreach (var txn in txns)
             {
-                ReduceBalance(txn.Sender, txn.Amount, txn.PubKey);       
-                AddBalance(txn.Recipient, txn.Amount);
+
+                switch (txn.TxType)
+                {
+
+                    case Constants.TXN_TYPE_TRANSFER:
+                        ReduceBalance(txn.Sender, txn.Amount, txn.PubKey);
+                        AddBalance(txn.Recipient, txn.Amount);
+                        break;
+                    case Constants.TXN_TYPE_STAKE:
+                        
+                        // add logic for stake
+
+                        
+                        break;
+                    case Constants.TXN_TYPE_VALIDATOR_FEE:
+                        //    if (this.validators.update(transaction)) {
+                        //         this.accounts.decrement(
+                        //         transaction.input.from,
+                        //         transaction.output.amount
+                        //         );
+                        //         this.accounts.transferFee(block, transaction);
+                        //     }
+                        break;
+                }
+
+
             }
         }
 
@@ -175,7 +199,7 @@ namespace UbudKusCoin.Facade
                 PubKey = validator.PubKey,
                 Recipient = validator.Address,
                 Signature = "-",
-                TxType = Constants.TRANSACTION_TYPE_VALIDATOR_FEE,
+                TxType = Constants.TXN_TYPE_VALIDATOR_FEE,
             };
 
 
@@ -184,7 +208,7 @@ namespace UbudKusCoin.Facade
                 //sum all fees and give block creator as reward
                 conbaseTrx.Amount = Utils.GetTotalFees(txnsList);
                 conbaseTrx.Hash = Utils.GetTransactionHash(conbaseTrx); ;
-      
+
                 // add coinbase trx to list    
                 transactions.Add(conbaseTrx);
                 transactions.AddRange(txnsList);
@@ -196,6 +220,8 @@ namespace UbudKusCoin.Facade
             }
             return transactions;
         }
+
+
     }
 
 }

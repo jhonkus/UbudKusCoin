@@ -88,6 +88,16 @@ namespace UbudKusCoin.DB
             return coll;
         }
 
-
+       public IList<string> GetHashList()
+        {
+            var blocks = GetAll();
+            IList<string> hashList = new List<string>();
+            foreach (var block in blocks.FindAll())
+            {
+                var hash = block.Hash;
+                hashList.Append(hash);
+            }
+            return hashList;
+        }
     }
 }

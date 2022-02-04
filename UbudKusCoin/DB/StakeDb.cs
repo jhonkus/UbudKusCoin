@@ -14,7 +14,7 @@ namespace UbudKusCoin.DB
         {
             this._db = db;
         }
-        
+
 
         public List<Stake> GetRange(int pageNumber, int resultPerPage)
         {
@@ -70,6 +70,19 @@ namespace UbudKusCoin.DB
             return balance;
         }
 
+        public double GetBalance(string publicKey)
+        {
+            var stakes = GetAll();
+            var stake = stakes.FindOne(x => x.PubKey == publicKey);
+            if (stake == null)
+            {
+                return 0;
+            }
+            else
+            {
+                return stake.Amount;
+            }
+        }
 
         public Stake GetValidator()
         {
