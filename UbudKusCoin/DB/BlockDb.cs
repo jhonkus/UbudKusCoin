@@ -70,6 +70,17 @@ namespace UbudKusCoin.DB
             return query;
         }
 
+
+        public List<Block> GetLasts(int num)
+        {
+            var blocks = GetAll();
+            blocks.EnsureIndex(x => x.Height);
+            var query = blocks.Query()
+                .OrderByDescending(x => x.Height)
+                .Limit(num).ToList();
+            return query;
+        }
+
         public IEnumerable<Block> GetByValidator(string address, int pageNumber, int resultPerPage)
         {
             var coll = GetAll();

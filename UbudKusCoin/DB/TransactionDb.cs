@@ -169,6 +169,19 @@ namespace UbudKusCoin.DB
             return query;
         }
 
+        public IEnumerable<Transaction> GetLasts(int num)
+        {
+            var txns = GetAll();
+            if (txns is null || txns.Count() < 1)
+            {
+                return null;
+            }
+            txns.EnsureIndex(x => x.TimeStamp);
+            var query = txns.Query()
+                .OrderByDescending(x => x.TimeStamp)
+                .Limit(num).ToList();
+            return query;
+        }
         /**
        get one transaction by address
        */

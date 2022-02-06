@@ -9,7 +9,22 @@ option csharp_namespace = "UbudKusCoin.Grpc";
 service ReportService {
   rpc GetBlockTxn(Params) returns (InfoBlockTxn);
   rpc GetPool(Params) returns (InfoPool); 
+  rpc GetTxnChart(ChartParams) returns (AllTxnData);
   rpc Search(Params) returns (SearchResponse);
+}
+
+message ChartParams {
+  string charttype = 1;
+}
+
+message AllTxnData {
+  repeated TxnData datas = 1;
+}
+
+message TxnData {
+  int64 timestamp  = 1;
+  double txn_count = 2;
+  double amount = 3;
 }
 
 message Params {
@@ -34,7 +49,7 @@ message SearchResponse {
 }
 
 message InfoBlockTxn {
-  int64 num_blok = 1;
+  int64 num_block = 1;
   int64 num_txn = 2;
   double amount_txn= 3;
   double amount_reward = 4;
