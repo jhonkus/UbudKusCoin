@@ -1,10 +1,9 @@
-
-using System;
 using System.Collections.Generic;
+
 using LiteDB;
-using System.Linq;
-using UbudKusCoin.Others;
+
 using UbudKusCoin.Grpc;
+using UbudKusCoin.Others;
 
 namespace UbudKusCoin.DB
 {
@@ -51,12 +50,8 @@ namespace UbudKusCoin.DB
             }
             accounts.EnsureIndex(x => x.Address);
             var acc = accounts.FindOne(x => x.Address == address);
-            if (acc is null){
-                return null;
-            }
             return acc;
         }
-
         public Account GetByPubKey(string pubkey)
         {
             var accounts = GetAll();

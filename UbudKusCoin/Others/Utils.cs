@@ -1,8 +1,15 @@
+// Created by I Putu Kusuma Negara. markbrain2013[at]gmail.com
+// 
+// Ubudkuscoin is free software distributed under the MIT software license,
+// Redistribution and use in source and binary forms with or without
+// modifications are permitted.
+
 using System;
-using System.Security.Cryptography;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
+
 using UbudKusCoin.Grpc;
 
 namespace UbudKusCoin.Others
@@ -101,14 +108,6 @@ namespace UbudKusCoin.Others
 
             return BytesToHex(sendHash).ToLower();
         }
-
-
-        // public static bool VerifySignature(string publicKeyHex, string message, string signature)
-        // {
-        //     var byt = Utils.HexToBytes(publicKeyHex);
-        //     var publicKey = PublicKey.fromString(byt);
-        //     return Ecdsa.verify(message, Signature.fromBase64(signature), publicKey);
-        // }
 
         public static double GetTotalFees(List<Transaction> txns)
         {

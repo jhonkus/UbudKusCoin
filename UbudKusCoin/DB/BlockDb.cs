@@ -26,7 +26,6 @@ namespace UbudKusCoin.DB
         public Block GetFirst()
         {
             var block = GetAll().FindAll().FirstOrDefault();
-            // var block = GetAll().FindOne(Query.All(Query.Ascending));
             return block;
         }
 

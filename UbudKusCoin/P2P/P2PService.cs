@@ -271,22 +271,22 @@ namespace UbudKusCoin.P2P
             var myBestHeight = ServicePool.DbService.blockDb.GetLast().Height;
 
             // remote block height
-            var peerBestHeight = verzion.BestHeight;
+            var peerBestHeight = verzion.Height;
 
             if (myBestHeight < peerBestHeight)
             {
-                this.SendGetBlocks(verzion.AddrFrom);
+                this.SendGetBlocks(verzion.AddressFrom);
             }
 
             else if (myBestHeight > peerBestHeight)
             {
-                this.SendVersion(verzion.AddrFrom);
+                this.SendVersion(verzion.AddressFrom);
             }
 
             // if socket not in list
-            if (!socketIsKnown(verzion.AddrFrom))
+            if (!socketIsKnown(verzion.AddressFrom))
             {
-                this.sockets.Add(verzion.AddrFrom);
+                this.sockets.Add(verzion.AddressFrom);
             }
         }
 
@@ -308,9 +308,9 @@ namespace UbudKusCoin.P2P
             var bestHeight = ServicePool.DbService.blockDb.GetLast().Height;
             var payload = new Verzion
             {
-                AddrFrom = this.nodeAddress,
+                AddressFrom = this.nodeAddress,
                 Version = Constants.VERZION,
-                BestHeight = bestHeight,
+                Height = bestHeight,
             };
             return payload;
         }

@@ -1,4 +1,10 @@
-﻿using Grpc.Core;
+﻿// Created by I Putu Kusuma Negara. markbrain2013[at]gmail.com
+// 
+// Ubudkuscoin is free software distributed under the MIT software license,
+// Redistribution and use in source and binary forms with or without
+// modifications are permitted.
+
+using Grpc.Core;
 using System.Threading.Tasks;
 using UbudKusCoin.Services;
 

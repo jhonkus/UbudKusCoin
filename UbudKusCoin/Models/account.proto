@@ -1,5 +1,8 @@
-// dev by I Putu Kusuma Negara, ST, MKOM.
-// Model for Account
+// Created by I Putu Kusuma Negara. markbrain2013[at]gmail.com
+// 
+// Ubudkuscoin is free software distributed under the MIT software license,
+// Redistribution and use in source and binary forms with or without
+// modifications are permitted.
 
 syntax = "proto3";
 
@@ -11,7 +14,6 @@ service AccountService {
   rpc GetByPubKey(Account) returns (Account);
   rpc GetByAddress(Account) returns (Account);
   rpc GetRange(AccountParams) returns (AccountList);
-  rpc GetBalance(Account) returns (Account);
 }
 
 

@@ -1,8 +1,16 @@
-﻿using Grpc.Core;
+﻿// Created by I Putu Kusuma Negara. markbrain2013[at]gmail.com
+// 
+// Ubudkuscoin is free software distributed under the MIT software license,
+// Redistribution and use in source and binary forms with or without
+// modifications are permitted.
+
 using System.Threading.Tasks;
-using UbudKusCoin.Services;
+
+using Grpc.Core;
+
 using NBitcoin;
-using System;
+
+using UbudKusCoin.Services;
 
 namespace UbudKusCoin.Grpc
 {
@@ -60,10 +68,8 @@ namespace UbudKusCoin.Grpc
 
         public override Task<TransactionStatus> SendCoin(TransactionPost req, ServerCallContext context)
         {
-            Console.WriteLine("== Receive txn {0}", req);
-            // verify transaction Hash
+
             var TxnHash = UbudKusCoin.Others.Utils.GetTransactionHash(req.Transaction);
-            Console.WriteLine("== Receive TxnHash2 {0}", TxnHash);
             if (!TxnHash.Equals(req.Transaction.Hash))
             {
                 return Task.FromResult(new TransactionStatus
@@ -73,8 +79,7 @@ namespace UbudKusCoin.Grpc
                 });
             }
 
-            Console.WriteLine("== Receive txn 1 {0}", req);
-            // Verify signature
+
             var TxnValid = verifySignature(req.Transaction);
             if (!TxnValid)
             {
@@ -85,11 +90,7 @@ namespace UbudKusCoin.Grpc
                 });
             }
 
-            Console.WriteLine("== Receive txn 2 {0}", req);
             ServicePool.DbService.transactionsPooldb.Add(req.Transaction);
-            Console.WriteLine("added to pool ");
-
-
 
             return Task.FromResult(new TransactionStatus
             {

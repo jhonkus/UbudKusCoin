@@ -1,5 +1,8 @@
-// dev by I Putu Kusuma Negara, ST, MKOM.
-// Model for Peer
+// Created by I Putu Kusuma Negara. markbrain2013[at]gmail.com
+// 
+// Ubudkuscoin is free software distributed under the MIT software license,
+// Redistribution and use in source and binary forms with or without
+// modifications are permitted.
 
 syntax = "proto3";
 
@@ -7,35 +10,30 @@ syntax = "proto3";
 option csharp_namespace = "UbudKusCoin.Grpc";
 
 service PeerService {
-  rpc Add(PeerRequest) returns (PeerResponse);
-  rpc GetRange(PeersRequest) returns (PeersResponse);
-
+  rpc Add(Peer) returns (PeerStatus);
+  rpc GetRange(PeerPaging) returns (PeerList);
+  rpc GetByID(Peer) returns (Peer);
 }
 
-message PeerRequest {
-  string address = 1;
+message PeerStatus{
+  string status = 1;
+  string message = 2;
 }
 
-
-message PeersRequest{
+message PeerPaging{
   int32 page_number = 1;
   int32 result_per_page = 2; 
 }
 
-message PeerResponse {
-  repeated Peer peer = 1;
-}
-
-
-message PeersResponse {
+message PeerList {
   repeated Peer peers = 1;
 }
 
-
 message Peer {
   string id = 1;
-  string connection = 2;
+  string address = 2;
   int64 last_reach  = 3;
   bool is_itself = 4;
   bool is_canreach = 5;
+  int64 time_stamp = 6;
 }

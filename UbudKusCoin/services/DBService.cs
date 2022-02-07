@@ -1,5 +1,13 @@
+// Created by I Putu Kusuma Negara. markbrain2013[at]gmail.com
+// 
+// Ubudkuscoin is free software distributed under the MIT software license,
+// Redistribution and use in source and binary forms with or without
+// modifications are permitted.
+
 using System;
+
 using LiteDB;
+
 using UbudKusCoin.DB;
 
 namespace UbudKusCoin.Services
@@ -10,12 +18,12 @@ namespace UbudKusCoin.Services
         private readonly LiteDatabase DB_ACCOUNT;
         private readonly LiteDatabase DB_TRANSACTION;
         private readonly LiteDatabase DB_TRANSACTION_POOL;
-        private readonly LiteDatabase DB_REPORT;
+        private readonly LiteDatabase DB_PEER;
         private readonly LiteDatabase DB_STAKE;
 
         public BlockDb blockDb;
         public TransactionDb transactionDb;
-        public ReportDb reportDb;
+        public PeerDb peerDb;
 
         public AccountDb accountDb;
         public TransactionPoolDb transactionsPooldb;
@@ -34,36 +42,32 @@ namespace UbudKusCoin.Services
             this.DB_TRANSACTION = new LiteDatabase(@"DbFiles//" + name + "_transaction.db");
             this.DB_TRANSACTION_POOL = new LiteDatabase(@"DbFiles//" + name + "_transaction_pool.db");
             this.DB_STAKE = new LiteDatabase(@"DbFiles//" + name + "_stake.db");
-            this.DB_REPORT = new LiteDatabase(@"DbFiles//" + name + "_report.db");
+            this.DB_PEER = new LiteDatabase(@"DbFiles//" + name + "_peer.db");
 
             this.blockDb = new BlockDb(this.DB_BLOCK);
             this.accountDb = new AccountDb(this.DB_ACCOUNT);
             this.transactionDb = new TransactionDb(this.DB_ACCOUNT);
             this.transactionsPooldb = new TransactionPoolDb(this.DB_TRANSACTION_POOL);
             this.stakeDb = new StakeDb(this.DB_STAKE);
-            this.reportDb = new ReportDb(this.DB_REPORT);
+            this.peerDb = new PeerDb(this.DB_PEER);
         }
-        /**
-        it will create db with name node.db
-        **/
 
         public void Start()
         {
 
             Console.WriteLine("Db started");
         }
-        /**
-        * Close database when app closed
-        **/
+
+
         public void Stop()
         {
             DB_BLOCK.Dispose();
             DB_STAKE.Dispose();
             DB_TRANSACTION.Dispose();
             DB_TRANSACTION_POOL.Dispose();
-            DB_REPORT.Dispose();
+            DB_PEER.Dispose();
             DB_ACCOUNT.Dispose();
-            Console.WriteLine("Closing db");
+            Console.WriteLine("db Disposed");
         }
 
     }
