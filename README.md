@@ -2,7 +2,7 @@
 
 NOTE: PLEASE DON'T USE DEVELOP BRANCH.
 I am still working on it, its not working.
-It will finish it on 12 January 2022.
+It will finish it on 14 February 2022.
 
 
 Simple Cryptocurrencies with Proof Of Stake  Consensus Algorithm.
