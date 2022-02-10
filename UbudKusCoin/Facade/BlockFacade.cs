@@ -1,24 +1,24 @@
-﻿using System;
-using System.Linq;
-using System.Text.Json;
+﻿// Created by I Putu Kusuma Negara. markbrain2013[[at]gmail.com
+// 
+// Ubudkuscoin is free software distributed under the MIT software license,
+// Redistribution and use in source and binary forms with or without
+// modifications are permitted.
+
+using System;
+using System.Text;
 using System.Collections.Generic;
+using System.Text.Json;
+
+using UbudKusCoin.Grpc;
 using UbudKusCoin.Others;
 using UbudKusCoin.Services;
-using UbudKusCoin.Grpc;
-using UbudKusCoin.DB;
-
+using System.Numerics;
 namespace UbudKusCoin.Facade
 {
 
     public class BlockFacade
     {
 
-        // public event EventHandler<Block> EventBlockCreated;
-
-        // protected virtual void OnEventBlockCreated(Block arg)
-        // {
-        //     EventBlockCreated?.Invoke(this, arg);
-        // }
         public BlockFacade()
         {
             Initialize();
@@ -121,63 +121,89 @@ namespace UbudKusCoin.Facade
             // get transaction from pool
             var txnsInPool = ServicePool.DbService.transactionsPooldb.GetAll();
 
+            var lastTimestamp = 0L;
+            var wallet = ServicePool.WalletService;
             //// get last block to get prev hash and last height
             var lastBlock = ServicePool.DbService.blockDb.GetLast();
             var nextHeight = lastBlock.Height + 1;
-            var timestamp = Utils.GetTime();
             var prevHash = lastBlock.Hash;
             var validator = ServicePool.FacadeService.Stake.GetValidator();
             var transactions = ServicePool.FacadeService.Transaction.GetForMinting(nextHeight);
+            var difficulty = GetDifficullty();
+            var minterAddress = wallet.GetAddress();
+            var minterAccount = ServicePool.FacadeService.Account.GetByAddress(minterAddress);
+            var minterBalance  = minterAccount.Balance;
 
-            var block = new Block
+            // var block = MintingBlock(nextHeight,prevHash,System.Text.Json.JsonSerializer.Serialize(transactions),difficulty,minterAccount.Balance);
+
+            while (true)
             {
-                Height = nextHeight,
-                TimeStamp = timestamp,
-                PrevHash = prevHash,
-                Transactions = System.Text.Json.JsonSerializer.Serialize(transactions),
-                Difficulty = GetDifficullty(),
-                Validator = validator.Address,
-                Version = 1,
-                NumOfTx = transactions.Count,
-                TotalAmount = Utils.GetTotalAmount(transactions),
-                TotalReward = Utils.GetTotalFees(transactions),
-                MerkleRoot = CreateMerkleRoot(transactions),
-                ValidatorBalance = validator.Amount,
-                Nonce = 1,
-            };
+                var timestamp = Utils.GetTime();
+                if (lastTimestamp != timestamp)
+                {
+                    // var hash = Utils.GenHashBytes(height + previousHash + timestamp + transaction + difficulty + balance + ServicePool.WalletService.GetKeyPair().PublicKeyHex);
 
-            var blockHash = GetBlockHash(block);
-            block.Hash = blockHash;
+                    if (IsStakingMeetRule(prevHash, wallet.GetKeyPair().PublicKeyHex, timestamp, minterBalance, difficulty, nextHeight))
+                    {
+                        var block = new Block
+                        {
+                            Height = nextHeight,
+                            TimeStamp = timestamp,
+                            PrevHash = prevHash,
+                            Transactions = System.Text.Json.JsonSerializer.Serialize(transactions),
+                            Difficulty = GetDifficullty(),
+                            Validator = validator.Address,
+                            Version = 1,
+                            NumOfTx = transactions.Count,
+                            TotalAmount = Utils.GetTotalAmount(transactions),
+                            TotalReward = Utils.GetTotalFees(transactions),
+                            MerkleRoot = CreateMerkleRoot(transactions),
+                            ValidatorBalance = validator.Amount,
+                            Nonce = 1,
+                        };
 
-
-            //block size
-            var str = System.Text.Json.JsonSerializer.Serialize(block);
-            block.Size = str.Length;
-
-
-            // get build time    
-            var endTimer = DateTime.UtcNow.Millisecond;
-            var buildTime = endTimer - startTimer;
-            block.BuildTime = buildTime;
-            // end of    
+                        var blockHash = GetBlockHash(block);
+                        block.Hash = blockHash;
 
 
-            ServicePool.DbService.blockDb.Add(block);
+                        //block size
+                        var str = System.Text.Json.JsonSerializer.Serialize(block);
+                        block.Size = str.Length;
+
+
+                        // get build time    
+                        var endTimer = DateTime.UtcNow.Millisecond;
+                        var buildTime = endTimer - startTimer;
+                        block.BuildTime = buildTime;
+                        // end of    
+
+
+                        ServicePool.DbService.blockDb.Add(block);
 
 
 
-            ServicePool.FacadeService.Transaction.UpdateBalance(transactions);
+                        ServicePool.FacadeService.Transaction.UpdateBalance(transactions);
 
-            // move pool to to transactions db
-            ServicePool.FacadeService.Transaction.AddBulk(transactions);
+                        // move pool to to transactions db
+                        ServicePool.FacadeService.Transaction.AddBulk(transactions);
 
-            // clear mempool
-            ServicePool.DbService.transactionsPooldb.DeleteAll();
+                        // clear mempool
+                        ServicePool.DbService.transactionsPooldb.DeleteAll();
 
 
 
-            //triger event block created
-            ServicePool.EventService.OnEventBlockCreated(block);
+                        //triger event block created
+                        ServicePool.EventService.OnEventBlockCreated(block);
+                        
+                        //exit from loop
+                        break;
+                    }
+
+                    lastTimestamp = timestamp;
+                }
+            }
+
+
 
         }
 
@@ -187,6 +213,8 @@ namespace UbudKusCoin.Facade
             var hash = Utils.GenHash(strSum);
             return hash;
         }
+
+
 
         private string CreateMerkleRoot(List<Transaction> txns)
         {
@@ -244,19 +272,34 @@ namespace UbudKusCoin.Facade
             }
         }
 
+        public bool IsStakingMeetRule(string prevhash, string address, long timestamp, double balance, int difficulty, long height)
+        {
+            difficulty = difficulty + 1;
+            var big1 = new BigInteger(Math.Pow(2, 256));
+            var big2 = BigInteger.Multiply(big1, new BigInteger(balance));
+            var balanceOverDifficulty = BigInteger.Divide(big2, difficulty);
+            var stakingHash = Utils.GenHashBytes(prevhash + address + timestamp);
+            var decimalStakingHash = new BigInteger(stakingHash);
+            var difference = BigInteger.Min(balanceOverDifficulty, decimalStakingHash);
+            return difference >= 0;
+        }
+
+
         public bool isValidBlock(Block block)
         {
             var lastBlock = ServicePool.DbService.blockDb.GetLast();
 
             //compare block height with prev
-            if (block.Height != (lastBlock.Height +1)){
+            if (block.Height != (lastBlock.Height + 1))
+            {
                 return false;
-            } 
+            }
 
             //compare block hash with prev
-            if (block.PrevHash != lastBlock.Hash){
+            if (block.PrevHash != lastBlock.Hash)
+            {
                 return false;
-            } 
+            }
 
             //compare hash
             if (block.Hash != GetBlockHash(block))
@@ -271,7 +314,7 @@ namespace UbudKusCoin.Facade
             }
 
             return true;
-            
+
         }
 
     }

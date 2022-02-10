@@ -15,6 +15,11 @@ namespace UbudKusCoin.Facade
             Console.WriteLine("Account initilize ....");
         }
 
+        public Account GetByAddress(string address)
+        {
+            return ServicePool.DbService.accountDb.GetByAddress(address);
+        }
+        
         public List<Account> GetGenesis()
         {
             var timestamp = Utils.GetTime();

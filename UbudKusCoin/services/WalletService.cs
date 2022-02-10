@@ -63,6 +63,11 @@ namespace UbudKusCoin.Services
             return this.KeyPair.PublicKey;
         }
 
+        public KeyPair GetKeyPair()
+        {
+            return this.KeyPair;
+        }
+
         public string GetAddress()
         {
             byte[] hash = SHA256.Create().ComputeHash(this.KeyPair.PublicKey.ToBytes());

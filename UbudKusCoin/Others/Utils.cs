@@ -23,6 +23,13 @@ namespace UbudKusCoin.Others
             return BytesToHex(hash);
         }
 
+        public static byte[] GenHashBytes(string data)
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes(data);
+            byte[] hash = SHA256.Create().ComputeHash(bytes);
+            return hash;
+        }
+
         public static string GenHashHex(string hex)
         {
             byte[] bytes = HexToBytes(hex);

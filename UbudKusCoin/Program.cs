@@ -24,9 +24,6 @@ namespace UbudKusCoin
             var nodeaddress = DotNetEnv.Env.GetString("NODE_ADDRESS");
             var knownpeers = DotNetEnv.Env.GetString("KNOWN_PEERS");
             var passphrase = DotNetEnv.Env.GetString("NODE_PASSPHRASE");
-            // Console.WriteLine(knownpeers);
-            Console.WriteLine(passphrase);
-
 
             ServicePool.Add(
                 new WalletService(passphrase),
@@ -41,11 +38,6 @@ namespace UbudKusCoin
 
             // grpc
             IHost host = CreateHostBuilder(args).Build();
-            // host.Services.UseScheduler(scheduler =>
-            // {
-            //     scheduler.Schedule<SomeJobs>()
-            //         .EveryThirtySeconds();
-            // });
             host.Run();
 
         }
