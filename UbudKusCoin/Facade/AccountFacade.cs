@@ -1,3 +1,10 @@
+// Created by I Putu Kusuma Negara
+// markbrain2013[at]gmail.com
+// 
+// Ubudkuscoin is free software distributed under the MIT software license,
+// Redistribution and use in source and binary forms with or without
+// modifications are permitted.
+
 using System;
 using System.Collections.Generic;
 using UbudKusCoin.Grpc;
@@ -19,16 +26,15 @@ namespace UbudKusCoin.Facade
         {
             return ServicePool.DbService.accountDb.GetByAddress(address);
         }
-        
+
         public List<Account> GetGenesis()
         {
             var timestamp = Utils.GetTime();
             var list = new List<Account> {
                 new Account{
-                    // secreet nunber
-                    // 21781280861377830129150550553571098979074587004064115989578006651854952332712
-                    Address = "UkcDrMshfqdHrfckb2SLoSCoG8Lp6MBdrkZ2T83FivTpWC8",
-                    PubKey = "cb7dfcd7bc043b39e0f8f48950a51388a63ff075e4e501140fbf40246a8626f7ea09e8d96bfd933ce1cae613788bfd5ff151bc80ae84feb0329ebb88a468156f",
+                    // owner elevator visual public loyal actual outside trumpet sugar drama impact royal
+                    Address = "NFrwmp2Wo6zvPBpzCmDeLH5PNu6pcAg1ZDAUyUTDRYVC",
+                    PubKey = "03d8bf992ebda445a512ae687a0601a43d85e623b3df052c3b32a44a895d9b3abd",
                     Balance = 2000000000,
                     TxnCount = 1,
                     Created = timestamp,
@@ -37,10 +43,9 @@ namespace UbudKusCoin.Facade
 
                 new Account
                 {
-                    // secreet nunber
-                    // 12236578000846032767994806805824689205819985942907379847526216303818570266507
-                    Address = "UkcDw4nSzSc6zBxjWnqpEDg5AwaooSbT469QUh7DN6qmQht",
-                    PubKey = "02738ecd788b54b8e1262eb9deeffb47f684442c091a759b138b9c50eb46073b5a58986b2c9cc70a304fd0e9938a836a28cfc89d47c5bebc0582f8550385c8af",
+                    // actual lucky tail message acquire alarm bomb finger route wool reward bike
+                    Address = "nBnrTvVoNyx2qg3yeBg3HtaHMbEyFPGJ4EQ183BBsphM",
+                    PubKey = "034ab41cd9592200344a8c170cd26510966be1920a60943ea883458719d9e916f9",
                     Balance = 3000000000,
                     TxnCount = 2,
                     Created = timestamp,
@@ -50,9 +55,9 @@ namespace UbudKusCoin.Facade
                 new Account
                 {
                     // secreet nunber
-                    // 46804102943937360112040874256984951134177138107532596818275297470849863615297
-                    Address = "UkcsW98Qn8nv89JDYqYTcoPNygwT4KBtnd7xHSkWGks2J48",
-                    PubKey = "39e15285feddb6687f31a7ee1a8d396736a1e7104957aebd7db5a52189aaf10809c7eb6981be0d16ae9369768cd2fc0732b55c9547be595ff8121c06394c0a96",
+                    // return lucky tribe pen swarm diagram buzz april beef fire antenna robot
+                    Address = "w5z8FbxzGL7K6erUfYBXNzAiLQ6qLPdzDyjexH13WjCq",
+                    PubKey = "0371a749c364123b474530309d3b2d69e7347f2e58cb20960d354afb9ba8d645cc",
                     Balance = 4000000000,
                     TxnCount = 1,
                     Created = timestamp,
@@ -62,9 +67,9 @@ namespace UbudKusCoin.Facade
                 new Account
                 {
                     // secreet nunber
-                    // 31888415667462342300498151145899343418960075407939127462687665800618862359710
-                    Address = "UkcUpZbKQx28vF7snZ3bmftb7ht8KnLSC5nNBYj9didNQ6z",
-                    PubKey = "e63617a1e2a2c30adef1672b3e4f9c23fd80af36e65f8600bbaa6ec4737f69177496f53f07651609de424b8a51ae855b487deaa54009de6960d753d57d5fe09d",
+                    // transfer divorce liberty laptop harbor cotton hollow drop record deal pill charge
+                    Address = "E985YzzBYZJG1csRz34tR5P9UetG6cCuR2DvnkaUJYq4",
+                    PubKey = "020fa69ad893523e58f95a460d08f7e8c2fd1a2c86445f900fdf465300dacaf165",
                     Balance = 5000000000,
                     TxnCount = 1,
                     Created = timestamp,
@@ -74,9 +79,9 @@ namespace UbudKusCoin.Facade
                 new Account
                 {
                     // secret number
-                    // 53957268829728400022200509029430095589656640993872744068590938611985184147408
-                    Address = "UkcDEfU9gGnm9tGjmFtXRjirf2LuohU5CzjWunEkPNbUcFW",
-                    PubKey = "ec2a5cb374d9b3488955697415725ac4b409037b619394c116cbdf14cf8c1f6b7bb3c8a393bd0ba3132105c7f03e51d6d64a96f1f8bf3dc47ee7d38f524fc1ef",
+                    // elite mosquito enrich remain story indoor mutual elite polar juice enter craft
+                    Address = "hS7NaiubZRqsWWS7AHY1woVH1E6buL4Ferp9f6HgnnNK",
+                    PubKey = "03107eca9f1d44f2a452f6de7ebddab474fc5f489d7da2627b7fdd836b32045e36",
                     Balance = 10000000000,
                     TxnCount = 1,
                     Created = timestamp,

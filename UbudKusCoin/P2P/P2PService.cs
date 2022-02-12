@@ -1,3 +1,10 @@
+// Created by I Putu Kusuma Negara
+// markbrain2013[at]gmail.com
+// 
+// Ubudkuscoin is free software distributed under the MIT software license,
+// Redistribution and use in source and binary forms with or without
+// modifications are permitted.
+
 using System.Linq;
 using System;
 using System.Collections.Generic;
@@ -19,25 +26,32 @@ namespace UbudKusCoin.P2P
 
         IList<string> BlocksInTransit { set; get; }
 
-        IList<string> sockets = new List<string>{
-            "127.0.0.1:7170"
-            // "127.0.0.1:7178",
-            // "127.0.0.1:7177",
-            // "127.0.0.1:7176",
-            // "127.0.0.1:7175"
-        };
         IList<string> peers { set; get; }
+
         private string nodeAddress { set; get; }
 
         private int nodePort { set; get; }
 
-        public P2PService(string nodeAddress)
+        public P2PService()
         {
-            this.nodeAddress = nodeAddress; // config.Config.NodeAddress;
+            this.peers = new List<string>();
+
         }
 
         public void Start()
         {
+            this.nodeAddress = DotNetEnv.Env.GetString("NODE_ADDRESS");
+            var knownpeers = DotNetEnv.Env.GetString("BOOTSRTAP_PEERS");
+            knownpeers.Replace(" ", "");
+            var tempPeers = knownpeers.Split(",");
+
+            for (int i = 0; i < tempPeers.Length; i += 3)
+            {
+                this.peers.Add(tempPeers[i]);
+            }
+
+            Console.WriteLine("List six: {0}", peers.Count);
+
             Task.Run(() =>
             {
                 this.BroadcastVersion();
@@ -286,13 +300,13 @@ namespace UbudKusCoin.P2P
             // if socket not in list
             if (!socketIsKnown(verzion.AddressFrom))
             {
-                this.sockets.Add(verzion.AddressFrom);
+                this.peers.Add(verzion.AddressFrom);
             }
         }
 
         private bool socketIsKnown(string address)
         {
-            foreach (string item in this.sockets)
+            foreach (string item in this.peers)
             {
                 if (address == item)
                 {
@@ -334,7 +348,7 @@ namespace UbudKusCoin.P2P
 
         private void BroadcastVersion()
         {
-            var centralNode = this.sockets[0];
+            var centralNode = this.peers[0];
             Console.WriteLine("== Will send version to Central Node: {0}", centralNode);
             // foreach (var socket in this.sockets)
             // {
@@ -349,7 +363,7 @@ namespace UbudKusCoin.P2P
         private void BroadcastBlock(Block block)
         {
             Console.WriteLine("Will broadcasting block !");
-            foreach (var socket in this.sockets)
+            foreach (var socket in this.peers)
             {
                 if (!socket.Equals(nodeAddress))
                 {
@@ -361,7 +375,7 @@ namespace UbudKusCoin.P2P
         public void BroadcastTransaction(Transaction transaction)
         {
             Console.WriteLine("Will broadcasting transaction, node Address: {0}", this.nodeAddress);
-            foreach (var socket in this.sockets)
+            foreach (var socket in this.peers)
             {
                 if (!socket.Equals(nodeAddress))
                 {

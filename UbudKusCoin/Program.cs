@@ -1,4 +1,5 @@
-﻿// Created by I Putu Kusuma Negara. markbrain2013[at]gmail.com
+﻿// Created by I Putu Kusuma Negara
+// markbrain2013[at]gmail.com
 // 
 // Ubudkuscoin is free software distributed under the MIT software license,
 // Redistribution and use in source and binary forms with or without
@@ -21,16 +22,13 @@ namespace UbudKusCoin
 
             DotNetEnv.Env.Load();
             DotNetEnv.Env.TraversePath().Load();
-            var nodeaddress = DotNetEnv.Env.GetString("NODE_ADDRESS");
-            var knownpeers = DotNetEnv.Env.GetString("KNOWN_PEERS");
-            var passphrase = DotNetEnv.Env.GetString("NODE_PASSPHRASE");
 
             ServicePool.Add(
-                new WalletService(passphrase),
-                new DbService("uksc"),
+                new WalletService(),
+                new DbService(),
                 new FacadeService(),
                 new MintingService(),
-                new P2PService(nodeaddress),
+                new P2PService(),
                 new EventService()
             );
             ServicePool.Start();
@@ -49,8 +47,15 @@ namespace UbudKusCoin
           {
               webBuilder.ConfigureKestrel(options =>
               {
-                  options.ListenAnyIP(5001, listenOptions => listenOptions.Protocols = HttpProtocols.Http1AndHttp2); //webapi
-                  options.ListenAnyIP(5002, listenOptions => listenOptions.Protocols = HttpProtocols.Http2); //grpc
+
+                  var GRPC_WEB_PORT = DotNetEnv.Env.GetInt("GRPC_WEB_PORT");
+                  var GRPC_PORT = DotNetEnv.Env.GetInt("GRPC_PORT");
+
+                  options.ListenAnyIP(GRPC_WEB_PORT, listenOptions => listenOptions.Protocols = HttpProtocols.Http1AndHttp2); //webapi
+                  options.ListenAnyIP(GRPC_PORT, listenOptions => listenOptions.Protocols = HttpProtocols.Http2); //grpc
+
+                  //   options.Listen(IPAddress.Loopback, 5000);
+                  //   options.Listen(IPAddress.Loopback, 5005, configure => configure.UseHttps());
               });
 
               // start

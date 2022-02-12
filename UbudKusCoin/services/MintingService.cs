@@ -1,4 +1,5 @@
-// Created by I Putu Kusuma Negara. markbrain2013[at]gmail.com
+// Created by I Putu Kusuma Negara
+// markbrain2013[at]gmail.com
 // 
 // Ubudkuscoin is free software distributed under the MIT software license,
 // Redistribution and use in source and binary forms with or without
@@ -25,7 +26,7 @@ namespace UbudKusCoin.Services
         public void Start()
         {
             cancelTask = new CancellationTokenSource();
-            Task.Run(() => DoGenerateBlock(), cancelTask.Token);
+            Task.Run(() => MintingBlock(), cancelTask.Token);
             Console.WriteLine("Minter started started");
         }
 
@@ -36,16 +37,21 @@ namespace UbudKusCoin.Services
             Console.WriteLine("Minter Stoped");
         }
 
-        public void DoGenerateBlock()
+        public void MintingBlock()
         {
             while (true)
             {
                 var startTime = DateTime.UtcNow.Second;
+
+                Console.WriteLine("Oke ");
+
                 ServicePool.FacadeService.Block.CreateNew();
+
+                Console.WriteLine("Oke End");
+                
                 var endTime = DateTime.UtcNow.Second;
                 var remainTime = Constants.BLOCK_GENERATION_INTERVAL - (endTime - startTime);
                 Console.WriteLine("remain Time: {0}", remainTime);
-
                 Thread.Sleep(remainTime < 0 ? 0 : remainTime * 1000);
             }
         }

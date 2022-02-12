@@ -1,0 +1,8 @@
+#BOOTSRTAP_PEERS is same for all nodes
+BOOTSRTAP_PEERS="127.0.0.1:3100, 127.0.0.1:3200"
+
+#NODE PASSPHRASE and NODE ADDRESS is specific for each node
+GRPC_WEB_PORT = 5005
+GRPC_PORT = 5006
+NODE_ADDRESS = "127.0.0.1:3300"
+NODE_PASSPHRASE="transfer divorce liberty laptop harbor cotton hollow drop record deal pill charge"

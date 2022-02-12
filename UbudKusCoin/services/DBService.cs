@@ -1,4 +1,5 @@
-// Created by I Putu Kusuma Negara. markbrain2013[at]gmail.com
+// Created by I Putu Kusuma Negara
+// markbrain2013[at]gmail.com
 // 
 // Ubudkuscoin is free software distributed under the MIT software license,
 // Redistribution and use in source and binary forms with or without
@@ -31,18 +32,23 @@ namespace UbudKusCoin.Services
 
 
         // I use multiple database, to minimize database size for transaction, block
-        // size will smaller for each database, rather than use single DB/
-        // with single db when data grow, fileze will big and slow query
-        // you can change to use single db.
+        // size will smaller for each database
 
-        public DbService(string name)
+        public DbService()
         {
-            this.DB_BLOCK = new LiteDatabase(@"DbFiles//" + name + "_block.db");
-            this.DB_ACCOUNT = new LiteDatabase(@"DbFiles//" + name + "_account.db");
-            this.DB_TRANSACTION = new LiteDatabase(@"DbFiles//" + name + "_transaction.db");
-            this.DB_TRANSACTION_POOL = new LiteDatabase(@"DbFiles//" + name + "_transaction_pool.db");
-            this.DB_STAKE = new LiteDatabase(@"DbFiles//" + name + "_stake.db");
-            this.DB_PEER = new LiteDatabase(@"DbFiles//" + name + "_peer.db");
+            //create db folder
+            try
+            {
+                System.IO.Directory.CreateDirectory(@"DbFiles");
+            }
+            catch { }
+
+            this.DB_BLOCK = new LiteDatabase(@"DbFiles//block.db");
+            this.DB_ACCOUNT = new LiteDatabase(@"DbFiles//account.db");
+            this.DB_TRANSACTION = new LiteDatabase(@"DbFiles//transaction.db");
+            this.DB_TRANSACTION_POOL = new LiteDatabase(@"DbFiles//transaction_pool.db");
+            this.DB_STAKE = new LiteDatabase(@"DbFiles//stake.db");
+            this.DB_PEER = new LiteDatabase(@"DbFiles//peer.db");
 
             this.blockDb = new BlockDb(this.DB_BLOCK);
             this.accountDb = new AccountDb(this.DB_ACCOUNT);

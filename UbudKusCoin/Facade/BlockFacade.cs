@@ -1,13 +1,15 @@
-﻿// Created by I Putu Kusuma Negara. markbrain2013[[at]gmail.com
+﻿// Created by I Putu Kusuma Negara
+// markbrain2013[at]gmail.com
 // 
 // Ubudkuscoin is free software distributed under the MIT software license,
 // Redistribution and use in source and binary forms with or without
 // modifications are permitted.
 
 using System;
-using System.Text;
 using System.Collections.Generic;
 using System.Text.Json;
+using System.Threading;
+using System.Diagnostics;
 
 using UbudKusCoin.Grpc;
 using UbudKusCoin.Others;
@@ -115,15 +117,23 @@ namespace UbudKusCoin.Facade
         public void CreateNew()
         {
 
+            Console.WriteLine("Minnter 1");
+
+            Stopwatch stopWatch = new Stopwatch();
+
+            stopWatch.Start();
             // start build time
             var startTimer = DateTime.UtcNow.Millisecond;
+            Console.WriteLine("Minnter 2");
 
             // get transaction from pool
             var txnsInPool = ServicePool.DbService.transactionsPooldb.GetAll();
+            Console.WriteLine("Minnter 3");
 
             var lastTimestamp = 0L;
             var wallet = ServicePool.WalletService;
-            //// get last block to get prev hash and last height
+            Console.WriteLine("Minnter 4");
+
             var lastBlock = ServicePool.DbService.blockDb.GetLast();
             var nextHeight = lastBlock.Height + 1;
             var prevHash = lastBlock.Hash;
@@ -132,16 +142,19 @@ namespace UbudKusCoin.Facade
             var difficulty = GetDifficullty();
             var minterAddress = wallet.GetAddress();
             var minterAccount = ServicePool.FacadeService.Account.GetByAddress(minterAddress);
-            var minterBalance  = minterAccount.Balance;
+            var minterBalance = minterAccount.Balance;
+            Random rnd = new Random();
 
-            // var block = MintingBlock(nextHeight,prevHash,System.Text.Json.JsonSerializer.Serialize(transactions),difficulty,minterAccount.Balance);
 
+            int i = 0;
             while (true)
             {
+                Console.WriteLine(i++);
+                Thread.Sleep(100);
                 var timestamp = Utils.GetTime();
+
                 if (lastTimestamp != timestamp)
                 {
-                    // var hash = Utils.GenHashBytes(height + previousHash + timestamp + transaction + difficulty + balance + ServicePool.WalletService.GetKeyPair().PublicKeyHex);
 
                     if (IsStakingMeetRule(prevHash, wallet.GetKeyPair().PublicKeyHex, timestamp, minterBalance, difficulty, nextHeight))
                     {
@@ -159,7 +172,7 @@ namespace UbudKusCoin.Facade
                             TotalReward = Utils.GetTotalFees(transactions),
                             MerkleRoot = CreateMerkleRoot(transactions),
                             ValidatorBalance = validator.Amount,
-                            Nonce = 1,
+                            Nonce = rnd.Next(),
                         };
 
                         var blockHash = GetBlockHash(block);
@@ -170,18 +183,15 @@ namespace UbudKusCoin.Facade
                         var str = System.Text.Json.JsonSerializer.Serialize(block);
                         block.Size = str.Length;
 
-
                         // get build time    
-                        var endTimer = DateTime.UtcNow.Millisecond;
-                        var buildTime = endTimer - startTimer;
-                        block.BuildTime = buildTime;
+                        stopWatch.Stop();
+
+                        // Get the elapsed time as a TimeSpan value.
+                        TimeSpan ts = stopWatch.Elapsed;
+                        block.BuildTime = (ts.Milliseconds);
                         // end of    
 
-
                         ServicePool.DbService.blockDb.Add(block);
-
-
-
                         ServicePool.FacadeService.Transaction.UpdateBalance(transactions);
 
                         // move pool to to transactions db
@@ -194,7 +204,7 @@ namespace UbudKusCoin.Facade
 
                         //triger event block created
                         ServicePool.EventService.OnEventBlockCreated(block);
-                        
+
                         //exit from loop
                         break;
                     }

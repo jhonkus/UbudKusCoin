@@ -1,4 +1,5 @@
-// Created by I Putu Kusuma Negara. markbrain2013[at]gmail.com
+// Created by I Putu Kusuma Negara
+// markbrain2013[at]gmail.com
 // 
 // Ubudkuscoin is free software distributed under the MIT software license,
 // Redistribution and use in source and binary forms with or without
@@ -147,7 +148,7 @@ namespace UbudKusCoin.Others
             Console.WriteLine(" = Timestamp   : {0}", Utils.ToDateTime(block.TimeStamp));
             Console.WriteLine(" = Difficulty  : {0}", block.Difficulty);
             Console.WriteLine(" = Validator   : {0}", block.Validator);
-
+            Console.WriteLine(" = Nonce       : {0}", block.Nonce);
             Console.WriteLine(" = Number Of Tx: {0}", block.NumOfTx);
             Console.WriteLine(" = Amout       : {0}", block.TotalAmount);
             Console.WriteLine(" = Reward      : {0}", block.TotalReward);

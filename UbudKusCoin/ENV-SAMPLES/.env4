@@ -1,0 +1,8 @@
+#BOOTSRTAP_PEERS is same for all nodes
+BOOTSRTAP_PEERS="127.0.0.1:3100, 127.0.0.1:3200"
+
+#NODE PASSPHRASE and NODE ADDRESS is specific for each node
+GRPC_WEB_PORT = 5007
+GRPC_PORT = 5008
+NODE_ADDRESS = "127.0.0.1:3400"
+NODE_PASSPHRASE="elite mosquito enrich remain story indoor mutual elite polar juice enter craft"

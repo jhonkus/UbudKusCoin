@@ -1,4 +1,5 @@
-// Created by I Putu Kusuma Negara. markbrain2013[at]gmail.com
+// Created by I Putu Kusuma Negara
+// markbrain2013[at]gmail.com
 // 
 // Ubudkuscoin is free software distributed under the MIT software license,
 // Redistribution and use in source and binary forms with or without
@@ -22,22 +23,19 @@ namespace UbudKusCoin.Services
         public Mnemonic Mnemonic { set; get; }
 
         public string passphrase { set; get; }
-
+        public WalletService()
+        {
+            this.passphrase = DotNetEnv.Env.GetString("NODE_PASSPHRASE");
+        }
         public void Start()
         {
             this.Mnemonic = new Mnemonic(this.passphrase);
-            this.KeyPair = GenerateKeyPair(this.Mnemonic, 0); ;
+            this.KeyPair = GenerateKeyPair(this.Mnemonic, 0);
+            // this.Mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
+            Console.WriteLine("== Wallet: {0}", this.Mnemonic);
+            Console.WriteLine("== Address: {0}", this.GetAddress());
+            Console.WriteLine("== public key Hex: {0}", this.GetKeyPair().PublicKeyHex);
             Console.WriteLine("Creating wallet done!");
-        }
-        public WalletService(string passphrase)
-        {
-            this.passphrase = passphrase;
-
-        }
-        public WalletService()
-        {
-            this.Mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve); ;
-            this.KeyPair = GenerateKeyPair(this.Mnemonic, 0); ;
         }
 
         public static KeyPair GenerateKeyPair(Mnemonic mnemonic, int path)
