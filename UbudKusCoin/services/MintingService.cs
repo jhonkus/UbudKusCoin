@@ -20,14 +20,30 @@ namespace UbudKusCoin.Services
 
         public MintingService()
         {
-            Console.WriteLine("Minting Service started...");
+
         }
 
         public void Start()
-        {
-            cancelTask = new CancellationTokenSource();
-            Task.Run(() => MintingBlock(), cancelTask.Token);
-            Console.WriteLine("Minter started started");
+        {         
+            // Console.WriteLine("...... Waiiting P2P Ready");
+            while (!ServicePool.StateService.IsNodeStateReady())
+            {
+
+            }
+
+            Console.WriteLine("... Minting Service is starting");
+            Console.WriteLine("...... Sync state with peer");
+            //TODO this.BroadcastState();
+            Console.WriteLine("...... Sync block is symced");
+            Console.WriteLine("... Minting Service is Ready.");
+
+            Console.WriteLine("... Node is Ready.");
+
+            if (ServicePool.StateService.IsNodeStateReady())
+            {
+                cancelTask = new CancellationTokenSource();
+                Task.Run(() => MintingBlock(), cancelTask.Token);
+            }
         }
 
 
@@ -42,13 +58,7 @@ namespace UbudKusCoin.Services
             while (true)
             {
                 var startTime = DateTime.UtcNow.Second;
-
-                Console.WriteLine("Oke ");
-
                 ServicePool.FacadeService.Block.CreateNew();
-
-                Console.WriteLine("Oke End");
-                
                 var endTime = DateTime.UtcNow.Second;
                 var remainTime = Constants.BLOCK_GENERATION_INTERVAL - (endTime - startTime);
                 Console.WriteLine("remain Time: {0}", remainTime);

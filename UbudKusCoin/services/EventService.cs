@@ -15,7 +15,10 @@ namespace UbudKusCoin.Services
     public class EventService
     {
 
-        public EventService() { }
+        public EventService()
+        {
+
+        }
 
         public event EventHandler<Transaction> EventTransactionCreated;
 
@@ -28,7 +31,10 @@ namespace UbudKusCoin.Services
 
         public void Start()
         {
+            Console.WriteLine("... Event service is starting");
             ListenEvent();
+            ServicePool.StateService.IsEventServiceReady = true;
+            Console.WriteLine("... Event service is ready");
         }
 
         public virtual void OnEventBlockCreated(Block arg)
@@ -44,7 +50,7 @@ namespace UbudKusCoin.Services
 
         void Evt_EventBlockCreated(object sender, Block block)
         {
-  
+
             Utils.PrintBlock(block);
             // TODO BroadCast("A New Block Created: " + _port);
         }

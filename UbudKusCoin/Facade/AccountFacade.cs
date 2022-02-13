@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+
 using UbudKusCoin.Grpc;
 using UbudKusCoin.Others;
 using UbudKusCoin.Services;
@@ -19,7 +20,7 @@ namespace UbudKusCoin.Facade
 
         public AccountFacade()
         {
-            Console.WriteLine("Account initilize ....");
+            Console.WriteLine("...... Account initilized.");
         }
 
         public Account GetByAddress(string address)

@@ -24,7 +24,7 @@ namespace UbudKusCoin.Facade
 
         public ReportFacade()
         {
-            Console.WriteLine("Report initilize ....");
+            Console.WriteLine("...... Report initilized.");
 
             // BuildReport();
 

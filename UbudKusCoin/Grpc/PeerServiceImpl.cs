@@ -8,24 +8,23 @@
 using Grpc.Core;
 using UbudKusCoin.Services;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace UbudKusCoin.Grpc
 {
 
     public class PeerServiceImpl : PeerService.PeerServiceBase
     {
-        public override Task<PeerStatus> Add(Peer request, ServerCallContext context)
+        public override Task<AddPeerReply> Add(Peer request, ServerCallContext context)
         {
-            var response = new PeerStatus();
+            var response = new AddPeerReply();
             return Task.FromResult(response);
         }
 
-        public override Task<PeerList> GetRange(PeerPaging request, ServerCallContext context)
+        public override Task<NodeState> GetNodeState(EmptyParamPeer request, ServerCallContext context)
         {
-            var peers = ServicePool.DbService.peerDb.GetRange(request.PageNumber, request.ResultPerPage);
-            var list = new PeerList();
-            list.Peers.AddRange(peers);
-            return Task.FromResult(list);
+            var nodeState = ServicePool.FacadeService.Peer.GetNodeState();
+            return Task.FromResult(nodeState);
         }
 
 

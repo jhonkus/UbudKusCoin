@@ -14,7 +14,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UbudKusCoin.Grpc;
-using UbudKusCoin.Models;
 using UbudKusCoin.Others;
 using UbudKusCoin.Services;
 
@@ -24,58 +23,45 @@ namespace UbudKusCoin.P2P
     public class P2PService
     {
 
+
         IList<string> BlocksInTransit { set; get; }
 
-        IList<string> peers { set; get; }
+        public IList<Peer> knownPeers { set; get; }
 
-        private string nodeAddress { set; get; }
+        public string nodeAddress { set; get; }
 
         private int nodePort { set; get; }
 
         public P2PService()
         {
-            this.peers = new List<string>();
-
+            this.knownPeers = new List<Peer>();
         }
 
         public void Start()
         {
+            Console.WriteLine("... P2P service is starting");
             this.nodeAddress = DotNetEnv.Env.GetString("NODE_ADDRESS");
-            var knownpeers = DotNetEnv.Env.GetString("BOOTSRTAP_PEERS");
-            knownpeers.Replace(" ", "");
-            var tempPeers = knownpeers.Split(",");
-
-            for (int i = 0; i < tempPeers.Length; i += 3)
-            {
-                this.peers.Add(tempPeers[i]);
-            }
-
-            Console.WriteLine("List six: {0}", peers.Count);
-
+            this.knownPeers = ServicePool.DbService.peerDb.GetAll().FindAll().ToList();
             Task.Run(() =>
             {
-                this.BroadcastVersion();
-                this.StartNode();
+                this.StartP2PServer();
+
             });
         }
 
-        public void StartNode()
+        public void StartP2PServer()
         {
-
-            nodePort = getPortFromAddress(nodeAddress);
+            nodePort = GetPortFromAddress(nodeAddress);
             IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, nodePort);
-            //  Console.WriteLine("===== server starting on {0} {1}", System.Net.IPAddress.Any, nodePort);
-
+            Console.WriteLine("...... starting on PORT {0} {1}", System.Net.IPAddress.Any, nodePort);
 
             // create listener
             Socket listener = null;
             try
             {
-
-                IPAddress senderIP = makeIPLocal(nodeAddress);
-                listener = new Socket(senderIP.AddressFamily,
+                IPAddress nodeIP = MakeIPLocal(nodeAddress);
+                listener = new Socket(nodeIP.AddressFamily,
                          SocketType.Stream, ProtocolType.Tcp);
-
                 listener.Bind(localEndPoint);
                 listener.Listen(100);
             }
@@ -84,13 +70,14 @@ namespace UbudKusCoin.P2P
                 listener.Close();
                 Console.WriteLine(e.ToString());
             }
-            // ned off
+            
+            ServicePool.StateService.IsP2PServiceReady = true;
+            Console.WriteLine("...... Waiting connection");
+            Console.WriteLine("... P2P service is ready");
 
             while (true)
             {
-
-                Console.WriteLine("Waiting connection ... ");
-
+             
                 Socket client = null;
 
                 try
@@ -144,15 +131,15 @@ namespace UbudKusCoin.P2P
 
         public void HandleGetBlocks(string payload)
         {
-            var sourceAddress = payload;
-            Console.WriteLine("==== HandleGetBlocks from {0}", sourceAddress);
+            var remoteAddress = payload;
+            Console.WriteLine("==== HandleGetBlocks from {0}", remoteAddress);
             var blocks = ServicePool.DbService.blockDb.GetHashList();
-            this.sendInv(sourceAddress, blocks);
+            this.sendInv(remoteAddress, blocks);
         }
 
         private void sendInv(string remoteAddr, IList<string> items)
         {
-            var inv = new Inventory
+            var inv = new Facade.Inventory
             {
                 AddrFrom = this.nodeAddress,
                 Type = "block",
@@ -185,7 +172,7 @@ namespace UbudKusCoin.P2P
 
         public void HandleConnection(Socket clientSocket)
         {
-            //ocket clientSocket = (Socket)obj;
+            //socket clientSocket = (Socket)obj;
             byte[] bytes = new Byte[256];
             StringBuilder sbf = new StringBuilder();
             while (true)
@@ -206,24 +193,24 @@ namespace UbudKusCoin.P2P
 
             String[] cmds = dataReceived.Split(Constants.MESSAGE_SEPARATOR);
             var command = cmds[0];
-            var payload = cmds[1];
+            var remoteAddress = cmds[1];
 
             switch (command)
             {
-                case Constants.MESSAGE_TYPE_VERSION:
-                    this.HandleVersion(payload);
+                case Constants.MESSAGE_TYPE_STATE:
+                    this.HandleNodeState(remoteAddress);
                     break;
                 case Constants.MESSAGE_TYPE_INV:
-                    this.HandleInventory(payload);
+                    this.HandleInventory(remoteAddress);
                     break;
                 case Constants.MESSAGE_TYPE_GET_BLOCKS:
-                    this.HandleGetBlocks(payload);
+                    this.HandleGetBlocks(remoteAddress);
                     break;
                 case Constants.MESSAGE_TYPE_TRANSACTION:
-                    this.HandleTx(payload);
+                    this.HandleTx(remoteAddress);
                     break;
                 case Constants.MESSAGE_TYPE_BLOCK:
-                    this.HandleBlock(payload);
+                    this.HandleBlock(remoteAddress);
                     break;
                 default:
                     Console.WriteLine("Unknown command!");
@@ -245,7 +232,7 @@ namespace UbudKusCoin.P2P
 
         private void HandleInventory(string payload)
         {
-            var inventory = JsonConvert.DeserializeObject<Inventory>(payload);
+            var inventory = JsonConvert.DeserializeObject<Facade.Inventory>(payload);
             Console.WriteLine("Recevied inventory with {0} {0}", inventory.Items.Count, inventory.Type);
 
             if (inventory.Type == "block")
@@ -276,39 +263,49 @@ namespace UbudKusCoin.P2P
             SendData(remoteAddr, msg);
         }
 
-        private void HandleVersion(string payload)
+        private void HandleNodeState(string payload)
         {
-            var verzion = JsonConvert.DeserializeObject<Verzion>(payload);
-            Console.WriteLine("=== HandleVersion, version: {0}", verzion);
+            var remoteAddress = payload;
+            var nodeState = JsonConvert.DeserializeObject<NodeState>(payload);
+            Console.WriteLine("=== HandleNodeState, state: {0}", nodeState);
 
             // local block height
             var myBestHeight = ServicePool.DbService.blockDb.GetLast().Height;
 
             // remote block height
-            var peerBestHeight = verzion.Height;
+            var peerBestHeight = nodeState.Height;
 
             if (myBestHeight < peerBestHeight)
             {
-                this.SendGetBlocks(verzion.AddressFrom);
+                this.SendGetBlocks(remoteAddress);
             }
 
             else if (myBestHeight > peerBestHeight)
             {
-                this.SendVersion(verzion.AddressFrom);
+                this.SendNodeState(remoteAddress);
             }
 
             // if socket not in list
-            if (!socketIsKnown(verzion.AddressFrom))
+            if (!IsNewPeer(remoteAddress))
             {
-                this.peers.Add(verzion.AddressFrom);
+                var newPeer = new Peer
+                {
+                    Address = remoteAddress,
+                    IsBootstrap = false,
+                    IsCanreach = true,
+                    LastReach = Utils.GetTime(),
+                    TimeStamp = Utils.GetTime()
+                };
+
+                this.knownPeers.Add(newPeer);
             }
         }
 
-        private bool socketIsKnown(string address)
+        private bool IsNewPeer(string address)
         {
-            foreach (string item in this.peers)
+            foreach (var peer in this.knownPeers)
             {
-                if (address == item)
+                if (address == peer.Address)
                 {
                     return true;
                 }
@@ -316,28 +313,13 @@ namespace UbudKusCoin.P2P
             return false;
         }
 
-        private Verzion getVersion()
+        private void SendNodeState(string remoteAddr)
         {
-
-            var bestHeight = ServicePool.DbService.blockDb.GetLast().Height;
-            var payload = new Verzion
-            {
-                AddressFrom = this.nodeAddress,
-                Version = Constants.VERZION,
-                Height = bestHeight,
-            };
-            return payload;
-        }
-
-
-        private void SendVersion(string remoteAddr)
-        {
-            var version = getVersion();
-            var payload = JsonConvert.SerializeObject(version);
-            var msg = Constants.MESSAGE_TYPE_VERSION + Constants.MESSAGE_SEPARATOR + payload;
+            var nodeState = ServicePool.FacadeService.Peer.GetNodeState();
+            var payload = JsonConvert.SerializeObject(nodeState);
+            var msg = Constants.MESSAGE_TYPE_STATE + Constants.MESSAGE_SEPARATOR + payload;
             SendData(remoteAddr, msg);
         }
-
 
         private void SendBlock(string remoteAddr, Block block)
         {
@@ -346,28 +328,36 @@ namespace UbudKusCoin.P2P
             SendData(remoteAddr, msg);
         }
 
-        private void BroadcastVersion()
+        private void BroadcastState()
         {
-            var centralNode = this.peers[0];
-            Console.WriteLine("== Will send version to Central Node: {0}", centralNode);
-            // foreach (var socket in this.sockets)
-            // {
-            //     if (!socket.Equals(nodeAddress))
-            //     {
-            //         this.SendVersion(socket);
-            //     }
-            // }
-            this.SendVersion(centralNode);
+            foreach (var peer in this.knownPeers)
+            {
+                if (!nodeAddress.Equals(peer.Address))
+                {
+                    // send state to known peers
+                    Console.WriteLine("== Will send state to Node: {0}", peer);
+                    try
+                    {
+                        this.SendNodeState(peer.Address);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(" error when connecting: {0}", e.Message);
+                    }
+                }
+            }
+
+
         }
 
         private void BroadcastBlock(Block block)
         {
             Console.WriteLine("Will broadcasting block !");
-            foreach (var socket in this.peers)
+            foreach (var peer in this.knownPeers)
             {
-                if (!socket.Equals(nodeAddress))
+                if (!peer.Equals(nodeAddress))
                 {
-                    this.SendBlock(socket, block);
+                    this.SendBlock(peer.Address, block);
                 }
             }
         }
@@ -375,11 +365,11 @@ namespace UbudKusCoin.P2P
         public void BroadcastTransaction(Transaction transaction)
         {
             Console.WriteLine("Will broadcasting transaction, node Address: {0}", this.nodeAddress);
-            foreach (var socket in this.peers)
+            foreach (var peer in this.knownPeers)
             {
-                if (!socket.Equals(nodeAddress))
+                if (!peer.Equals(nodeAddress))
                 {
-                    this.SendTransaction(socket, transaction);
+                    this.SendTransaction(peer.Address, transaction);
                 }
             }
         }
@@ -399,48 +389,48 @@ namespace UbudKusCoin.P2P
 
             Task.Run(() =>
             {
-                Socket sender = null;
+                Socket socket = null;
                 try
                 {
-                    IPEndPoint remoteEndPoint = makeRemoteEndPoint(remoteAddr);
+                    IPEndPoint remoteEndPoint = MakeRemoteEndPoint(remoteAddr);
                     Console.WriteLine("==== 1 {0}", remoteEndPoint);
-                    IPAddress senderIP = makeIPLocal(nodeAddress);
-                    sender = new Socket(senderIP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                    sender.Connect(remoteEndPoint);
+                    IPAddress nodeIP = MakeIPLocal(nodeAddress);
+                    socket = new Socket(nodeIP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                    socket.Connect(remoteEndPoint);
 
                     byte[] messageSent = Encoding.ASCII.GetBytes(msg + "<EOF>");
-                    int byteSent = sender.Send(messageSent);
+                    int byteSent = socket.Send(messageSent);
                 }
                 catch (Exception e)
                 {
-                    sender.Shutdown(SocketShutdown.Both);
-                    sender.Close();
+                    socket.Shutdown(SocketShutdown.Both);
+                    socket.Close();
                     Console.WriteLine("Unexpected exception : {0}", e.ToString());
                 }
                 finally
                 {
-                    sender.Shutdown(SocketShutdown.Both);
-                    sender.Close();
+                    socket.Shutdown(SocketShutdown.Both);
+                    socket.Close();
                 }
 
             });
         }
 
-        private int getPortFromAddress(string nodeAddress)
+        private int GetPortFromAddress(string nodeAddress)
         {
             string[] address = nodeAddress.Split(':');
             var nodePort = int.Parse(address[1]);
             return nodePort;
         }
 
-        private IPAddress makeIPLocal(string nodeAddress)
+        private IPAddress MakeIPLocal(string nodeAddress)
         {
             string[] nodeAddr = nodeAddress.Split(':');
             var nodeIP = nodeAddr[0];
             return IPAddress.Parse(nodeIP);
         }
 
-        private IPEndPoint makeRemoteEndPoint(string remotAddr)
+        private IPEndPoint MakeRemoteEndPoint(string remotAddr)
         {
             string[] remoteAddress = remotAddr.Split(':');
             var remoteIP = remoteAddress[0];

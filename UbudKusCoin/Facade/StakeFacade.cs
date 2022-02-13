@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+
 using UbudKusCoin.Grpc;
 using UbudKusCoin.Others;
 using UbudKusCoin.Services;
@@ -18,7 +19,7 @@ namespace UbudKusCoin.Facade
         public StakeFacade()
         {
             Initialize();
-            Console.WriteLine("Stake initilize ....");
+            Console.WriteLine("...... Stake initilized.");
         }
 
         internal void Initialize()

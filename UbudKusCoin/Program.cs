@@ -24,6 +24,7 @@ namespace UbudKusCoin
             DotNetEnv.Env.TraversePath().Load();
 
             ServicePool.Add(
+                new StateService(),
                 new WalletService(),
                 new DbService(),
                 new FacadeService(),

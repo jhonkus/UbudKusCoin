@@ -12,11 +12,15 @@ using NBitcoin;
 
 using SimpleBase;
 
-using UbudKusCoin.Models;
-
 namespace UbudKusCoin.Services
 {
 
+    public class KeyPair
+    {
+        public ExtKey PrivateKey { set; get; }
+        public ExtPubKey PublicKey { set; get; }
+        public string PublicKeyHex { set; get; }
+    }
     public class WalletService
     {
         public KeyPair KeyPair { get; set; }
@@ -29,13 +33,13 @@ namespace UbudKusCoin.Services
         }
         public void Start()
         {
+            Console.WriteLine("... Wallet service is starting");
             this.Mnemonic = new Mnemonic(this.passphrase);
             this.KeyPair = GenerateKeyPair(this.Mnemonic, 0);
             // this.Mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
-            Console.WriteLine("== Wallet: {0}", this.Mnemonic);
-            Console.WriteLine("== Address: {0}", this.GetAddress());
-            Console.WriteLine("== public key Hex: {0}", this.GetKeyPair().PublicKeyHex);
-            Console.WriteLine("Creating wallet done!");
+            // Console.WriteLine("== Address: {0}", this.GetAddress());
+            ServicePool.StateService.IsWalletServiceReady = true;
+            Console.WriteLine("... Wallet service is Ready");
         }
 
         public static KeyPair GenerateKeyPair(Mnemonic mnemonic, int path)

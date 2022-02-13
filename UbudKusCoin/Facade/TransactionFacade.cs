@@ -6,12 +6,12 @@
 // modifications are permitted.
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
+
+using UbudKusCoin.Grpc;
 using UbudKusCoin.Others;
 using UbudKusCoin.Services;
-using UbudKusCoin.Grpc;
-using Newtonsoft.Json;
 
 namespace UbudKusCoin.Facade
 {
@@ -21,7 +21,7 @@ namespace UbudKusCoin.Facade
 
         public TransactionFacade()
         {
-            Console.WriteLine("Transaction initilize ....");
+            Console.WriteLine("...... Transaction initilized.");
         }
 
         public string AddBulk(List<Transaction> transactions)

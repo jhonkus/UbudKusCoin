@@ -7,14 +7,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Numerics;
 using System.Text.Json;
 using System.Threading;
-using System.Diagnostics;
 
 using UbudKusCoin.Grpc;
 using UbudKusCoin.Others;
 using UbudKusCoin.Services;
-using System.Numerics;
 namespace UbudKusCoin.Facade
 {
 
@@ -24,7 +24,7 @@ namespace UbudKusCoin.Facade
         public BlockFacade()
         {
             Initialize();
-            Console.WriteLine("Block initilize ....");
+            Console.WriteLine("...... Block initilized.");
         }
 
 
@@ -117,22 +117,21 @@ namespace UbudKusCoin.Facade
         public void CreateNew()
         {
 
-            Console.WriteLine("Minnter 1");
 
             Stopwatch stopWatch = new Stopwatch();
 
             stopWatch.Start();
             // start build time
             var startTimer = DateTime.UtcNow.Millisecond;
-            Console.WriteLine("Minnter 2");
+
 
             // get transaction from pool
             var txnsInPool = ServicePool.DbService.transactionsPooldb.GetAll();
-            Console.WriteLine("Minnter 3");
+
 
             var lastTimestamp = 0L;
             var wallet = ServicePool.WalletService;
-            Console.WriteLine("Minnter 4");
+
 
             var lastBlock = ServicePool.DbService.blockDb.GetLast();
             var nextHeight = lastBlock.Height + 1;
@@ -145,12 +144,9 @@ namespace UbudKusCoin.Facade
             var minterBalance = minterAccount.Balance;
             Random rnd = new Random();
 
-
-            int i = 0;
             while (true)
             {
-                Console.WriteLine(i++);
-                Thread.Sleep(100);
+                Thread.Sleep(100); //just for make delay so not fo fast
                 var timestamp = Utils.GetTime();
 
                 if (lastTimestamp != timestamp)

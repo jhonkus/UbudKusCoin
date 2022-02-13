@@ -31,9 +31,9 @@ namespace UbudKusCoin.DB
         public List<Peer> GetRange(int pageNumber, int resultPerPage)
         {
             var peers = GetAll();
-            peers.EnsureIndex(x => x.TimeStamp);
+            peers.EnsureIndex(x => x.LastReach);
             var query = peers.Query()
-                .OrderByDescending(x => x.TimeStamp)
+                .OrderByDescending(x => x.LastReach)
                 .Offset((pageNumber - 1) * resultPerPage)
                 .Limit(resultPerPage).ToList();
             return query;
@@ -48,7 +48,7 @@ namespace UbudKusCoin.DB
         public ILiteCollection<Peer> GetAll()
         {
             var peers = this._db.GetCollection<Peer>(Constants.TBL_PEERS);
-            peers.EnsureIndex(x => x.TimeStamp);
+            peers.EnsureIndex(x => x.LastReach);
             return peers;
         }
         public List<Peer> PeerrList { get; set; }

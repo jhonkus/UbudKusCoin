@@ -16,7 +16,7 @@ namespace UbudKusCoin.Facade
 
         public TransactionPoolFacade()
         {
-            Console.WriteLine("Transaction pool initilize ....");
+            Console.WriteLine("...... Transaction pool initilized");
         }
 
         public bool IsTransactionExist(Transaction txn)

@@ -10,7 +10,7 @@ namespace UbudKusCoin.Others
     public class Constants
     {
 
-        public const int VERZION = 0;
+        public const int VERSION = 0;
         public const double DEFAULT_TRANSACTION_FEE = 0.001;
         public const double COINT_REWARD = 0.001f;
         public const string TBL_BLOCKS = "tbl_blocks";
@@ -25,7 +25,7 @@ namespace UbudKusCoin.Others
         public const string MESSAGE_TYPE_INV = "INVENTORY";
         public const string MESSAGE_TYPE_GET_BLOCKS = "GET_BLOCKS";
         public const string MESSAGE_TYPE_GET_DATA = "GET_DATA";
-        public const string MESSAGE_TYPE_VERSION = "VERSION";
+        public const string MESSAGE_TYPE_STATE = "NODE_SATE";
         public const string MESSAGE_SEPARATOR = "||";
         public const string MESSAGE_TYPE_BLOCK = "BLOCK";
         public const string MESSAGE_TYPE_TRANSACTION = "TRANSACTION";
