@@ -16,6 +16,7 @@ using Newtonsoft.Json;
 using UbudKusCoin.Grpc;
 using UbudKusCoin.Others;
 using UbudKusCoin.Services;
+using System.Threading;
 
 namespace UbudKusCoin.P2P
 {
@@ -70,14 +71,14 @@ namespace UbudKusCoin.P2P
                 listener.Close();
                 Console.WriteLine(e.ToString());
             }
-            
+
             ServicePool.StateService.IsP2PServiceReady = true;
             Console.WriteLine("...... Waiting connection");
             Console.WriteLine("... P2P service is ready");
 
             while (true)
             {
-             
+
                 Socket client = null;
 
                 try
@@ -282,7 +283,7 @@ namespace UbudKusCoin.P2P
 
             else if (myBestHeight > peerBestHeight)
             {
-                this.SendNodeState(remoteAddress);
+                this.RequestNodeState(remoteAddress);
             }
 
             // if socket not in list
@@ -313,10 +314,12 @@ namespace UbudKusCoin.P2P
             return false;
         }
 
-        private void SendNodeState(string remoteAddr)
+        private void RequestNodeState(string remoteAddr)
         {
             var nodeState = ServicePool.FacadeService.Peer.GetNodeState();
             var payload = JsonConvert.SerializeObject(nodeState);
+            // Console.WriteLine("=== payload {0}", payload);
+
             var msg = Constants.MESSAGE_TYPE_STATE + Constants.MESSAGE_SEPARATOR + payload;
             SendData(remoteAddr, msg);
         }
@@ -328,23 +331,26 @@ namespace UbudKusCoin.P2P
             SendData(remoteAddr, msg);
         }
 
-        private void BroadcastState()
+        public void SyncState()
         {
+
             foreach (var peer in this.knownPeers)
             {
                 if (!nodeAddress.Equals(peer.Address))
                 {
-                    // send state to known peers
-                    Console.WriteLine("== Will send state to Node: {0}", peer);
                     try
                     {
-                        this.SendNodeState(peer.Address);
+                        // send state to known peers
+                        Console.WriteLine("...... Reequest state from Node: {0}", peer.Address);
+                        RequestNodeState(peer.Address);
                     }
                     catch (Exception e)
                     {
                         Console.WriteLine(" error when connecting: {0}", e.Message);
                     }
                 }
+
+                Thread.Sleep(30000); // give time to next peer
             }
 
 

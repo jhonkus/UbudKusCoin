@@ -24,16 +24,19 @@ namespace UbudKusCoin.Services
         }
 
         public void Start()
-        {         
+        {
             // Console.WriteLine("...... Waiiting P2P Ready");
             while (!ServicePool.StateService.IsNodeStateReady())
             {
-
+                //waiting until P2P Ready       
             }
 
             Console.WriteLine("... Minting Service is starting");
             Console.WriteLine("...... Sync state with peer");
-            //TODO this.BroadcastState();
+            
+            // sync state with others
+            ServicePool.P2PService.SyncState();
+          
             Console.WriteLine("...... Sync block is symced");
             Console.WriteLine("... Minting Service is Ready.");
 

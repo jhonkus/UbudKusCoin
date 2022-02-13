@@ -44,7 +44,7 @@ message Peer {
 message NodeState {
   string hash = 1;
   int64 height  = 2;
-  string known_peers = 3;
+  repeated Peer known_peers = 3;
   string address = 4;
   int32 version = 5;
 }

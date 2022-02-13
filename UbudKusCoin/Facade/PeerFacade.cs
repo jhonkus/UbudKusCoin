@@ -1,3 +1,4 @@
+using System.Linq;
 // Created by I Putu Kusuma Negara
 // markbrain2013[at]gmail.com
 // 
@@ -26,23 +27,27 @@ namespace UbudKusCoin.Facade
 
     public class PeerFacade
     {
+
+        public List<Peer> peers { set; get; }
         public PeerFacade()
         {
+            this.peers = new List<Peer>();
+
             Initialize();
             Console.WriteLine("...... Peer initilized.");
         }
 
         internal void Initialize()
         {
-            var peers = ServicePool.DbService.peerDb.GetAll();
-            if (peers.Count() < 1)
+
+            if (this.peers.Count() < 1)
             {
                 var bootstrapPeers = DotNetEnv.Env.GetString("BOOTSRTAP_PEERS");
                 bootstrapPeers.Replace(" ", "");
                 var tempPeers = bootstrapPeers.Split(",");
                 for (int i = 0; i < tempPeers.Length; i++)
                 {
-                    peers.Insert(new Grpc.Peer
+                    this.peers.Add(new Grpc.Peer
                     {
                         Address = tempPeers[i],
                         IsBootstrap = true,
@@ -53,16 +58,24 @@ namespace UbudKusCoin.Facade
             }
         }
 
-        public  NodeState GetNodeState()
+        public NodeState GetNodeState()
         {
             var lastBlock = ServicePool.DbService.blockDb.GetLast();
+            Console.WriteLine(" lastBlock Hash {0}", lastBlock.Hash);
+
+
+            Console.WriteLine(" peers {0}", this.peers.Count());
+
             var nodeState = new Grpc.NodeState
             {
+                Version = Constants.VERSION,
+                Height = lastBlock.Height,
                 Address = ServicePool.P2PService.nodeAddress,
-                Hash = lastBlock.Hash,
-                KnownPeers = JsonConvert.SerializeObject(ServicePool.DbService.peerDb.GetAll()),
+                Hash = lastBlock.Hash
             };
-            return  nodeState;
+            nodeState.KnownPeers.AddRange(this.peers);
+            
+            return nodeState;
         }
 
     }
