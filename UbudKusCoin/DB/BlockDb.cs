@@ -24,10 +24,26 @@ namespace UbudKusCoin.DB
             _db = db;
         }
 
-        public void Add(Block block)
+        public AddBlockStatus Add(Block block)
         {
             var blocks = GetAll();
-            blocks.Insert(block);
+            try
+            {
+                blocks.Insert(block);
+                return new AddBlockStatus
+                {
+                    Status = "success",
+                    Message = "block added successfully"
+                };
+            }
+            catch (Exception e)
+            {
+                return new AddBlockStatus
+                {
+                    Status = "fail",
+                    Message = e.Message
+                };
+            }
         }
 
         public Block GetFirst()
@@ -76,6 +92,16 @@ namespace UbudKusCoin.DB
             return query;
         }
 
+        public List<Block> GetRemains(long startHeight)
+        {
+            var blocks = GetAll();
+            blocks.EnsureIndex(x => x.Height);
+            var query = blocks.Query()
+                .OrderByDescending(x => x.Height)
+                .Where(x => x.Height > startHeight && x.Height <= (startHeight + 50))
+                .ToList();
+            return query;
+        }
 
         public List<Block> GetLasts(int num)
         {
@@ -105,7 +131,7 @@ namespace UbudKusCoin.DB
             return coll;
         }
 
-       public IList<string> GetHashList()
+        public IList<string> GetHashList()
         {
             var blocks = GetAll();
             IList<string> hashList = new List<string>();

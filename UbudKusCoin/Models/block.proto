@@ -9,11 +9,22 @@ syntax = "proto3";
 option csharp_namespace = "UbudKusCoin.Grpc";
 
 service BlockService {
+  rpc Add(Block)returns (AddBlockStatus);
+  rpc GetRemains(StartingParam)returns (BlockList);
   rpc GetRange(BlockParams) returns (BlockList);
   rpc GetByHeight(Block) returns (Block);
   rpc GetByHash(Block) returns (Block);
   rpc GetFirst(Block) returns (Block);
   rpc GetLast(Block)  returns (Block);
+}
+
+message AddBlockStatus{
+  string status = 1;
+  string message = 2;
+}
+
+message StartingParam{
+  int64 height = 1;
 }
 
 message BlockParams{

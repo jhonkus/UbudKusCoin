@@ -10,7 +10,12 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="DotNetEnv" Version="2.3.0" />
-    <PackageReference Include="Grpc.Tools" Version="2.43.0">
+
+
+    <PackageReference Include="Grpc.Net.Client" Version="2.42.0" />
+    <PackageReference Include="Grpc.Net.Client.Web" Version="2.42.0" />
+    <PackageReference Include="Google.Protobuf" Version="3.19.4" />
+    <PackageReference Include="Grpc.Tools" Version="2.44.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -27,8 +32,8 @@
   </ItemGroup>
   <ItemGroup>
     <Protobuf Include="Models\account.proto" GrpcServices="Server" />
-    <Protobuf Include="Models\block.proto" GrpcServices="Server" />
-    <Protobuf Include="Models\peer.proto" GrpcServices="Server" />
+    <Protobuf Include="Models\block.proto" GrpcServices="Server, Client" />
+    <Protobuf Include="Models\peer.proto" GrpcServices="Server, Client" />
     <Protobuf Include="Models\report.proto" GrpcServices="Server" />
     <Protobuf Include="Models\stake.proto" GrpcServices="Server" />
     <Protobuf Include="Models\transaction.proto" GrpcServices="Server" />

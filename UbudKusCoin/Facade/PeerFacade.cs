@@ -1,4 +1,3 @@
-using System.Linq;
 // Created by I Putu Kusuma Negara
 // markbrain2013[at]gmail.com
 // 
@@ -6,20 +5,19 @@ using System.Linq;
 // Redistribution and use in source and binary forms with or without
 // modifications are permitted.
 
+using System.Linq;
 using System;
 using System.Collections.Generic;
 
 using UbudKusCoin.Others;
 using UbudKusCoin.Services;
 using UbudKusCoin.Grpc;
-using Newtonsoft.Json;
 
 
 namespace UbudKusCoin.Facade
 {
     class Inventory
     {
-        public string AddrFrom { set; get; }
         public string Type { set; get; }
         public IList<string> Items { set; get; }
     }
@@ -27,45 +25,46 @@ namespace UbudKusCoin.Facade
 
     public class PeerFacade
     {
+        public List<Peer> initialPeers { get; set; }
 
-        public List<Peer> peers { set; get; }
         public PeerFacade()
         {
-            this.peers = new List<Peer>();
-
             Initialize();
             Console.WriteLine("...... Peer initilized.");
         }
 
         internal void Initialize()
         {
-
-            if (this.peers.Count() < 1)
+            var knowPeers = ServicePool.DbService.peerDb.GetAll();
+            if (knowPeers.Count() < 1)
             {
+                initialPeers = new List<Peer>();
                 var bootstrapPeers = DotNetEnv.Env.GetString("BOOTSRTAP_PEERS");
                 bootstrapPeers.Replace(" ", "");
                 var tempPeers = bootstrapPeers.Split(",");
                 for (int i = 0; i < tempPeers.Length; i++)
                 {
-                    this.peers.Add(new Grpc.Peer
+                    var newPeer = new Grpc.Peer
                     {
                         Address = tempPeers[i],
                         IsBootstrap = true,
                         IsCanreach = false,
                         LastReach = Utils.GetTime()
-                    });
+                    };
+                    ServicePool.DbService.peerDb.Add(newPeer);
+                    initialPeers.Add(newPeer);
                 }
             }
+        }
+
+        public List<Peer> GetKnownPeers()
+        {
+            return ServicePool.DbService.peerDb.GetAll().FindAll().ToList();
         }
 
         public NodeState GetNodeState()
         {
             var lastBlock = ServicePool.DbService.blockDb.GetLast();
-            Console.WriteLine(" lastBlock Hash {0}", lastBlock.Hash);
-
-
-            Console.WriteLine(" peers {0}", this.peers.Count());
-
             var nodeState = new Grpc.NodeState
             {
                 Version = Constants.VERSION,
@@ -73,9 +72,14 @@ namespace UbudKusCoin.Facade
                 Address = ServicePool.P2PService.nodeAddress,
                 Hash = lastBlock.Hash
             };
-            nodeState.KnownPeers.AddRange(this.peers);
-            
+            nodeState.KnownPeers.AddRange(GetKnownPeers());
             return nodeState;
+        }
+
+
+        public void Add(Peer peer)
+        {
+            ServicePool.DbService.peerDb.Add(peer);
         }
 
     }

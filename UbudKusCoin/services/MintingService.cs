@@ -32,18 +32,37 @@ namespace UbudKusCoin.Services
             }
 
             Console.WriteLine("... Minting Service is starting");
-            Console.WriteLine("...... Sync state with peer");
-            
+
+
             // sync state with others
             ServicePool.P2PService.SyncState();
-          
-            Console.WriteLine("...... Sync block is symced");
-            Console.WriteLine("... Minting Service is Ready.");
 
             Console.WriteLine("... Node is Ready.");
 
             if (ServicePool.StateService.IsNodeStateReady())
             {
+
+
+                var knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();
+
+                var nodeAddress = ServicePool.P2PService.nodeAddress;
+            
+                is isBootstrap = false;
+                foreach (var peer in knownPeers)
+                {
+                    if (peer.IsBootstrap && nodeAddress.Equals(peer.Address))
+                    {
+                        Console.WriteLine("... Waiting 1 hour to minting.");
+                        isBootsrap = true;
+                        break;
+                    }
+                }
+
+                if (!isBootsrap)
+                {
+                    Thread.Sleep(10 * 60 * 1000);
+                }
+
                 cancelTask = new CancellationTokenSource();
                 Task.Run(() => MintingBlock(), cancelTask.Token);
             }

@@ -1,4 +1,5 @@
 ﻿/UbudKusCoin/obj
+/UbudKusCoin/*.zip
 /UbudKusCoin/bin
 /UbudKusCoin/DbFiles/*.db
 /UbudKusCoin/publish-linux

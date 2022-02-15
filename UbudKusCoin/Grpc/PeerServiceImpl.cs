@@ -1,4 +1,5 @@
-﻿// Created by I Putu Kusuma Negara
+﻿using Microsoft.VisualBasic.CompilerServices;
+// Created by I Putu Kusuma Negara
 // markbrain2013[at]gmail.com
 // 
 // Ubudkuscoin is free software distributed under the MIT software license,
@@ -21,8 +22,16 @@ namespace UbudKusCoin.Grpc
             return Task.FromResult(response);
         }
 
-        public override Task<NodeState> GetNodeState(EmptyParamPeer request, ServerCallContext context)
+        public override Task<NodeState> GetNodeState(NodeParam request, ServerCallContext context)
         {
+            ServicePool.FacadeService.Peer.Add(new Peer{
+                Address = request.NodeIpAddress,
+                IsBootstrap = false,
+                IsCanreach = true,
+                LastReach = Others.Utils.GetTime(),
+                TimeStamp = Others.Utils.GetTime()
+            });
+
             var nodeState = ServicePool.FacadeService.Peer.GetNodeState();
             return Task.FromResult(nodeState);
         }

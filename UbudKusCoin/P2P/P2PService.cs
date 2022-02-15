@@ -11,15 +11,25 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UbudKusCoin.Grpc;
 using UbudKusCoin.Others;
 using UbudKusCoin.Services;
-using System.Threading;
+using Grpc.Net.Client;
+using static UbudKusCoin.Grpc.PeerService;
+using static UbudKusCoin.Grpc.BlockService;
 
 namespace UbudKusCoin.P2P
 {
+
+
+    public class GetData
+    {
+        public string Type { set; get; }
+        public string ID { set; get; }
+    }
 
     public class P2PService
     {
@@ -27,133 +37,212 @@ namespace UbudKusCoin.P2P
 
         IList<string> BlocksInTransit { set; get; }
 
-        public IList<Peer> knownPeers { set; get; }
-
         public string nodeAddress { set; get; }
 
         private int nodePort { set; get; }
 
         public P2PService()
         {
-            this.knownPeers = new List<Peer>();
+            this.nodeAddress = DotNetEnv.Env.GetString("NODE_ADDRESS");
         }
 
         public void Start()
         {
             Console.WriteLine("... P2P service is starting");
-            this.nodeAddress = DotNetEnv.Env.GetString("NODE_ADDRESS");
-            this.knownPeers = ServicePool.DbService.peerDb.GetAll().FindAll().ToList();
-            Task.Run(() =>
-            {
-                this.StartP2PServer();
 
-            });
-        }
+            ListenEvent();
 
-        public void StartP2PServer()
-        {
-            nodePort = GetPortFromAddress(nodeAddress);
-            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, nodePort);
-            Console.WriteLine("...... starting on PORT {0} {1}", System.Net.IPAddress.Any, nodePort);
+            // Task.Run(() =>
+            // {
+            //     this.StartP2PServer();
 
-            // create listener
-            Socket listener = null;
-            try
-            {
-                IPAddress nodeIP = MakeIPLocal(nodeAddress);
-                listener = new Socket(nodeIP.AddressFamily,
-                         SocketType.Stream, ProtocolType.Tcp);
-                listener.Bind(localEndPoint);
-                listener.Listen(100);
-            }
-            catch (Exception e)
-            {
-                listener.Close();
-                Console.WriteLine(e.ToString());
-            }
-
+            // });
             ServicePool.StateService.IsP2PServiceReady = true;
-            Console.WriteLine("...... Waiting connection");
-            Console.WriteLine("... P2P service is ready");
+        }
 
-            while (true)
+        private void ListenEvent()
+        {
+            ServicePool.EventService.EventBlockCreated += Evt_EventBlockCreated;
+            ServicePool.EventService.EventTransactionCreated += Evt_EventTransactionCreated;
+        }
+
+        void Evt_EventBlockCreated(object sender, Block block)
+        {
+            BroadcastBlock(block);
+        }
+
+        private void BroadcastBlock(Block block)
+        {
+            var knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();
+            Console.WriteLine("Will broadcasting block ! {0}", knownPeers);
+            foreach (var peer in knownPeers)
             {
-
-                Socket client = null;
-
-                try
+                Console.WriteLine("Will broadcasting block ! {0}", peer);
+                if (!peer.Equals(nodeAddress))
                 {
-                    client = listener.Accept();
-                    Console.WriteLine("== Accept connection from: {0}", client.RemoteEndPoint);
-                    HandleConnection(client);
-
-                    //client.Shutdown(SocketShutdown.Both);
-                    client.Close();
-
-                }
-                catch (Exception e)
-                {
-                    client.Close();
-                    Console.WriteLine(e.ToString());
+                    this.SendBlock(peer, block);
                 }
             }
         }
 
-        public void HandleBlock(string payload)
+
+        void Evt_EventTransactionCreated(object sender, Transaction txn)
         {
-            var block = JsonConvert.DeserializeObject<Block>(payload);
-
-            Console.WriteLine("==== handleBlock {0}", payload + "||" + DateTime.Now.ToString("dd:mm:yy HH:mm:ss tt"));
-
-            if (ServicePool.FacadeService.Block.isValidBlock(block))
-            {
-                ServicePool.DbService.blockDb.Add(block);
-
-                //ServicePool.FacadeService.Transaction.UpdateBalance(block.Transactions);
-
-                // move pool to to transactions db
-                //ServicePool.FacadeService.Transaction.AddBulk(block.Transactions);
-
-                // clear mempool
-                ServicePool.DbService.transactionsPooldb.DeleteAll();
-
-                //triger event block created
-                ServicePool.EventService.OnEventBlockCreated(block);
-
-                //broadcat block again
-                // this.BroadcastBlock(block);
-
-                // TODO    
-                // this.transactionPool.Clear();
-            }
 
         }
 
 
-        public void HandleGetBlocks(string payload)
-        {
-            var remoteAddress = payload;
-            Console.WriteLine("==== HandleGetBlocks from {0}", remoteAddress);
-            var blocks = ServicePool.DbService.blockDb.GetHashList();
-            this.sendInv(remoteAddress, blocks);
-        }
+        // public void StartP2PServer()
+        // {
+        //     nodePort = GetPortFromAddress(nodeAddress);
+        //     IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, nodePort);
+        //     Console.WriteLine("...... starting on PORT {0} {1}", System.Net.IPAddress.Any, nodePort);
 
-        private void sendInv(string remoteAddr, IList<string> items)
+        //     // create listener
+        //     Socket listener = null;
+        //     try
+        //     {
+        //         IPAddress nodeIP = MakeIPLocal(nodeAddress);
+        //         listener = new Socket(nodeIP.AddressFamily,
+        //                  SocketType.Stream, ProtocolType.Tcp);
+        //         listener.Bind(localEndPoint);
+        //         listener.Listen(100);
+        //     }
+        //     catch (Exception e)
+        //     {
+        //         listener.Close();
+        //         Console.WriteLine(e.ToString());
+        //     }
+
+        //     ServicePool.StateService.IsP2PServiceReady = true;
+        //     Console.WriteLine("...... Waiting connection");
+        //     Console.WriteLine("... P2P service is ready");
+
+        //     while (true)
+        //     {
+
+        //         Socket client = null;
+
+        //         try
+        //         {
+        //             client = listener.Accept();
+        //             Console.WriteLine("== Accept connection from: {0}", client.RemoteEndPoint);
+        //             HandleConnection(client);
+
+        //             //client.Shutdown(SocketShutdown.Both);
+        //             client.Close();
+
+        //         }
+        //         catch (Exception e)
+        //         {
+        //             client.Close();
+        //             Console.WriteLine(e.ToString());
+        //         }
+        //     }
+        // }
+
+        // public void HandleConnection(Socket clientSocket)
+        // {
+        //     //socket clientSocket = (Socket)obj;
+        //     byte[] bytes = new Byte[256];
+        //     StringBuilder sbf = new StringBuilder();
+        //     while (true)
+        //     {
+
+        //         int numByte = clientSocket.Receive(bytes);
+        //         var data = Encoding.ASCII.GetString(bytes, 0, numByte);
+        //         sbf.Append(data);
+
+        //         if (data.IndexOf("<EOF>", StringComparison.Ordinal) > -1)
+        //         {
+        //             break;
+        //         }
+        //     }
+
+        //     var dataReceived = sbf.ToString().Replace("<EOF>", "");
+        //     Console.WriteLine("Received: {0}, on timestamp: {1}", dataReceived, DateTime.Now);
+
+        //     String[] msgs = dataReceived.Split(Constants.MESSAGE_SEPARATOR);
+        //     var command = msgs[0];
+        //     var paylod = msgs[1];
+        //     var clientIP = msgs[2];
+
+
+        //     switch (command)
+        //     {
+        //         case Constants.MESSAGE_TYPE_STATE:
+        //             this.HandleNodeState(paylod, clientSocket, clientIP);
+        //             break;
+        //         case Constants.MESSAGE_TYPE_INV:
+        //             this.HandleInventory(paylod, clientSocket, clientIP);
+        //             break;
+        //         case Constants.MESSAGE_TYPE_GET_BLOCKS:
+        //             this.HandleGetBlocks(paylod, clientSocket, clientIP);
+        //             break;
+        //         case Constants.MESSAGE_TYPE_TRANSACTION:
+        //             this.HandleTx(paylod, clientSocket, clientIP);
+        //             break;
+        //         case Constants.MESSAGE_TYPE_BLOCK:
+        //             this.HandleBlock(paylod, clientSocket, clientIP);
+        //             break;
+        //         default:
+        //             Console.WriteLine("Unknown command!");
+        //             break;
+        //     }
+        // }
+        // public void HandleBlock(string payload, Socket cleintsocket, string clientIP)
+        // {
+        //     var block = JsonConvert.DeserializeObject<Block>(payload);
+
+        //     Console.WriteLine("==== handleBlock {0}", payload + "||" + DateTime.Now.ToString("dd:mm:yy HH:mm:ss tt"));
+
+        //     if (ServicePool.FacadeService.Block.isValidBlock(block))
+        //     {
+        //         ServicePool.DbService.blockDb.Add(block);
+
+        //         //ServicePool.FacadeService.Transaction.UpdateBalance(block.Transactions);
+
+        //         // move pool to to transactions db
+        //         //ServicePool.FacadeService.Transaction.AddBulk(block.Transactions);
+
+        //         // clear mempool
+        //         ServicePool.DbService.transactionsPooldb.DeleteAll();
+
+        //         //triger event block created
+        //         ServicePool.EventService.OnEventBlockCreated(block);
+
+        //         //broadcat block again
+        //         // this.BroadcastBlock(block);
+
+        //         // TODO    
+        //         // this.transactionPool.Clear();
+        //     }
+
+        // }
+
+
+        // public void HandleGetBlocks(string payload, Socket clientSocket, string clientIP)
+        // {
+        //     Console.WriteLine("==== HandleGetBlocks from {0}", clientIP);
+        //     var blocks = ServicePool.DbService.blockDb.GetHashList();
+        //     this.sendInv(clientIP, blocks);
+        // }
+
+        private void sendInv(string peerIP, IList<string> items)
         {
             var inv = new Facade.Inventory
             {
-                AddrFrom = this.nodeAddress,
                 Type = "block",
                 Items = items
             };
 
             var payload = JsonConvert.SerializeObject(inv);
-            var msg = Constants.MESSAGE_TYPE_INV + Constants.MESSAGE_SEPARATOR + payload;
-            this.SendData(remoteAddr, msg);
+            var msg = Constants.MESSAGE_TYPE_INV + Constants.MESSAGE_SEPARATOR + payload + Constants.MESSAGE_SEPARATOR + peerIP;
+            this.SendRequest(peerIP, msg);
         }
 
 
-        public void HandleTx(string payload)
+        public void HandleTx(string payload, Socket clientSocket, string clientIP)
         {
             //1. convert string to Transaction obj
             var trx = JsonConvert.DeserializeObject<Transaction>(payload);
@@ -170,68 +259,19 @@ namespace UbudKusCoin.P2P
 
         }
 
-
-        public void HandleConnection(Socket clientSocket)
-        {
-            //socket clientSocket = (Socket)obj;
-            byte[] bytes = new Byte[256];
-            StringBuilder sbf = new StringBuilder();
-            while (true)
-            {
-
-                int numByte = clientSocket.Receive(bytes);
-                var data = Encoding.ASCII.GetString(bytes, 0, numByte);
-                sbf.Append(data);
-
-                if (data.IndexOf("<EOF>", StringComparison.Ordinal) > -1)
-                {
-                    break;
-                }
-            }
-
-            var dataReceived = sbf.ToString().Replace("<EOF>", "");
-            Console.WriteLine("Received: {0}, on timestamp: {1}", dataReceived, DateTime.Now);
-
-            String[] cmds = dataReceived.Split(Constants.MESSAGE_SEPARATOR);
-            var command = cmds[0];
-            var remoteAddress = cmds[1];
-
-            switch (command)
-            {
-                case Constants.MESSAGE_TYPE_STATE:
-                    this.HandleNodeState(remoteAddress);
-                    break;
-                case Constants.MESSAGE_TYPE_INV:
-                    this.HandleInventory(remoteAddress);
-                    break;
-                case Constants.MESSAGE_TYPE_GET_BLOCKS:
-                    this.HandleGetBlocks(remoteAddress);
-                    break;
-                case Constants.MESSAGE_TYPE_TRANSACTION:
-                    this.HandleTx(remoteAddress);
-                    break;
-                case Constants.MESSAGE_TYPE_BLOCK:
-                    this.HandleBlock(remoteAddress);
-                    break;
-                default:
-                    Console.WriteLine("Unknown command!");
-                    break;
-            }
-        }
-        private void SendGetData(string remoteAddr, string type, string id)
+        private void SendGetData(string peerIP, string type, string id)
         {
             var data = new GetData
             {
-                AddrFrom = this.nodeAddress,
                 Type = type,
                 ID = id
             };
             var payload = JsonConvert.SerializeObject(data);
-            var msg = Constants.MESSAGE_TYPE_GET_DATA + Constants.MESSAGE_SEPARATOR + payload;
-            SendData(remoteAddr, msg);
+            var msg = Constants.MESSAGE_TYPE_GET_DATA + Constants.MESSAGE_SEPARATOR + payload + Constants.MESSAGE_SEPARATOR + peerIP;
+            SendRequest(peerIP, msg);
         }
 
-        private void HandleInventory(string payload)
+        private void HandleInventory(string payload, Socket clientSocket, string clientIP)
         {
             var inventory = JsonConvert.DeserializeObject<Facade.Inventory>(payload);
             Console.WriteLine("Recevied inventory with {0} {0}", inventory.Items.Count, inventory.Type);
@@ -240,7 +280,7 @@ namespace UbudKusCoin.P2P
             {
                 BlocksInTransit = inventory.Items;
                 var blockHash = inventory.Items[0];
-                this.SendGetData(inventory.AddrFrom, "block", blockHash);
+                this.SendGetData(clientIP, "block", blockHash);
 
                 IList<string> newInTransit = new List<string>();
 
@@ -257,54 +297,37 @@ namespace UbudKusCoin.P2P
 
         }
 
-        private void SendGetBlocks(string remoteAddr)
+
+        private void DownloadBlocks(string address, long lastBlockHeight, long peerHeight)
         {
-            var payload = this.nodeAddress;
-            var msg = Constants.MESSAGE_TYPE_GET_BLOCKS + Constants.MESSAGE_SEPARATOR + payload;
-            SendData(remoteAddr, msg);
-        }
 
-        private void HandleNodeState(string payload)
-        {
-            var remoteAddress = payload;
-            var nodeState = JsonConvert.DeserializeObject<NodeState>(payload);
-            Console.WriteLine("=== HandleNodeState, state: {0}", nodeState);
 
-            // local block height
-            var myBestHeight = ServicePool.DbService.blockDb.GetLast().Height;
-
-            // remote block height
-            var peerBestHeight = nodeState.Height;
-
-            if (myBestHeight < peerBestHeight)
+            GrpcChannel channel = GrpcChannel.ForAddress("http://" + address);
+            var blockService = new BlockServiceClient(channel);
+            var response = blockService.GetRemains(new StartingParam { Height = lastBlockHeight });
+            List<Block> blocks = response.Blocks.ToList();
+            blocks.Reverse();
+            var lastHeight = lastBlockHeight;
+            Console.WriteLine("=== Downloading Block , from: {0}, to {1}", lastBlockHeight, lastBlockHeight + 50);
+            foreach (var block in blocks)
             {
-                this.SendGetBlocks(remoteAddress);
+                Console.WriteLine("==== Block" + block.Height);
+                // TODO, VALIDATE BLOCK
+                ServicePool.DbService.blockDb.Add(block);
+                lastHeight = block.Height;
             }
 
-            else if (myBestHeight > peerBestHeight)
+            if (lastHeight < peerHeight)
             {
-                this.RequestNodeState(remoteAddress);
+                DownloadBlocks(address, lastHeight, peerHeight);
             }
 
-            // if socket not in list
-            if (!IsNewPeer(remoteAddress))
-            {
-                var newPeer = new Peer
-                {
-                    Address = remoteAddress,
-                    IsBootstrap = false,
-                    IsCanreach = true,
-                    LastReach = Utils.GetTime(),
-                    TimeStamp = Utils.GetTime()
-                };
-
-                this.knownPeers.Add(newPeer);
-            }
         }
 
         private bool IsNewPeer(string address)
         {
-            foreach (var peer in this.knownPeers)
+            var knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();
+            foreach (var peer in knownPeers)
             {
                 if (address == peer.Address)
                 {
@@ -314,35 +337,63 @@ namespace UbudKusCoin.P2P
             return false;
         }
 
-        private void RequestNodeState(string remoteAddr)
+        private void SendGetBlocks(string peerIP)
         {
-            var nodeState = ServicePool.FacadeService.Peer.GetNodeState();
-            var payload = JsonConvert.SerializeObject(nodeState);
-            // Console.WriteLine("=== payload {0}", payload);
-
-            var msg = Constants.MESSAGE_TYPE_STATE + Constants.MESSAGE_SEPARATOR + payload;
-            SendData(remoteAddr, msg);
+            var payload = this.nodeAddress;
+            var msg = Constants.MESSAGE_TYPE_GET_BLOCKS + Constants.MESSAGE_SEPARATOR + payload;
+            SendRequest(peerIP, msg);
         }
 
-        private void SendBlock(string remoteAddr, Block block)
+        private void RequestState(string peerIP)
         {
-            var payload = JsonConvert.SerializeObject(block);
-            var msg = Constants.MESSAGE_TYPE_BLOCK + Constants.MESSAGE_SEPARATOR + payload;
-            SendData(remoteAddr, msg);
+            var localState = ServicePool.FacadeService.Peer.GetNodeState();
+            var json = JsonConvert.SerializeObject(localState);
+            var payload = Constants.MESSAGE_TYPE_STATE + Constants.MESSAGE_SEPARATOR + json;
+            SendRequest(peerIP, payload);
+        }
+
+        private void SendBlock(Peer peer, Block block)
+        {
+            GrpcChannel channel = GrpcChannel.ForAddress("http://" + peer.Address);
+            var blockService = new BlockServiceClient(channel);
+            var status = blockService.Add(block);
+            //TODO WITH status
         }
 
         public void SyncState()
         {
-
-            foreach (var peer in this.knownPeers)
+            var knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();
+            Console.WriteLine("...... Will download block");
+            foreach (var peer in knownPeers)
             {
                 if (!nodeAddress.Equals(peer.Address))
                 {
+
                     try
                     {
-                        // send state to known peers
-                        Console.WriteLine("...... Reequest state from Node: {0}", peer.Address);
-                        RequestNodeState(peer.Address);
+                        GrpcChannel channel = GrpcChannel.ForAddress("http://" + peer.Address);
+                        var peerService = new PeerServiceClient(channel);
+                        var peerState = peerService.GetNodeState(new NodeParam { NodeIpAddress = nodeAddress });
+
+                        // local block height
+                        var lastBlockHeight = ServicePool.DbService.blockDb.GetLast().Height;
+
+
+                        if (lastBlockHeight < peerState.Height)
+                        {
+                            DownloadBlocks(peer.Address, lastBlockHeight, peerState.Height);
+                        }
+
+                        // checking known peers
+                        foreach (var newPeer in peerState.KnownPeers)
+                        {
+                            if (!IsNewPeer(newPeer.Address))
+                            {
+                                ServicePool.FacadeService.Peer.Add(newPeer);
+                            }
+
+                        }
+
                     }
                     catch (Exception e)
                     {
@@ -350,28 +401,19 @@ namespace UbudKusCoin.P2P
                     }
                 }
 
-                Thread.Sleep(30000); // give time to next peer
+                Thread.Sleep(10000); // give time to next peer
             }
 
 
         }
 
-        private void BroadcastBlock(Block block)
-        {
-            Console.WriteLine("Will broadcasting block !");
-            foreach (var peer in this.knownPeers)
-            {
-                if (!peer.Equals(nodeAddress))
-                {
-                    this.SendBlock(peer.Address, block);
-                }
-            }
-        }
+
 
         public void BroadcastTransaction(Transaction transaction)
         {
-            Console.WriteLine("Will broadcasting transaction, node Address: {0}", this.nodeAddress);
-            foreach (var peer in this.knownPeers)
+            var knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();
+            Console.WriteLine("Will broadcasting transaction, node Address: {0}", nodeAddress);
+            foreach (var peer in knownPeers)
             {
                 if (!peer.Equals(nodeAddress))
                 {
@@ -380,15 +422,15 @@ namespace UbudKusCoin.P2P
             }
         }
 
-        public void SendTransaction(string remoteAddr, Transaction trx)
+        public void SendTransaction(string peerIP, Transaction trx)
         {
-            string payload = JsonConvert.SerializeObject(trx);
-            var msg = Constants.MESSAGE_TYPE_TRANSACTION + Constants.MESSAGE_SEPARATOR + payload;
-            Console.WriteLine("Transaction will send msg: {0}", msg);
-            SendData(remoteAddr, msg);
+            string txJson = JsonConvert.SerializeObject(trx);
+            var payload = Constants.MESSAGE_TYPE_TRANSACTION + Constants.MESSAGE_SEPARATOR + txJson;
+            Console.WriteLine("Transaction will send msg: {0}", payload);
+            SendRequest(peerIP, payload);
         }
 
-        private void SendData(string remoteAddr, string msg)
+        private void SendRequest(string peerIp, string msg)
         {
 
             Console.WriteLine("=== SendData, msg:", msg);
@@ -398,14 +440,14 @@ namespace UbudKusCoin.P2P
                 Socket socket = null;
                 try
                 {
-                    IPEndPoint remoteEndPoint = MakeRemoteEndPoint(remoteAddr);
-                    Console.WriteLine("==== 1 {0}", remoteEndPoint);
+                    IPEndPoint peerEndPoint = MakeRemoteEndPoint(peerIp);
+                    Console.WriteLine("==== 1 {0}", peerEndPoint);
                     IPAddress nodeIP = MakeIPLocal(nodeAddress);
                     socket = new Socket(nodeIP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                    socket.Connect(remoteEndPoint);
+                    socket.Connect(peerEndPoint);
 
-                    byte[] messageSent = Encoding.ASCII.GetBytes(msg + "<EOF>");
-                    int byteSent = socket.Send(messageSent);
+                    byte[] message = Encoding.ASCII.GetBytes(msg + Constants.MESSAGE_SEPARATOR + nodeAddress + "<EOF>");
+                    int byteSent = socket.Send(message);
                 }
                 catch (Exception e)
                 {

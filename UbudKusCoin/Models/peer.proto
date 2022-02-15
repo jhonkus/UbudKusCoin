@@ -12,10 +12,11 @@ option csharp_namespace = "UbudKusCoin.Grpc";
 service PeerService {
   rpc Add(Peer) returns (AddPeerReply);
   rpc GetAll(PeerPaging) returns (PeerList);
-  rpc GetNodeState(EmptyParamPeer) returns (NodeState);
+  rpc GetNodeState(NodeParam) returns (NodeState);
 }
 
-message EmptyParamPeer{
+message NodeParam{
+  string nodeIpAddress = 1;
 }
 
 message AddPeerReply{

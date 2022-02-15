@@ -1,32 +1,27 @@
-rm -rf publish-linux
+# rm -rf publish-linux
 
 dotnet publish -c Release -r linux-x64 -o ./publish-linux
 
-cd publish-linux
-zip -r a-uksc.zip .
+# zip -r uksc.zip publish-linux
 
-cp a-uksc.zip ~/NODES/node1
-cp a-uksc.zip ~/NODES/node2
-cp a-uksc.zip ~/NODES/node3
-cp a-uksc.zip ~/NODES/node4
+mkdir -p ~/NODES
+mkdir -p ~/NODES/node1
+mkdir -p ~/NODES/node2
+mkdir -p ~/NODES/node3
+mkdir -p ~/NODES/node4
 
+# rm -rf ~/NODES/node1/*
+# rm -rf ~/NODES/node2/*
+# rm -rf ~/NODES/node3/*
+# rm -rf ~/NODES/node4/*
 
-unzip -o ~/NODES/node1/a-uksc.zip -d ~/NODES/node1 
-unzip -o ~/NODES/node2/a-uksc.zip -d ~/NODES/node2
-unzip -o ~/NODES/node3/a-uksc.zip -d ~/NODES/node3
-unzip -o ~/NODES/node4/a-uksc.zip -d ~/NODES/node4
+cp publish-linux/* -d ~/NODES/node1 
+cp publish-linux/* -d ~/NODES/node2 
+cp publish-linux/* -d ~/NODES/node3 
+cp publish-linux/* -d ~/NODES/node4 
 
-cd ..
-
-
-cd ENV-SAMPLES
-
-cp .env1 ~/NODES/node1/.env
-cp .env2 ~/NODES/node2/.env
-cp .env3 ~/NODES/node3/.env
-cp .env4 ~/NODES/node4/.env
-
-
-
-cd ..
+cp env-examples/.env1 ~/NODES/node1/.env
+cp env-examples/.env2 ~/NODES/node2/.env
+cp env-examples/.env3 ~/NODES/node3/.env
+cp env-examples/.env4 ~/NODES/node4/.env
 
