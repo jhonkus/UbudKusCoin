@@ -15,7 +15,6 @@ namespace UbudKusCoin.Services
 {
     public class MintingService
     {
-
         private CancellationTokenSource cancelTask;
 
         public MintingService()
@@ -30,42 +29,39 @@ namespace UbudKusCoin.Services
             {
                 //waiting until P2P Ready       
             }
-
             Console.WriteLine("... Minting Service is starting");
-
 
             // sync state with others
             ServicePool.P2PService.SyncState();
-
             Console.WriteLine("... Node is Ready.");
 
-            if (ServicePool.StateService.IsNodeStateReady())
-            {
+            // if (ServicePool.StateService.IsNodeStateReady())
+            // {
+
+                // var knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();
+                // var nodeAddress = ServicePool.FacadeService.Peer.NodeAddress;
 
 
-                var knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();
+                // var isBootstrap = false;
+                // foreach (var peer in knownPeers)
+                // {
+                //     if (peer.IsBootstrap && nodeAddress.Equals(peer.Address))
+                //     {
+                       
+                //         isBootstrap = true;
+                //         break;
+                //     }
+                // }
 
-                var nodeAddress = ServicePool.P2PService.nodeAddress;
-            
-                is isBootstrap = false;
-                foreach (var peer in knownPeers)
-                {
-                    if (peer.IsBootstrap && nodeAddress.Equals(peer.Address))
-                    {
-                        Console.WriteLine("... Waiting 1 hour to minting.");
-                        isBootsrap = true;
-                        break;
-                    }
-                }
-
-                if (!isBootsrap)
-                {
-                    Thread.Sleep(10 * 60 * 1000);
-                }
+                // if (!isBootstrap)
+                // {
+                //      Console.WriteLine("... Waiting 10 Minutes to minting.");
+                //     Thread.Sleep(2 * 60 * 1000);
+                // }
 
                 cancelTask = new CancellationTokenSource();
                 Task.Run(() => MintingBlock(), cancelTask.Token);
-            }
+            // }
         }
 
 
@@ -77,6 +73,7 @@ namespace UbudKusCoin.Services
 
         public void MintingBlock()
         {
+            Console.WriteLine("== minting start");
             while (true)
             {
                 var startTime = DateTime.UtcNow.Second;

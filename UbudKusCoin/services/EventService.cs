@@ -9,6 +9,8 @@ using System;
 
 using UbudKusCoin.Grpc;
 using UbudKusCoin.Others;
+using System.Threading;
+using System.Threading.Tasks;
 namespace UbudKusCoin.Services
 {
     public delegate void EventHandler(object sender, EventArgs e);
@@ -51,7 +53,12 @@ namespace UbudKusCoin.Services
         void Evt_EventBlockCreated(object sender, Block block)
         {
 
-            Utils.PrintBlock(block);
+            Task.Run(() =>
+            {
+               //  Utils.PrintBlock(block);
+               Console.WriteLine("== new Block created ====");
+            });
+
             // TODO BroadCast("A New Block Created: " + _port);
         }
 

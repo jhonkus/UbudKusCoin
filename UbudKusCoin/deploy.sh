@@ -10,10 +10,10 @@ mkdir -p ~/NODES/node2
 mkdir -p ~/NODES/node3
 mkdir -p ~/NODES/node4
 
-# rm -rf ~/NODES/node1/*
-# rm -rf ~/NODES/node2/*
-# rm -rf ~/NODES/node3/*
-# rm -rf ~/NODES/node4/*
+rm -rf ~/NODES/node1/*
+rm -rf ~/NODES/node2/*
+rm -rf ~/NODES/node3/*
+rm -rf ~/NODES/node4/*
 
 cp publish-linux/* -d ~/NODES/node1 
 cp publish-linux/* -d ~/NODES/node2 

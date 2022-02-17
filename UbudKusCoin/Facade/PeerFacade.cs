@@ -25,7 +25,9 @@ namespace UbudKusCoin.Facade
 
     public class PeerFacade
     {
-        public List<Peer> initialPeers { get; set; }
+        public string NodeAddress { get; set; }
+
+        public List<Peer> InitialPeers { get; set; }
 
         public PeerFacade()
         {
@@ -35,10 +37,11 @@ namespace UbudKusCoin.Facade
 
         internal void Initialize()
         {
+            this.NodeAddress = DotNetEnv.Env.GetString("NODE_ADDRESS");
             var knowPeers = ServicePool.DbService.peerDb.GetAll();
             if (knowPeers.Count() < 1)
             {
-                initialPeers = new List<Peer>();
+                InitialPeers = new List<Peer>();
                 var bootstrapPeers = DotNetEnv.Env.GetString("BOOTSRTAP_PEERS");
                 bootstrapPeers.Replace(" ", "");
                 var tempPeers = bootstrapPeers.Split(",");
@@ -52,7 +55,7 @@ namespace UbudKusCoin.Facade
                         LastReach = Utils.GetTime()
                     };
                     ServicePool.DbService.peerDb.Add(newPeer);
-                    initialPeers.Add(newPeer);
+                    InitialPeers.Add(newPeer);
                 }
             }
         }
@@ -69,7 +72,7 @@ namespace UbudKusCoin.Facade
             {
                 Version = Constants.VERSION,
                 Height = lastBlock.Height,
-                Address = ServicePool.P2PService.nodeAddress,
+                Address = this.NodeAddress,
                 Hash = lastBlock.Hash
             };
             nodeState.KnownPeers.AddRange(GetKnownPeers());

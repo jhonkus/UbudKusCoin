@@ -20,8 +20,9 @@ namespace UbudKusCoin.Grpc
     {
         public override Task<AddBlockStatus> Add(Block block, ServerCallContext context)
         {
-            Console.WriteLine("== BlockServiceImpl, Add :", block);
+            Console.WriteLine("===== RECEIVED BLOCK HEIGHT : {0} FROM {1}", block.Height, block.Validator);
             var addStatus = ServicePool.DbService.blockDb.Add(block);
+            Console.WriteLine("== finish add block");
             return Task.FromResult(addStatus);
         }
         public override Task<Block> GetFirst(Block request, ServerCallContext context)
