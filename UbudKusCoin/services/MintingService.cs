@@ -38,29 +38,29 @@ namespace UbudKusCoin.Services
             // if (ServicePool.StateService.IsNodeStateReady())
             // {
 
-                // var knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();
-                // var nodeAddress = ServicePool.FacadeService.Peer.NodeAddress;
+            // var knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();
+            // var nodeAddress = ServicePool.FacadeService.Peer.NodeAddress;
 
 
-                // var isBootstrap = false;
-                // foreach (var peer in knownPeers)
-                // {
-                //     if (peer.IsBootstrap && nodeAddress.Equals(peer.Address))
-                //     {
-                       
-                //         isBootstrap = true;
-                //         break;
-                //     }
-                // }
+            // var isBootstrap = false;
+            // foreach (var peer in knownPeers)
+            // {
+            //     if (peer.IsBootstrap && nodeAddress.Equals(peer.Address))
+            //     {
 
-                // if (!isBootstrap)
-                // {
-                //      Console.WriteLine("... Waiting 10 Minutes to minting.");
-                //     Thread.Sleep(2 * 60 * 1000);
-                // }
+            //         isBootstrap = true;
+            //         break;
+            //     }
+            // }
 
-                cancelTask = new CancellationTokenSource();
-                Task.Run(() => MintingBlock(), cancelTask.Token);
+            // if (!isBootstrap)
+            // {
+            //      Console.WriteLine("... Waiting 10 Minutes to minting.");
+            //     Thread.Sleep(2 * 60 * 1000);
+            // }
+
+            cancelTask = new CancellationTokenSource();
+            Task.Run(() => MintingBlock(), cancelTask.Token);
             // }
         }
 
@@ -73,15 +73,24 @@ namespace UbudKusCoin.Services
 
         public void MintingBlock()
         {
-            Console.WriteLine("== minting start");
+            Console.WriteLine("\n\n= = = = = = = = NODE IS RUNNING =  = = = = = = ");
+            Console.WriteLine("= = = = ready to fight to create block = = = =\n\n");
             while (true)
             {
                 var startTime = DateTime.UtcNow.Second;
-                ServicePool.FacadeService.Block.CreateNew();
-                var endTime = DateTime.UtcNow.Second;
-                var remainTime = Constants.BLOCK_GENERATION_INTERVAL - (endTime - startTime);
-                Console.WriteLine("remain Time: {0}", remainTime);
-                Thread.Sleep(remainTime < 0 ? 0 : remainTime * 1000);
+
+                if (startTime % 20 == 0)
+                {
+                    Console.WriteLine("\n\n= = = = TIME TO MINTING = = = {0}", startTime);
+                    ServicePool.FacadeService.Block.CreateNew();
+                    Console.WriteLine("= = = = Minting Done = = = \n\n\n");
+                }
+
+
+                // var endTime = DateTime.UtcNow.Second;
+                //   var remainTime = Constants.BLOCK_GENERATION_INTERVAL - (endTime - startTime);
+                // Console.WriteLine("remain Time: {0}", remainTime);
+                //Thread.Sleep(remainTime < 0 ? 0 : remainTime * 1000);
             }
         }
 

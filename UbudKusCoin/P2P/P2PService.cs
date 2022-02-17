@@ -15,6 +15,7 @@ using UbudKusCoin.Services;
 using Grpc.Net.Client;
 using static UbudKusCoin.Grpc.PeerService;
 using static UbudKusCoin.Grpc.BlockService;
+using static UbudKusCoin.Grpc.TransactionService;
 
 namespace UbudKusCoin.P2P
 {
@@ -38,12 +39,8 @@ namespace UbudKusCoin.P2P
         public void Start()
         {
             Console.WriteLine("... P2P service is starting");
-            Task.Run(() =>
-            {
-                ListenEvent();
-                ServicePool.StateService.IsP2PServiceReady = true;
-            });
-
+            ListenEvent();
+            ServicePool.StateService.IsP2PServiceReady = true;
         }
 
         private void ListenEvent()
@@ -60,27 +57,50 @@ namespace UbudKusCoin.P2P
             });
         }
 
+        void Evt_EventTransactionCreated(object sender, Transaction txn)
+        {
+            Task.Run(() =>
+           {
+               BroadcastTransaction(txn);
+           });
+        }
+
+
         private void BroadcastBlock(Block block)
         {
             var knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();
             var nodeAddress = ServicePool.FacadeService.Peer.NodeAddress;
 
+            Console.WriteLine("Will broadcasting block to {0} peers", knownPeers.Count());
             foreach (var peer in knownPeers)
             {
-                if (!peer.Equals(nodeAddress))
-                {
-                    Console.WriteLine("Sending block to {0}", peer.Address);
-                    GrpcChannel channel = GrpcChannel.ForAddress("http://" + peer.Address);
-                    var blockService = new BlockServiceClient(channel);
-                    var status = blockService.Add(block);
-                }
+                Console.WriteLine(". . . . Sending block to {0}", peer.Address);
+                GrpcChannel channel = GrpcChannel.ForAddress("http://" + peer.Address);
+                var blockService = new BlockServiceClient(channel);
+                var response = blockService.Add(block);
+                Console.WriteLine(". . . . Sending block done.\n\n ");
             }
         }
 
 
-        void Evt_EventTransactionCreated(object sender, Transaction txn)
+        private void BroadcastTransaction(Transaction tx)
         {
+            var knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();
+            var nodeAddress = ServicePool.FacadeService.Peer.NodeAddress;
 
+            Console.WriteLine("Will broadcasting transaction to {0} peers", knownPeers.Count());
+            foreach (var peer in knownPeers)
+            {
+                Console.WriteLine("Sending Transaction to {0}", peer.Address);
+                GrpcChannel channel = GrpcChannel.ForAddress("http://" + peer.Address);
+                var txnService = new TransactionServiceClient(channel);
+                var response = txnService.Receive(new TransactionPost
+                {
+                    SendingFrom = nodeAddress,
+                    Transaction = tx
+                });
+                Console.WriteLine("... Sending TX done. ");
+            }
         }
 
 
@@ -136,15 +156,13 @@ namespace UbudKusCoin.P2P
             var nodeAddress = ServicePool.FacadeService.Peer.NodeAddress;
 
 
+            Console.WriteLine("------ my Network Address {0}", nodeAddress);
 
             foreach (var peer in knownPeers)
             {
-                Console.WriteLine("------ nodeAddress {0}", nodeAddress);
-                Console.WriteLine("------ PEER address {0}", peer.Address);
                 if (!nodeAddress.Equals(peer.Address))
                 {
-
-                    Console.WriteLine("------ Will sync state with {0}", peer.Address);
+                    Console.WriteLine("------ Syncronizing state with {0}", peer.Address);
                     try
                     {
                         GrpcChannel channel = GrpcChannel.ForAddress("http://" + peer.Address);
@@ -170,15 +188,15 @@ namespace UbudKusCoin.P2P
                             }
 
                         }
-
+                        Console.WriteLine("---- Sync Done~");
                     }
                     catch (Exception)
                     {
-                        // Console.WriteLine(" error when connecting: {0}", e.Message);
+                        Console.WriteLine(" error when connecting to : {0}", peer.Address);
                     }
                 }
 
-                Thread.Sleep(10000); // give time to next peer
+                Thread.Sleep(2000); // give time to next peer
             }
 
 

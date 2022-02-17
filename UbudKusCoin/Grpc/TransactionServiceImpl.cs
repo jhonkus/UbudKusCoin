@@ -67,7 +67,7 @@ namespace UbudKusCoin.Grpc
             return pubKey.VerifyMessage(txn.Hash, txn.Signature);
         }
 
-        public override Task<TransactionStatus> SendCoin(TransactionPost req, ServerCallContext context)
+        public override Task<TransactionStatus> Receive(TransactionPost req, ServerCallContext context)
         {
 
             var TxnHash = UbudKusCoin.Others.Utils.GetTransactionHash(req.Transaction);
@@ -92,6 +92,41 @@ namespace UbudKusCoin.Grpc
             }
 
             ServicePool.DbService.transactionsPooldb.Add(req.Transaction);
+
+            return Task.FromResult(new TransactionStatus
+            {
+                Status = "success",
+                Message = "Transaction done!"
+            });
+        }
+
+        public override Task<TransactionStatus> Transfer(TransactionPost req, ServerCallContext context)
+        {
+
+            var TxnHash = UbudKusCoin.Others.Utils.GetTransactionHash(req.Transaction);
+            if (!TxnHash.Equals(req.Transaction.Hash))
+            {
+                return Task.FromResult(new TransactionStatus
+                {
+                    Status = "fail",
+                    Message = "Transaction Hash is not valid!"
+                });
+            }
+
+
+            var TxnValid = verifySignature(req.Transaction);
+            if (!TxnValid)
+            {
+                return Task.FromResult(new TransactionStatus
+                {
+                    Status = "fail",
+                    Message = "Signature  is not valid!"
+                });
+            }
+
+            //triger event block created
+            ServicePool.EventService.OnEventTransactionCreated(req.Transaction);
+            // ServicePool.DbService.transactionsPooldb.Add(req.Transaction);
 
             return Task.FromResult(new TransactionStatus
             {

@@ -20,11 +20,32 @@ namespace UbudKusCoin.Grpc
     {
         public override Task<AddBlockStatus> Add(Block block, ServerCallContext context)
         {
-            Console.WriteLine("===== RECEIVED BLOCK HEIGHT : {0} FROM {1}", block.Height, block.Validator);
+
+            var lastBlock = ServicePool.DbService.blockDb.GetLast();
+            if (block.PrevHash != lastBlock.Hash)
+            {
+                return Task.FromResult(new AddBlockStatus
+                {
+                    Status = "fail",
+                    Message = "hash not valid"
+                });
+            }
+
+            if (block.Height != lastBlock.Height+1)
+            {
+                return Task.FromResult(new AddBlockStatus
+                {
+                    Status = "fail",
+                    Message = "height not valid"
+                });
+            }
+
+            Console.WriteLine("\n\n- - - - Receiving block , height: {0} \n- - - - from: {1}\n", block.Height, block.Validator);
             var addStatus = ServicePool.DbService.blockDb.Add(block);
-            Console.WriteLine("== finish add block");
+            Console.WriteLine("- - - - Block received.");
             return Task.FromResult(addStatus);
         }
+
         public override Task<Block> GetFirst(Block request, ServerCallContext context)
         {
             var block = ServicePool.DbService.blockDb.GetFirst();

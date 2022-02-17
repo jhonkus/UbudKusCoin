@@ -44,7 +44,7 @@ namespace UbudKusCoin.Services
             EventBlockCreated?.Invoke(this, arg);
         }
 
-        protected virtual void OnEventTransactionCreated(Transaction arg)
+        public virtual void OnEventTransactionCreated(Transaction arg)
         {
             EventTransactionCreated?.Invoke(this, arg);
         }

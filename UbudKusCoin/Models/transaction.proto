@@ -10,7 +10,8 @@ syntax = "proto3";
 option csharp_namespace = "UbudKusCoin.Grpc";
 
 service TransactionService {
-  rpc SendCoin(TransactionPost) returns (TransactionStatus);
+  rpc Receive(TransactionPost) returns (TransactionStatus);
+  rpc Transfer(TransactionPost) returns (TransactionStatus);
   rpc GetByHash(Transaction) returns (Transaction);
   rpc GetRangeByAddress(TransactionPaging) returns (TransactionList);
   rpc GetRangeByHeight(TransactionPaging) returns (TransactionList);
@@ -32,7 +33,8 @@ message TransactionGet{
 }
 
 message TransactionPost{
-  Transaction Transaction = 1; 
+  Transaction Transaction = 1;
+  string sending_from = 2;
 }
 
 message TransactionStatus{

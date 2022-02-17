@@ -117,24 +117,36 @@ namespace UbudKusCoin.Facade
 
         public void CreateNew()
         {
-         
+            // get last block before sleep
+            var lastBlockBefore = ServicePool.DbService.blockDb.GetLast();
+
+            //minter will selected by random
             Random rnd = new Random();
-            var sleep = rnd.Next(2000, 60000);
-            Console.WriteLine("=======  Waiting Create Block for {0} seconds ====== ", sleep/1000);
+            var sleep = rnd.Next(2000, 10000);
+            Console.WriteLine("=======  Waiting for {0} seconds ====== ", (double)sleep / (double)1000);
             Thread.Sleep(sleep); //just for make delay so not fo fast
 
-          
+            // get last block after sleep
+            var lastBlockAfterSleep = ServicePool.DbService.blockDb.GetLast();
+
+            // Check if new block already created by other nodes
+            if (lastBlockAfterSleep.Height > lastBlockBefore.Height)
+            {
+                // new block added by other nodes
+                return;
+            }
+
             var startTimer = DateTime.UtcNow.Millisecond;
 
             // get transaction from pool
             var txnsInPool = ServicePool.DbService.transactionsPooldb.GetAll();
 
-            var lastTimestamp = 0L;
+
             var wallet = ServicePool.WalletService;
-            var lastBlock = ServicePool.DbService.blockDb.GetLast();
-            var nextHeight = lastBlock.Height + 1;
-            var prevHash = lastBlock.Hash;
-            var validator = ServicePool.FacadeService.Stake.GetValidator();
+
+            var nextHeight = lastBlockAfterSleep.Height + 1;
+            var prevHash = lastBlockAfterSleep.Hash;
+            // var validator = ServicePool.FacadeService.Stake.GetValidator();
 
             var transactions = ServicePool.FacadeService.Transaction.GetForMinting(nextHeight);
 
@@ -144,69 +156,62 @@ namespace UbudKusCoin.Facade
             var minterBalance = minterAccount.Balance;
 
 
-
-
-            // while (true)
-            // {
-
             var timestamp = Utils.GetTime();
-            if (lastTimestamp != timestamp)
+
+            var block = new Block
             {
-
-                // if (IsStakingMeetRule(prevHash, wallet.GetKeyPair().PublicKeyHex, timestamp, minterBalance, difficulty, nextHeight))
-                // {
-                var block = new Block
-                {
-                    Height = nextHeight,
-                    TimeStamp = timestamp,
-                    PrevHash = prevHash,
-                    Transactions = System.Text.Json.JsonSerializer.Serialize(transactions),
-                    Difficulty = 1, //GetDifficullty(),
-                    Validator = validator.Address,
-                    Version = 1,
-                    NumOfTx = transactions.Count,
-                    TotalAmount = Utils.GetTotalAmount(transactions),
-                    TotalReward = Utils.GetTotalFees(transactions),
-                    MerkleRoot = CreateMerkleRoot(transactions),
-                    ValidatorBalance = validator.Amount,
-                    Nonce = rnd.Next(100000),
-                };
-                var blockHash = GetBlockHash(block);
-                block.Hash = blockHash;
+                Height = nextHeight,
+                TimeStamp = timestamp,
+                PrevHash = prevHash,
+                Transactions = System.Text.Json.JsonSerializer.Serialize(transactions),
+                Difficulty = 1, //GetDifficullty(),
+                Validator = minterAddress,
+                Version = 1,
+                NumOfTx = transactions.Count,
+                TotalAmount = Utils.GetTotalAmount(transactions),
+                TotalReward = Utils.GetTotalFees(transactions),
+                MerkleRoot = CreateMerkleRoot(transactions),
+                ValidatorBalance = minterBalance,
+                Nonce = rnd.Next(100000),
+            };
+            var blockHash = GetBlockHash(block);
+            block.Hash = blockHash;
 
 
-                //block size
-                var str = System.Text.Json.JsonSerializer.Serialize(block);
-                block.Size = str.Length;
+            //block size
+            var str = System.Text.Json.JsonSerializer.Serialize(block);
+            block.Size = str.Length;
 
-                // get build time    
-                var endTimer = DateTime.UtcNow.Millisecond;
-                // Get the elapsed time as a TimeSpan value.
-                
-                block.BuildTime = (endTimer - startTimer);
-                // end of    
+            // get build time    
+            var endTimer = DateTime.UtcNow.Millisecond;
+            // Get the elapsed time as a TimeSpan value.
 
-                ServicePool.DbService.blockDb.Add(block);
-                ServicePool.FacadeService.Transaction.UpdateBalance(transactions);
+            block.BuildTime = (endTimer - startTimer);
+            // end of    
 
-                // move pool to to transactions db
-                ServicePool.FacadeService.Transaction.AddBulk(transactions);
+            // get last block after build
+            var lastBlockAfterBuild = ServicePool.DbService.blockDb.GetLast();
 
-                // clear mempool
-                ServicePool.DbService.transactionsPooldb.DeleteAll();
+            ServicePool.FacadeService.Transaction.UpdateBalance(transactions);
 
+            // move pool to to transactions db
+            ServicePool.FacadeService.Transaction.AddBulk(transactions);
 
+            // clear mempool
+            ServicePool.DbService.transactionsPooldb.DeleteAll();
 
-                //exit from loop
-                // break;
-                // }
-                lastTimestamp = timestamp;
-
-                //triger event block created
-                ServicePool.EventService.OnEventBlockCreated(block);
+           // Check if new block already created by other nodes
+            if (lastBlockAfterBuild.Height > lastBlockAfterSleep.Height)
+            {
+                // new block added by other nodes
+                return;
             }
-            // }
 
+            //triger event block created
+            ServicePool.EventService.OnEventBlockCreated(block);
+
+            // broadcast block and wait until confirm.
+            // ServicePool.DbService.blockDb.Add(block);
 
         }
 
