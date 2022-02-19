@@ -94,7 +94,7 @@ namespace Main
 
             Console.Clear();
             Console.WriteLine("\n\n\n\nLast Block");
-            Console.WriteLine("Time: {0}", DateTime.Now);
+            Console.WriteLine("- Time: {0}", DateTime.Now);
             Console.WriteLine("======================");
             var response = service.LastBlock(new EmptyRequest());
             var block = response.Block;

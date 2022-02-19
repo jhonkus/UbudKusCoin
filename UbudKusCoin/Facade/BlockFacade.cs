@@ -7,11 +7,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Numerics;
 using System.Text.Json;
 using System.Threading;
-using System.Threading.Tasks;
 
 using UbudKusCoin.Grpc;
 using UbudKusCoin.Others;
@@ -123,7 +121,7 @@ namespace UbudKusCoin.Facade
             //minter will selected by random
             Random rnd = new Random();
             var sleep = rnd.Next(2000, 10000);
-            Console.WriteLine("=======  Waiting for {0} seconds ====== ", (double)sleep / (double)1000);
+            Console.WriteLine("- Waiting for {0} seconds ", (double)sleep / (double)1000);
             Thread.Sleep(sleep); //just for make delay so not fo fast
 
             // get last block after sleep

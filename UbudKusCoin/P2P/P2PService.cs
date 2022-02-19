@@ -1,3 +1,5 @@
+using Microsoft.VisualBasic.CompilerServices;
+using Microsoft.VisualBasic;
 // Created by I Putu Kusuma Negara
 // markbrain2013[at]gmail.com
 // 
@@ -13,23 +15,21 @@ using System.Threading.Tasks;
 using UbudKusCoin.Grpc;
 using UbudKusCoin.Services;
 using Grpc.Net.Client;
+using UbudKusCoin.Others;
 using static UbudKusCoin.Grpc.PeerService;
 using static UbudKusCoin.Grpc.BlockService;
 using static UbudKusCoin.Grpc.TransactionService;
+using static UbudKusCoin.Grpc.StakeService;
 
 namespace UbudKusCoin.P2P
 {
 
-
-    public class GetData
-    {
-        public string Type { set; get; }
-        public string ID { set; get; }
-    }
-
+    /// <summary>
+    /// This class for communicating with other peer, such as to broadcasting block,
+    /// broadcasting transaction, downloading block.
+    /// </summary>
     public class P2PService
     {
-        IList<string> BlocksInTransit { set; get; }
 
         public P2PService()
         {
@@ -41,55 +41,118 @@ namespace UbudKusCoin.P2P
             Console.WriteLine("... P2P service is starting");
             ListenEvent();
             ServicePool.StateService.IsP2PServiceReady = true;
+            Console.WriteLine("...... P2P service is ready");
         }
 
+
+        /// <summary>
+        /// This method to register event blockCreated, and EventTransaction created.
+        /// </summary>
         private void ListenEvent()
         {
             ServicePool.EventService.EventBlockCreated += Evt_EventBlockCreated;
             ServicePool.EventService.EventTransactionCreated += Evt_EventTransactionCreated;
         }
 
+
+        /// <summary>
+        /// This method is listening, when there is event block created,
+        ///  and call BroadcasBlock function.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="block"></param>
         void Evt_EventBlockCreated(object sender, Block block)
         {
-            Task.Run(() =>
-            {
-                BroadcastBlock(block);
-            });
+            BroadcastBlock(block);
         }
 
+        /// <summary>
+        /// Event transaction listener, when transaction created, it will call
+        /// function BroadcastTransaction
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="txn"></param>
         void Evt_EventTransactionCreated(object sender, Transaction txn)
         {
-            Task.Run(() =>
-           {
-               BroadcastTransaction(txn);
-           });
+            BroadcastTransaction(txn);
         }
 
-
+        /// <summary>
+        /// For send block to all peer in known peers
+        /// </summary>
+        /// <param name="block"></param>
         private void BroadcastBlock(Block block)
         {
             var knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();
             var nodeAddress = ServicePool.FacadeService.Peer.NodeAddress;
 
-            Console.WriteLine("Will broadcasting block to {0} peers", knownPeers.Count());
-            foreach (var peer in knownPeers)
+            Console.WriteLine("\n- Will broadcasting block to {0} peers", knownPeers.Count());
+            Parallel.ForEach(knownPeers, peer =>
             {
-                Console.WriteLine(". . . . Sending block to {0}", peer.Address);
+
+                Console.WriteLine(". . << Sending block to {0}", peer.Address);
                 GrpcChannel channel = GrpcChannel.ForAddress("http://" + peer.Address);
                 var blockService = new BlockServiceClient(channel);
                 var response = blockService.Add(block);
-                Console.WriteLine(". . . . Sending block done.\n\n ");
-            }
+                Console.WriteLine(". . << Sending block done.\n\n ");
+
+            });
         }
 
 
+        public void Stake(double amount)
+        {
+            BroadcastStaking(amount);
+        }
+
+        private void BroadcastStaking(double amount)
+        {
+            var knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();
+            var nodeAddress = ServicePool.FacadeService.Peer.NodeAddress;
+
+            Console.WriteLine("\n- Will broadcasting stake to {0} peers", knownPeers.Count());
+            Parallel.ForEach(knownPeers, peer =>
+            {
+
+                Console.WriteLine(". . << Sending stake to {0}", peer.Address);
+                GrpcChannel channel = GrpcChannel.ForAddress("http://" + peer.Address);
+                var stakeService = new StakeServiceClient(channel);
+
+                var response = stakeService.Add(
+                    new Stake
+                    {
+                        Address = nodeAddress,
+                        Amount = amount
+                    }
+                );
+
+                Console.WriteLine(". . << Sending stake done. status: {0}\n\n ", response.Status);
+
+                var list = stakeService.GetRange(new StakeParams
+                {
+                    PageNumber = 1,
+                    ResultPerPage = 100
+                });
+
+                foreach (var stake in list.Stakes)
+                {
+                    Console.WriteLine(" Address {0}, amount {1}", stake.Address, stake.Amount);
+                }
+
+            });
+        }
+
+        /// <summary>
+        /// For send transaction to all peer in known peers
+        /// </summary>
+        /// <param name="tx"></param>
         private void BroadcastTransaction(Transaction tx)
         {
             var knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();
             var nodeAddress = ServicePool.FacadeService.Peer.NodeAddress;
 
             Console.WriteLine("Will broadcasting transaction to {0} peers", knownPeers.Count());
-            foreach (var peer in knownPeers)
+            Parallel.ForEach(knownPeers, peer =>
             {
                 Console.WriteLine("Sending Transaction to {0}", peer.Address);
                 GrpcChannel channel = GrpcChannel.ForAddress("http://" + peer.Address);
@@ -99,11 +162,18 @@ namespace UbudKusCoin.P2P
                     SendingFrom = nodeAddress,
                     Transaction = tx
                 });
-                Console.WriteLine("... Sending TX done. ");
-            }
+                Console.WriteLine("... Sending TX done. with status: {0}", response.Status);
+            });
+
         }
 
 
+        /// <summary>
+        /// Download blocks from all peer in known peer
+        /// </summary>
+        /// <param name="blockService"></param>
+        /// <param name="lastBlockHeight"></param>
+        /// <param name="peerHeight"></param>
         private void DownloadBlocks(BlockServiceClient blockService, long lastBlockHeight, long peerHeight)
         {
             try
@@ -111,12 +181,12 @@ namespace UbudKusCoin.P2P
                 var response = blockService.GetRemains(new StartingParam { Height = lastBlockHeight });
                 List<Block> blocks = response.Blocks.ToList();
                 blocks.Reverse();
-                var lastHeight = lastBlockHeight;
+
+                var lastHeight = 0L;
                 Console.WriteLine("=== Downloading Block from Height: {0}, to {1}", lastBlockHeight, lastBlockHeight + 50);
                 foreach (var block in blocks)
                 {
                     Console.WriteLine("==== Block" + block.Height);
-                    // TODO, VALIDATE BLOCK
                     ServicePool.DbService.blockDb.Add(block);
                     lastHeight = block.Height;
                 }
@@ -133,6 +203,11 @@ namespace UbudKusCoin.P2P
 
         }
 
+        /// <summary>
+        /// Checking in db if new peer already in DB
+        /// </summary>
+        /// <param name="address"></param>
+        /// <returns></returns>
         private bool IsNewPeer(string address)
         {
             var knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();
@@ -145,10 +220,6 @@ namespace UbudKusCoin.P2P
             }
             return false;
         }
-
-
-
-
 
         public void SyncState()
         {
@@ -196,7 +267,7 @@ namespace UbudKusCoin.P2P
                     }
                 }
 
-                Thread.Sleep(2000); // give time to next peer
+                Thread.Sleep(100); // give time to next peer
             }
 
 

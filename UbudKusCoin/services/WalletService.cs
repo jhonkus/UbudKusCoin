@@ -36,10 +36,8 @@ namespace UbudKusCoin.Services
             Console.WriteLine("... Wallet service is starting");
             this.Mnemonic = new Mnemonic(this.passphrase);
             this.KeyPair = GenerateKeyPair(this.Mnemonic, 0);
-            // this.Mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
-            // Console.WriteLine("== Address: {0}", this.GetAddress());
             ServicePool.StateService.IsWalletServiceReady = true;
-            Console.WriteLine("... Wallet service is Ready");
+            Console.WriteLine("...... Wallet service is Ready");
         }
 
         public static KeyPair GenerateKeyPair(Mnemonic mnemonic, int path)

@@ -27,41 +27,23 @@ namespace UbudKusCoin.Services
             // Console.WriteLine("...... Waiiting P2P Ready");
             while (!ServicePool.StateService.IsNodeStateReady())
             {
-                //waiting until P2P Ready       
+                Console.WriteLine(" ..Waiting P2P Ready ...");
             }
-            Console.WriteLine("... Minting Service is starting");
 
             // sync state with others
+            Console.WriteLine(".... Synchronizing state other peer(s) ");
             ServicePool.P2PService.SyncState();
             Console.WriteLine("... Node is Ready.");
 
-            // if (ServicePool.StateService.IsNodeStateReady())
-            // {
 
-            // var knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();
-            // var nodeAddress = ServicePool.FacadeService.Peer.NodeAddress;
-
-
-            // var isBootstrap = false;
-            // foreach (var peer in knownPeers)
-            // {
-            //     if (peer.IsBootstrap && nodeAddress.Equals(peer.Address))
-            //     {
-
-            //         isBootstrap = true;
-            //         break;
-            //     }
-            // }
-
-            // if (!isBootstrap)
-            // {
-            //      Console.WriteLine("... Waiting 10 Minutes to minting.");
-            //     Thread.Sleep(2 * 60 * 1000);
-            // }
-
+            Console.WriteLine("\n... Minting Service is starting");
             cancelTask = new CancellationTokenSource();
+
+            Task.Run(() => AutoStake(), cancelTask.Token);
+
+
             Task.Run(() => MintingBlock(), cancelTask.Token);
-            // }
+
         }
 
 
@@ -77,22 +59,46 @@ namespace UbudKusCoin.Services
             Console.WriteLine("= = = = ready to fight to create block = = = =\n\n");
             while (true)
             {
-                var startTime = DateTime.UtcNow.Second;
+                var mintingTime = DateTime.UtcNow;
 
-                if (startTime % 20 == 0)
+                if (mintingTime.Second % 30 == 0)
                 {
-                    Console.WriteLine("\n\n= = = = TIME TO MINTING = = = {0}", startTime);
+                    Console.WriteLine("\n\n= = = = TIME TO MINTING = = = =");
+                    Console.WriteLine("- Time: {0}", mintingTime);
+
                     ServicePool.FacadeService.Block.CreateNew();
+
                     Console.WriteLine("= = = = Minting Done = = = \n\n\n");
                 }
 
-
-                // var endTime = DateTime.UtcNow.Second;
-                //   var remainTime = Constants.BLOCK_GENERATION_INTERVAL - (endTime - startTime);
-                // Console.WriteLine("remain Time: {0}", remainTime);
-                //Thread.Sleep(remainTime < 0 ? 0 : remainTime * 1000);
             }
         }
+
+
+        public void AutoStake()
+        {
+
+            Random rnd = new Random();
+            while (true)
+            {
+                var stakingTime = DateTime.UtcNow;
+
+                // Asume staker updating staking frequently
+                var delayStaking = rnd.Next(10000, 20000);
+                Thread.Sleep(delayStaking);
+                //end of
+
+                // staking amount        
+                var amount = rnd.Next(100, 500);
+                // Console.WriteLine(".... Send Staking, amount: {0}", amount);
+                ServicePool.P2PService.Stake(amount);
+                // Console.WriteLine("..... Staking send");
+
+
+            }
+        }
+
+
 
     }
 }

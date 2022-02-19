@@ -31,11 +31,10 @@
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <Protobuf Include="Models\account.proto" GrpcServices="Server" />
+    <Protobuf Include="Models\account.proto" GrpcServices="Server, Client" />
     <Protobuf Include="Models\block.proto" GrpcServices="Server, Client" />
     <Protobuf Include="Models\peer.proto" GrpcServices="Server, Client" />
-    <Protobuf Include="Models\report.proto" GrpcServices="Server" />
-    <Protobuf Include="Models\stake.proto" GrpcServices="Server" />
+    <Protobuf Include="Models\stake.proto" GrpcServices="Server, Client" />
     <Protobuf Include="Models\transaction.proto" GrpcServices="Server, Client" />
   </ItemGroup>
   <ItemGroup>

@@ -203,7 +203,7 @@ namespace UbudKusCoin.Facade
                 TimeStamp = Utils.GetTime(),
                 Sender = "UkcDEfU9gGnm9tGjmFtXRjirf2LuohU5CzjWunEkPNbUcFW",
                 Height = height,
-                PubKey = validator.PubKey,
+                PubKey = validator.Address,
                 Recipient = validator.Address,
                 Signature = "-",
                 TxType = Constants.TXN_TYPE_VALIDATOR_FEE,

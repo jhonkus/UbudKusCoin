@@ -36,7 +36,7 @@ namespace UbudKusCoin.Services
             Console.WriteLine("... Event service is starting");
             ListenEvent();
             ServicePool.StateService.IsEventServiceReady = true;
-            Console.WriteLine("... Event service is ready");
+            Console.WriteLine("...... Event service is ready");
         }
 
         public virtual void OnEventBlockCreated(Block arg)

@@ -19,18 +19,16 @@ namespace UbudKusCoin.Services
         public TransactionFacade Transaction { set; get; }
         public TransactionPoolFacade TransactionPool { set; get; }
         public StakeFacade Stake { set; get; }
-        public ReportFacade Report { set; get; }
 
         public FacadeService()
         {
-            Console.WriteLine("Facade initilize ===");
+            
         }
 
         public void start()
         {
             Console.WriteLine("... Facade service is starting");
             this.Peer = new PeerFacade();
-            this.Report = new ReportFacade();
             this.Stake = new StakeFacade();
             this.Account = new AccountFacade();
             this.TransactionPool = new TransactionPoolFacade();
@@ -38,7 +36,7 @@ namespace UbudKusCoin.Services
             this.Block = new BlockFacade();
 
             ServicePool.StateService.IsFacadeServiceReady = true;
-            Console.WriteLine("... Facade service is ready");
+            Console.WriteLine("...... Facade service is ready");
         }
     }
 }

@@ -54,7 +54,6 @@ namespace UbudKusCoin
                 endpoints.MapGrpcService<BlockServiceImpl>().RequireCors("AllowAll");
 
                 endpoints.MapGrpcService<PeerServiceImpl>().RequireCors("AllowAll");
-                endpoints.MapGrpcService<ReportServiceImpl>().RequireCors("AllowAll");
 
                 endpoints.MapGrpcService<StakeServiceImpl>().RequireCors("AllowAll");
                 endpoints.MapGrpcService<TransactionServiceImpl>().RequireCors("AllowAll");

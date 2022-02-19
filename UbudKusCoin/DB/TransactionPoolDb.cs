@@ -31,7 +31,6 @@ namespace UbudKusCoin.DB
         {
             var txns = GetAll();
             txns.Insert(transaction);
-            Console.WriteLine("== Oke done");
         }
 
         public Transaction GetByHash(string hash)

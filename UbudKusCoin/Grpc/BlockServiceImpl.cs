@@ -22,6 +22,8 @@ namespace UbudKusCoin.Grpc
         {
 
             var lastBlock = ServicePool.DbService.blockDb.GetLast();
+
+            // validate block hash
             if (block.PrevHash != lastBlock.Hash)
             {
                 return Task.FromResult(new AddBlockStatus
@@ -31,6 +33,7 @@ namespace UbudKusCoin.Grpc
                 });
             }
 
+            // validate block height
             if (block.Height != lastBlock.Height+1)
             {
                 return Task.FromResult(new AddBlockStatus
@@ -40,9 +43,9 @@ namespace UbudKusCoin.Grpc
                 });
             }
 
-            Console.WriteLine("\n\n- - - - Receiving block , height: {0} \n- - - - from: {1}\n", block.Height, block.Validator);
+            Console.WriteLine("\n- - - - >> Receiving block , height: {0} \n- - - - >> from: {1}\n", block.Height, block.Validator);
             var addStatus = ServicePool.DbService.blockDb.Add(block);
-            Console.WriteLine("- - - - Block received.");
+            Console.WriteLine("- - - - >> Block add to db.");
             return Task.FromResult(addStatus);
         }
 

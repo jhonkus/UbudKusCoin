@@ -6,3 +6,5 @@ GRPC_WEB_PORT = 5007
 GRPC_PORT = 5008
 NODE_ADDRESS = "127.0.0.1:5008"
 NODE_PASSPHRASE="elite mosquito enrich remain story indoor mutual elite polar juice enter craft"
+
+STAKE = 1400

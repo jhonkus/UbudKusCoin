@@ -44,13 +44,13 @@ message Block {
 	string hash = 5;
 	string transactions = 6;
   string validator = 7;
-  string merkle_root = 8;
-  int32  num_of_tx = 9;
-  double total_amount = 10;
-  double total_reward = 11;
-  int32 difficulty = 12;
-  int32 nonce  = 13;
-  double validator_balance = 14;
+  double validator_balance = 8;
+  string merkle_root = 9;
+  int32  num_of_tx = 10;
+  double total_amount = 11;
+  double total_reward = 12;
+  int32 difficulty = 13;
+  int32 nonce  = 14;
   int32 size = 15;
   int32 build_time = 16;
 }

@@ -10,14 +10,18 @@ option csharp_namespace = "UbudKusCoin.Grpc";
 
 
 service StakeService {
-  rpc GetByAddress(StakeParams)  returns (StakeList);
+  rpc Add(Stake) returns (AddStakeStatus);
   rpc GetRange(StakeParams) returns (StakeList);
 }
 
+message AddStakeStatus{
+  string status = 1;
+  string message = 2;
+}
+
 message StakeParams{
-  string address = 1;
-  int32 page_number = 2;
-  int32 result_per_page = 3; 
+  int32 page_number = 1;
+  int32 result_per_page = 2; 
 }
 
 message StakeList {
@@ -25,11 +29,8 @@ message StakeList {
 }
 
 message Stake {
-	int32 id= 1;
-  int64 height = 2;
-  int64 time_stamp = 3;
-	string address = 4;
-  string pub_key = 5;
-	double amount = 6;
+  int32 Id = 1;
+	string address = 2;
+	double amount = 3;
 }
 

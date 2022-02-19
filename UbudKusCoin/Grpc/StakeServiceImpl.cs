@@ -15,13 +15,24 @@ namespace UbudKusCoin.Grpc
     public class StakeServiceImpl : StakeService.StakeServiceBase
     {
 
+        public override Task<AddStakeStatus> Add(Stake req, ServerCallContext context)
+        {
+            ServicePool.DbService.stakeDb.AddOrUpdate(req);
+            return Task.FromResult(new AddStakeStatus{
+                Message = "success add stake",
+                Status = "success"
+            });
+        }
+
         public override Task<StakeList> GetRange(StakeParams req, ServerCallContext context)
         {
             var response = new StakeList();
-            var transactions = ServicePool.FacadeService.Stake.GetRange(req.PageNumber, req.ResultPerPage);
-            response.Stakes.AddRange(transactions);
+            var stakes = ServicePool.DbService.stakeDb.GetAll();
+            response.Stakes.AddRange(stakes.FindAll());
+            
             return Task.FromResult(response);
         }
+
 
 
     }

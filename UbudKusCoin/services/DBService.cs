@@ -63,7 +63,7 @@ namespace UbudKusCoin.Services
             this.stakeDb = new StakeDb(this.DB_STAKE);
             this.peerDb = new PeerDb(this.DB_PEER);
             ServicePool.StateService.IsDbServiceReady = true;
-            Console.WriteLine("... DB Servie is ready");
+            Console.WriteLine("...... DB Servie is ready");
         }
 
 
