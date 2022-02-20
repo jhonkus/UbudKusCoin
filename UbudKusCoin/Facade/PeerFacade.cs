@@ -38,8 +38,8 @@ namespace UbudKusCoin.Facade
         internal void Initialize()
         {
             this.NodeAddress = DotNetEnv.Env.GetString("NODE_ADDRESS");
-            var knowPeers = ServicePool.DbService.peerDb.GetAll();
-            if (knowPeers.Count() < 1)
+            var KnowPeers = ServicePool.DbService.peerDb.GetAll();
+            if (KnowPeers.Count() < 1)
             {
                 InitialPeers = new List<Peer>();
                 var bootstrapPeers = DotNetEnv.Env.GetString("BOOTSRTAP_PEERS");

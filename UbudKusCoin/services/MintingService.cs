@@ -1,4 +1,3 @@
-using Microsoft.VisualBasic.CompilerServices;
 // Created by I Putu Kusuma Negara
 // markbrain2013[at]gmail.com
 // 
@@ -9,9 +8,8 @@ using Microsoft.VisualBasic.CompilerServices;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+
 using UbudKusCoin.Grpc;
-using Grpc.Net.Client;
-using static UbudKusCoin.Grpc.StakeService;
 
 namespace UbudKusCoin.Services
 {
@@ -19,9 +17,15 @@ namespace UbudKusCoin.Services
     {
         private CancellationTokenSource cancelTask;
 
+        private Boolean isAlreadyStaking;
+        private Boolean isAlreadyMakeBlock;
+        private Random rnd;
+
         public MintingService()
         {
-
+            this.rnd = new Random();
+            this.isAlreadyStaking = true;
+            this.isAlreadyMakeBlock = true;
         }
 
         public void Start()
@@ -62,38 +66,50 @@ namespace UbudKusCoin.Services
 
         public void MintingBlock()
         {
-            Console.WriteLine("\n\n= = = = = = = = NODE IS RUNNING =  = = = = = = ");
-            Console.WriteLine("= = = = ready to fight to create block = = = =\n\n");
+            isAlreadyMakeBlock = true;
+            Console.WriteLine("\n\n= = = = = = = = NODE IS RUNNING =  = = = = = = =");
+            Console.WriteLine(".... I am ready to fight to validate blocks ....\n");
             while (true)
             {
-                var currentTime = DateTime.UtcNow;
+                var timeMinting = DateTime.UtcNow;
 
-                if (currentTime.Second == 29 || currentTime.Second == 59)
+                // reset isAlreadyMakeBlock
+                if (timeMinting.Second < 3)
                 {
-                    // Console.Clear();
-                    Console.WriteLine("\n\n= = = = TIME TO MINTING = = = =");
-                    Console.WriteLine("- Time: {0}", currentTime);
+                    isAlreadyMakeBlock = false;
+                }
 
-                    Console.WriteLine("\n-------------------------------\n Current Stakes:");
-                    LeaderBoard();
-                    // Thread.Sleep(2000);
+
+                if (!isAlreadyMakeBlock && timeMinting.Second >= 45)
+                {
+                    isAlreadyMakeBlock = true;
+
+                    Console.WriteLine("\n\n= = = = TIME TO MINTING = = = =");
+                    Console.WriteLine("- Time: {0}", timeMinting.Second);
+
+                    Console.WriteLine("\n-------------------------------\n Stakes Leaderboard:");
+                    Task.Run(() => LeaderBoard());
                     Console.WriteLine("-------------------------------\n");
 
                     var myAddress = ServicePool.WalletService.GetAddress();
-                    //Console.WriteLine("my Address {0}", myAddress);
 
-                    var stakeWinner = ServicePool.DbService.stakeDb.GetMaxStake();
-                    if (stakeWinner is not null && myAddress == stakeWinner.Address)
+                    var maxStake = ServicePool.DbService.stakeDb.GetMaxStake();
+                    if (maxStake is not null && myAddress == maxStake.Address)
                     {
-                        Console.WriteLine("-- Horee, I am validator for next Block \n");
+                        Console.WriteLine("\n-- Horee, I am validator for next Block \n");
                         ServicePool.FacadeService.Block.CreateNew();
                     }
+                    else
+                    {
+                        Console.WriteLine("-- Damn, I am not lucky this time. \n");
+                    }
 
-                    // give some delay
-                    Thread.Sleep(5000);
-
-                    Console.WriteLine("= = = = Minting Done = = = \n\n\n");
+                    timeMinting = DateTime.UtcNow;
+                    Console.WriteLine("= = = = Minting Time finish = = = \n\n\n");
                 }
+
+                // sleep 1 second
+                Thread.Sleep(1000);
 
             }
         }
@@ -104,35 +120,26 @@ namespace UbudKusCoin.Services
 
             ServicePool.DbService.stakeDb.DeleteAll();
 
-            Random rnd = new Random();
 
             while (true)
             {
-                var currentTime = DateTime.UtcNow;
+                var timeStaking = DateTime.UtcNow;
 
-                // Clean the staker list before time for  block creation.
-                // Staker list will clean on second: 2 and 34.
-
-                if (currentTime.Second == 2 || currentTime.Second == 30)
+                // Clean the stakes before create a block.
+                if (timeStaking.Second < 3)
                 {
-                    //Console.WriteLine("... Cleaning stakes");
                     ServicePool.DbService.stakeDb.DeleteAll();
-                    //Console.WriteLine("... Done!");
+                    Console.WriteLine("... I was clean my stakes list.");
+                    isAlreadyStaking = false;
+                    Thread.Sleep(4000);
+                    timeStaking = DateTime.UtcNow;
                 }
 
-                // Each node will stake amount of coin to network
-                // I make fake amount by generated it randomly.
-                // staking will do in limited time starting from second: 4 to 32
-                // and sedond 
 
-                if (currentTime.Second == 4 || currentTime.Second == 32)
+                // staking will do in limited time starting from second: 4 to 30
+                if (!isAlreadyStaking && timeStaking.Second < 35)
                 {
-                    //Console.WriteLine("Time to staking ");
 
-                    // To make staker not do staking in the same time let make some delay
-                    var delayStaking = rnd.Next(1000, 3000);
-                    Thread.Sleep(delayStaking);
-                    //end of
 
                     // Make stakeing with random amount        
                     var stake = new Stake
@@ -141,15 +148,17 @@ namespace UbudKusCoin.Services
                         Amount = rnd.Next(10, 100),
                         TimeStamp = UbudKusCoin.Others.Utils.GetTime()
                     };
-                    // Console.Clear();
-                    Console.WriteLine("---- I Stake {0} coins at {1} \n\n", stake.Amount, DateTime.UtcNow);
 
-                    // Console.WriteLine(".... Send Staking, amount: {0}", amount);
+
+                    Console.WriteLine("... Now I stake {0} coins at: {1}\n", stake.Amount, DateTime.UtcNow);
                     ServicePool.P2PService.BroadcastStake(stake);
+                    timeStaking = DateTime.UtcNow;
 
-                    // Console.WriteLine("..... Staking send");
+                    isAlreadyStaking = true;
                 }
 
+                // sleep 1 second
+                Thread.Sleep(500);
             }
         }
 
