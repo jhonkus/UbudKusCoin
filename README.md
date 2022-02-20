@@ -1,11 +1,14 @@
 # UbudKusCoin
 
-NOTE: PLEASE DON'T USE DEVELOP BRANCH.
-I am still working on it, its not working.
-It will finish it on 14 February 2022.
-
 
 Simple Cryptocurrencies with Proof Of Stake  Consensus Algorithm.
+
+WHAT NEW 23 Feb 2022
+- Support Mnemonic 12 words
+- Address with base 58
+- P2P with Grpc
+
+
 
 Developed with C# and .Net Core 5.0
 

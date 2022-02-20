@@ -8,8 +8,6 @@
 using System;
 using System.Globalization;
 using System.Threading.Tasks;
-
-using UbudKusCoin.ConsoleWallet.Others;
 using UbudKusCoin.Grpc;
 using static UbudKusCoin.Grpc.TransactionService;
 using static UbudKusCoin.Grpc.BlockService;
@@ -18,15 +16,16 @@ using Grpc.Net.Client;
 
 namespace UbudKusCoin.ConsoleWallet
 {
-    public class ConsoleWallet
+
+    public class ConsoleAppWallet
     {
 
         AccountServiceClient accountService;
         BlockServiceClient blockService;
         TransactionServiceClient transactionService;
 
-        public AccountExt accountExt;
-        public ConsoleWallet(GrpcChannel channel)
+        public Wallet accountExt;
+        public ConsoleAppWallet(GrpcChannel channel)
         {
             this.accountService = new AccountServiceClient(channel);
             this.blockService = new BlockServiceClient(channel);
@@ -178,7 +177,7 @@ namespace UbudKusCoin.ConsoleWallet
 
             var response = accountService.GetByAddress(new Account
             {
-                
+
             });
 
             var senderBalance = response.Balance;
@@ -204,10 +203,10 @@ namespace UbudKusCoin.ConsoleWallet
         private void SendCoin(string sender, string recipient, double amount, float fee)
         {
 
-            var newTxn = new Transaction
+            var newTxn = new UbudKusCoin.Grpc.Transaction
             {
                 Sender = sender,
-                TimeStamp = Utils.GetTime(),
+                TimeStamp = UbudKusCoin.ConsoleWallet.Others.Utils.GetTime(),
                 Recipient = recipient,
                 Amount = amount,
                 Fee = fee,
@@ -215,8 +214,8 @@ namespace UbudKusCoin.ConsoleWallet
                 TxType = "Transfer",
             };
 
-            var TxnHash = Utils.GetTransactionHash(newTxn);
-            var signature = accountExt.CreateSignature(TxnHash);
+            var TxnHash = UbudKusCoin.ConsoleWallet.Others.Utils.GetTransactionHash(newTxn);
+            var signature = accountExt.Sign(TxnHash);
             newTxn.Hash = TxnHash;
             newTxn.Signature = signature;
 
@@ -322,20 +321,20 @@ namespace UbudKusCoin.ConsoleWallet
                 return;
             }
 
-            var NewTxn = new Transaction
+            var NewTxn = new UbudKusCoin.Grpc.Transaction
             {
                 Sender = accountExt.GetAddress(),
-                TimeStamp = Utils.GetTime(),
+                TimeStamp = UbudKusCoin.ConsoleWallet.Others.Utils.GetTime(),
                 Recipient = recipient,
                 Amount = amount,
                 Fee = fee,
                 Height = 0,
                 TxType = "Transfer",
-                PubKey =  accountExt.GetPubKeyHex(),
+                PubKey = accountExt.GetKeyPair().PublicKeyHex,
             };
 
-            var TxnHash = Utils.GetTransactionHash(NewTxn);
-            var signature = accountExt.CreateSignature(TxnHash);
+            var TxnHash = UbudKusCoin.ConsoleWallet.Others.Utils.GetTransactionHash(NewTxn);
+            var signature = accountExt.Sign(TxnHash);
 
             NewTxn.Hash = TxnHash;
             NewTxn.Signature = signature;
@@ -372,7 +371,7 @@ namespace UbudKusCoin.ConsoleWallet
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error: {0}", e.Message);
+                 Console.WriteLine("\nError! Please check UbudKusCoin Node, it musth running!");
             }
 
         }
@@ -381,23 +380,23 @@ namespace UbudKusCoin.ConsoleWallet
         {
             Console.Clear();
             Console.WriteLine("Restore Wallet");
-            Console.WriteLine("Please enter Screet number:");
+            Console.WriteLine("Please enter 12 words passphrase:");
             string screet = Console.ReadLine();
 
             if (string.IsNullOrEmpty(screet))
             {
-                Console.WriteLine("\n\nError, Please input secreet number!\n");
+                Console.WriteLine("\n\nError, Please input 12 words passphrase!\n");
                 return;
             }
 
             try
             {
-                accountExt = new AccountExt(screet);
+                accountExt = new Wallet(screet);
                 WalletInfo();
             }
             catch
             {
-                Console.WriteLine(" Wrong secreet key!");
+                Console.WriteLine(" Wrong passphrase words!");
             }
 
         }
@@ -405,7 +404,7 @@ namespace UbudKusCoin.ConsoleWallet
         private void DoCreateAccount()
         {
 
-            accountExt = new AccountExt();
+            accountExt = new Wallet();
             WalletInfo();
 
         }
@@ -416,11 +415,12 @@ namespace UbudKusCoin.ConsoleWallet
             Console.WriteLine("\n\n\nYour Wallet");
             Console.WriteLine("======================");
             Console.WriteLine("\nADDRESS:\n{0}", accountExt.GetAddress());
-            Console.WriteLine("\nPUBLIC KEY:\n{0}", accountExt.GetPubKeyHex());
-            Console.WriteLine("\nSECREET NUMBER:\n{0}", accountExt.SecretNumber);
+            Console.WriteLine("\nPUBLIC KEY:\n{0}", accountExt.GetKeyPair().PublicKeyHex);
+            Console.WriteLine("\nPASSPHRASE 12 words:\n{0}", accountExt.passphrase);
             Console.WriteLine("\n - - - - - - - - - - - - - - - - - - - - - - ");
-            Console.WriteLine("*** save secreet number!                   ***");
-            Console.WriteLine("*** use secreet number to restore account! ***");
+            Console.WriteLine("*** save passphrase in safe place, don't tell any one!  ***");
+            Console.WriteLine("*** If your passphrase loose, your money also loose!    ***");
+            Console.WriteLine("*** use secreet number to restore account!              ***");
         }
 
         private static async void DoExit()
@@ -460,7 +460,7 @@ namespace UbudKusCoin.ConsoleWallet
                     foreach (var Txn in response.Transactions)
                     {
                         Console.WriteLine("Hash        : {0}", Txn.Hash);
-                        Console.WriteLine("Timestamp   : {0}", Utils.ToDateTime(Txn.TimeStamp));
+                        Console.WriteLine("Timestamp   : {0}", UbudKusCoin.ConsoleWallet.Others.Utils.ToDateTime(Txn.TimeStamp));
                         Console.WriteLine("Sender      : {0}", Txn.Sender);
                         Console.WriteLine("Recipient   : {0}", Txn.Recipient);
                         Console.WriteLine("Amount      : {0}", Txn.Amount.ToString("N", CultureInfo.InvariantCulture));
@@ -476,7 +476,7 @@ namespace UbudKusCoin.ConsoleWallet
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                  Console.WriteLine("\nError! Please check UbudKusCoin Node, it musth running!");
             }
 
         }
@@ -504,9 +504,9 @@ namespace UbudKusCoin.ConsoleWallet
                 Console.WriteLine("Balance: {0}", response.Balance.ToString("N", CultureInfo.InvariantCulture));
 
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine("\nError! Please check UbudKusCoin Node, it musth running!");
             }
 
         }

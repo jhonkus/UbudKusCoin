@@ -17,7 +17,7 @@ namespace UbudKusCoin.ConsoleWallet
             var serverAddress = "http://localhost:5002";
             AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
             GrpcChannel channel = GrpcChannel.ForAddress(serverAddress);
-            _ = new ConsoleWallet(channel);
+            _ = new ConsoleAppWallet(channel);
         }
 
     }
