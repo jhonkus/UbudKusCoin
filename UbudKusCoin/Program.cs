@@ -11,7 +11,8 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Hosting;
 using UbudKusCoin.Services;
 using UbudKusCoin.P2P;
-
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 
 namespace UbudKusCoin
 {
@@ -60,7 +61,20 @@ namespace UbudKusCoin
               });
 
               // start
-              webBuilder.UseStartup<Startup>();
+              webBuilder.UseStartup<Startup>()
+            //   .ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
+
+            .ConfigureLogging((Action<WebHostBuilderContext, ILoggingBuilder>)((hostingContext, logging) =>
+            {
+                // logging.AddConfiguration((IConfiguration)hostingContext.Configuration.GetSection("Logging"));
+                // logging.AddConsole();
+                // logging.AddDebug();
+                // logging.AddEventSourceLogger();
+                logging.ClearProviders();
+
+            }));
+
+              //===
           });
 
 

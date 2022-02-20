@@ -81,8 +81,8 @@ namespace UbudKusCoin.Grpc
             }
 
 
-            var TxnValid = verifySignature(req.Transaction);
-            if (!TxnValid)
+            var isSignatureValid = verifySignature(req.Transaction);
+            if (!isSignatureValid)
             {
                 return Task.FromResult(new TransactionStatus
                 {
@@ -91,20 +91,22 @@ namespace UbudKusCoin.Grpc
                 });
             }
 
-            ServicePool.DbService.transactionsPooldb.Add(req.Transaction);
+            //TODO add more validation here
 
+
+            ServicePool.DbService.transactionsPooldb.Add(req.Transaction);
             return Task.FromResult(new TransactionStatus
             {
                 Status = "success",
-                Message = "Transaction done!"
+                Message = "Transaction received!"
             });
         }
 
         public override Task<TransactionStatus> Transfer(TransactionPost req, ServerCallContext context)
         {
-
-            var TxnHash = UbudKusCoin.Others.Utils.GetTransactionHash(req.Transaction);
-            if (!TxnHash.Equals(req.Transaction.Hash))
+            // Validating hash
+            var isHashValid = UbudKusCoin.Others.Utils.GetTransactionHash(req.Transaction);
+            if (!isHashValid.Equals(req.Transaction.Hash))
             {
                 return Task.FromResult(new TransactionStatus
                 {
@@ -113,9 +115,9 @@ namespace UbudKusCoin.Grpc
                 });
             }
 
-
-            var TxnValid = verifySignature(req.Transaction);
-            if (!TxnValid)
+            // validating signature
+            var isSignatureValid = verifySignature(req.Transaction);
+            if (!isSignatureValid)
             {
                 return Task.FromResult(new TransactionStatus
                 {
@@ -124,10 +126,24 @@ namespace UbudKusCoin.Grpc
                 });
             }
 
-            //triger event block created
-            ServicePool.EventService.OnEventTransactionCreated(req.Transaction);
+            // Check if transaction already in Pool
+            var txinPool = ServicePool.DbService.transactionsPooldb.GetByHash(req.Transaction.Hash);
+            if (txinPool is not null)
+            {
+                return Task.FromResult(new TransactionStatus
+                {
+                    Status = "fail",
+                    Message = "Double transaction!"
+                });
+
+            }
+
             // ServicePool.DbService.transactionsPooldb.Add(req.Transaction);
 
+            // broadcast transaction to all peer including myself.
+            Task.Run(() => ServicePool.P2PService.BroadcastTransaction(req.Transaction));
+
+            // Response transaction success
             return Task.FromResult(new TransactionStatus
             {
                 Status = "success",

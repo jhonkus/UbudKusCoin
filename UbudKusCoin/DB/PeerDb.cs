@@ -25,7 +25,11 @@ namespace UbudKusCoin.DB
 
         public void Add(Peer peer)
         {
-            GetAll().Insert(peer);
+            var existingPeer = GetByAddress(peer.Address);
+            if (existingPeer is null)
+            {
+                GetAll().Insert(peer);
+            }
         }
 
         public List<Peer> GetRange(int pageNumber, int resultPerPage)
@@ -53,6 +57,16 @@ namespace UbudKusCoin.DB
         }
         public List<Peer> PeerrList { get; set; }
 
-
+        public Peer GetByAddress(string address)
+        {
+            var peers = GetAll();
+            if (peers is null)
+            {
+                return null;
+            }
+            peers.EnsureIndex(x => x.Address);
+            var peer = peers.FindOne(x => x.Address == address);
+            return peer;
+        }
     }
 }

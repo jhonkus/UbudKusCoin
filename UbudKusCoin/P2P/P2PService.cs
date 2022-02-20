@@ -1,5 +1,3 @@
-using Microsoft.VisualBasic.CompilerServices;
-using Microsoft.VisualBasic;
 // Created by I Putu Kusuma Negara
 // markbrain2013[at]gmail.com
 // 
@@ -15,7 +13,6 @@ using System.Threading.Tasks;
 using UbudKusCoin.Grpc;
 using UbudKusCoin.Services;
 using Grpc.Net.Client;
-using UbudKusCoin.Others;
 using static UbudKusCoin.Grpc.PeerService;
 using static UbudKusCoin.Grpc.BlockService;
 using static UbudKusCoin.Grpc.TransactionService;
@@ -86,59 +83,34 @@ namespace UbudKusCoin.P2P
             var knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();
             var nodeAddress = ServicePool.FacadeService.Peer.NodeAddress;
 
-            Console.WriteLine("\n- Will broadcasting block to {0} peers", knownPeers.Count());
+           // Console.WriteLine("\n- Will broadcasting block to {0} peers", knownPeers.Count());
             Parallel.ForEach(knownPeers, peer =>
             {
 
-                Console.WriteLine(". . << Sending block to {0}", peer.Address);
+              //  Console.WriteLine(". . << Sending block to {0}", peer.Address);
                 GrpcChannel channel = GrpcChannel.ForAddress("http://" + peer.Address);
                 var blockService = new BlockServiceClient(channel);
                 var response = blockService.Add(block);
-                Console.WriteLine(". . << Sending block done.\n\n ");
+                //Console.WriteLine(". . << Sending block done.\n\n ");
 
             });
         }
 
 
-        public void Stake(double amount)
-        {
-            BroadcastStaking(amount);
-        }
 
-        private void BroadcastStaking(double amount)
+        public void BroadcastStake(Stake stake)
         {
             var knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();
             var nodeAddress = ServicePool.FacadeService.Peer.NodeAddress;
 
-            Console.WriteLine("\n- Will broadcasting stake to {0} peers", knownPeers.Count());
+          //  Console.WriteLine("\n- Will broadcasting stake to {0} peers", knownPeers.Count());
             Parallel.ForEach(knownPeers, peer =>
             {
-
-                Console.WriteLine(". . << Sending stake to {0}", peer.Address);
+             //   Console.WriteLine(". . << Sending stake to {0}", peer.Address);
                 GrpcChannel channel = GrpcChannel.ForAddress("http://" + peer.Address);
                 var stakeService = new StakeServiceClient(channel);
-
-                var response = stakeService.Add(
-                    new Stake
-                    {
-                        Address = nodeAddress,
-                        Amount = amount
-                    }
-                );
-
-                Console.WriteLine(". . << Sending stake done. status: {0}\n\n ", response.Status);
-
-                var list = stakeService.GetRange(new StakeParams
-                {
-                    PageNumber = 1,
-                    ResultPerPage = 100
-                });
-
-                foreach (var stake in list.Stakes)
-                {
-                    Console.WriteLine(" Address {0}, amount {1}", stake.Address, stake.Amount);
-                }
-
+                var response = stakeService.Add(stake);
+              //  Console.WriteLine(". . << Sending stake done. status: {0}\n\n ", response.Status);
             });
         }
 
@@ -146,7 +118,7 @@ namespace UbudKusCoin.P2P
         /// For send transaction to all peer in known peers
         /// </summary>
         /// <param name="tx"></param>
-        private void BroadcastTransaction(Transaction tx)
+        public void BroadcastTransaction(Transaction tx)
         {
             var knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();
             var nodeAddress = ServicePool.FacadeService.Peer.NodeAddress;
@@ -227,13 +199,42 @@ namespace UbudKusCoin.P2P
             var nodeAddress = ServicePool.FacadeService.Peer.NodeAddress;
 
 
-            Console.WriteLine("------ my Network Address {0}", nodeAddress);
+            Console.WriteLine("------ my Network Address: {0}", nodeAddress);
 
+            Console.WriteLine("---- Start synchronizing peer and block");
+            //sync peer
             foreach (var peer in knownPeers)
             {
                 if (!nodeAddress.Equals(peer.Address))
                 {
-                    Console.WriteLine("------ Syncronizing state with {0}", peer.Address);
+                    Console.WriteLine("------ Syncronizing peer with {0}", peer.Address);
+                    try
+                    {
+                        GrpcChannel channel = GrpcChannel.ForAddress("http://" + peer.Address);
+                        var peerService = new PeerServiceClient(channel);
+                        var peerState = peerService.GetNodeState(new NodeParam { NodeIpAddress = nodeAddress });
+
+                        // add peer to db
+                        foreach (var newPeer in peerState.KnownPeers)
+                        {
+                            ServicePool.FacadeService.Peer.Add(newPeer);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // Console.WriteLine(" error when connecting to : {0}", peer.Address);
+                    }
+                }
+                Thread.Sleep(100); // give time to next peer
+            }
+
+            // synct block
+            knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();
+            foreach (var peer in knownPeers)
+            {
+                if (!nodeAddress.Equals(peer.Address))
+                {
+                    Console.WriteLine("------ Syncronizing block with {0}", peer.Address);
                     try
                     {
                         GrpcChannel channel = GrpcChannel.ForAddress("http://" + peer.Address);
@@ -242,33 +243,20 @@ namespace UbudKusCoin.P2P
 
                         // local block height
                         var lastBlockHeight = ServicePool.DbService.blockDb.GetLast().Height;
-
-
                         var blockService = new BlockServiceClient(channel);
                         if (lastBlockHeight < peerState.Height)
                         {
                             DownloadBlocks(blockService, lastBlockHeight, peerState.Height);
                         }
-
-                        // checking known peers
-                        foreach (var newPeer in peerState.KnownPeers)
-                        {
-                            if (!IsNewPeer(newPeer.Address))
-                            {
-                                ServicePool.FacadeService.Peer.Add(newPeer);
-                            }
-
-                        }
-                        Console.WriteLine("---- Sync Done~");
                     }
                     catch (Exception)
                     {
                         Console.WriteLine(" error when connecting to : {0}", peer.Address);
                     }
                 }
-
-                Thread.Sleep(100); // give time to next peer
             }
+
+            Console.WriteLine("---- Sync Done~");
 
 
         }

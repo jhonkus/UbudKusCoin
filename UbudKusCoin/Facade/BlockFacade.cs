@@ -20,8 +20,12 @@ namespace UbudKusCoin.Facade
     public class BlockFacade
     {
 
+        //minter will selected by random
+        private Random rnd;
         public BlockFacade()
         {
+            this.rnd = new Random();
+            
             Initialize();
             Console.WriteLine("...... Block initilized.");
         }
@@ -115,14 +119,12 @@ namespace UbudKusCoin.Facade
 
         public void CreateNew()
         {
+
+
             // get last block before sleep
             var lastBlockBefore = ServicePool.DbService.blockDb.GetLast();
 
-            //minter will selected by random
-            Random rnd = new Random();
-            var sleep = rnd.Next(2000, 10000);
-            Console.WriteLine("- Waiting for {0} seconds ", (double)sleep / (double)1000);
-            Thread.Sleep(sleep); //just for make delay so not fo fast
+
 
             // get last block after sleep
             var lastBlockAfterSleep = ServicePool.DbService.blockDb.GetLast();
@@ -198,7 +200,7 @@ namespace UbudKusCoin.Facade
             // clear mempool
             ServicePool.DbService.transactionsPooldb.DeleteAll();
 
-           // Check if new block already created by other nodes
+            // Check if new block already created by other nodes
             if (lastBlockAfterBuild.Height > lastBlockAfterSleep.Height)
             {
                 // new block added by other nodes

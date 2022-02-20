@@ -56,7 +56,7 @@ namespace UbudKusCoin.Services
             Task.Run(() =>
             {
                //  Utils.PrintBlock(block);
-               Console.WriteLine("== new Block created ====");
+               Console.WriteLine("----- I Create new Block, Height: {0}", block.Height);
             });
 
             // TODO BroadCast("A New Block Created: " + _port);

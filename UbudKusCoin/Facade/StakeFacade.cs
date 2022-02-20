@@ -6,10 +6,8 @@
 // modifications are permitted.
 
 using System;
-using System.Collections.Generic;
 
 using UbudKusCoin.Grpc;
-using UbudKusCoin.Others;
 using UbudKusCoin.Services;
 
 namespace UbudKusCoin.Facade
@@ -21,9 +19,9 @@ namespace UbudKusCoin.Facade
             Console.WriteLine("...... Stake initilized.");
         }
 
-        public Stake GetValidator()
+        public Stake GetMaxStake()
         {
-            var validator = ServicePool.DbService.stakeDb.GetValidator();
+            var validator = ServicePool.DbService.stakeDb.GetMaxStake();
             return validator;
         }
         public void AddOrUpdate(Stake stake)

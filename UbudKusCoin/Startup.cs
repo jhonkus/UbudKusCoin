@@ -21,7 +21,6 @@ namespace UbudKusCoin
     {
         public static void ConfigureServices(IServiceCollection services)
         {
-            services.AddScheduler();
             services.AddGrpc();
             services.AddCors(o => o.AddPolicy("AllowAll", builder =>
             {
@@ -29,7 +28,11 @@ namespace UbudKusCoin
                        .AllowAnyMethod()
                        .AllowAnyHeader()
                        .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
+         
+         
+         
             }));
+            
         }
 
         public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)

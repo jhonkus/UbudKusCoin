@@ -43,9 +43,9 @@ namespace UbudKusCoin.Grpc
                 });
             }
 
-            Console.WriteLine("\n- - - - >> Receiving block , height: {0} \n- - - - >> from: {1}\n", block.Height, block.Validator);
+           // Console.WriteLine("\n- - - - >> Receiving block , height: {0} \n- - - - >> from: {1}\n", block.Height, block.Validator);
             var addStatus = ServicePool.DbService.blockDb.Add(block);
-            Console.WriteLine("- - - - >> Block add to db.");
+            //Console.WriteLine("- - - - >> Block added to db.");
             return Task.FromResult(addStatus);
         }
 

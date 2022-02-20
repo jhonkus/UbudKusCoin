@@ -158,10 +158,10 @@ namespace UbudKusCoin.Facade
                         AddBalance(txn.Recipient, txn.Amount);
                         break;
                     case Constants.TXN_TYPE_STAKE:
-                        
+
                         // add logic for stake
 
-                        
+
                         break;
                     case Constants.TXN_TYPE_VALIDATOR_FEE:
                         //    if (this.validators.update(transaction)) {
@@ -191,22 +191,20 @@ namespace UbudKusCoin.Facade
             // get transaction from pool
             var txnsInPool = ServicePool.DbService.transactionsPooldb.GetAll();
             var txnsList = txnsInPool.FindAll().ToList();
-            var validator = ServicePool.FacadeService.Stake.GetValidator();
             var transactions = new List<Transaction>();
 
             // validator will get coin reward from genesis account
             // to keep total coin in Blockchain not changed
             var conbaseTrx = new Transaction
             {
-                Amount = 0,
-                Fee = 0,
                 TimeStamp = Utils.GetTime(),
-                Sender = "UkcDEfU9gGnm9tGjmFtXRjirf2LuohU5CzjWunEkPNbUcFW",
-                Height = height,
-                PubKey = validator.Address,
-                Recipient = validator.Address,
+                Sender = "-",
                 Signature = "-",
+                PubKey = "-",
+                Height = height,
+                Recipient = ServicePool.WalletService.GetAddress(),
                 TxType = Constants.TXN_TYPE_VALIDATOR_FEE,
+                Fee = 0,
             };
 
 
@@ -214,7 +212,7 @@ namespace UbudKusCoin.Facade
             {
                 //sum all fees and give block creator as reward
                 conbaseTrx.Amount = Utils.GetTotalFees(txnsList);
-                conbaseTrx.Hash = Utils.GetTransactionHash(conbaseTrx); ;
+                conbaseTrx.Hash = Utils.GetTransactionHash(conbaseTrx);
 
                 // add coinbase trx to list    
                 transactions.Add(conbaseTrx);

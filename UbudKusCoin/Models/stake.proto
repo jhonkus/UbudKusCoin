@@ -32,5 +32,6 @@ message Stake {
   int32 Id = 1;
 	string address = 2;
 	double amount = 3;
+  int64 time_stamp = 4;
 }
 
