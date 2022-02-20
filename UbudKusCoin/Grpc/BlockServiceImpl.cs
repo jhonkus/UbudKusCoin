@@ -49,12 +49,12 @@ namespace UbudKusCoin.Grpc
             return Task.FromResult(addStatus);
         }
 
-        public override Task<Block> GetFirst(Block request, ServerCallContext context)
+        public override Task<Block> GetFirst(EmptyRequest request, ServerCallContext context)
         {
             var block = ServicePool.DbService.blockDb.GetFirst();
             return Task.FromResult(block);
         }
-        public override Task<Block> GetLast(Block request, ServerCallContext context)
+        public override Task<Block> GetLast(EmptyRequest request, ServerCallContext context)
         {
             var block = ServicePool.DbService.blockDb.GetLast();
             return Task.FromResult(block);

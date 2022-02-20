@@ -1,30 +1,37 @@
-﻿using System;
+﻿// Created by I Putu Kusuma Negara
+// markbrain2013[at]gmail.com
+// 
+// Ubudkuscoin is free software distributed under the MIT software license,
+// Redistribution and use in source and binary forms with or without
+// modifications are permitted.
+
+using System;
 using System.Numerics;
 using System.Security.Cryptography;
 using EllipticCurve;
 using SimpleBase;
 
-namespace Main
+namespace UbudKusCoin.ConsoleWallet
 {
 
-    public class Account
+    public class AccountExt
     {
         public BigInteger SecretNumber { set; get; }
         public PrivateKey PrivKey { set; get; }
         public PublicKey PubKey { set; get; }
 
-        public Account(string screet = "")
+        public AccountExt(string screet = "")
         {
             if (screet != "")
             {
-                PrivKey = new PrivateKey("secp256k1", BigInteger.Parse(screet));
+                this.PrivKey = new PrivateKey("secp256k1", BigInteger.Parse(screet));
             }
             else
             {
-                PrivKey = new PrivateKey();
+                this.PrivKey = new PrivateKey();
             }
-            SecretNumber = PrivKey.secret;
-            PubKey = PrivKey.publicKey();
+            this.SecretNumber = PrivKey.secret;
+            this.PubKey = PrivKey.publicKey();
         }
 
         public string GetPubKeyHex()

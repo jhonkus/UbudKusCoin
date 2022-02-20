@@ -2,7 +2,7 @@
 using System;
 
 
-namespace Main
+namespace UbudKusCoin.BlockExplorer.Others
 {
     public static class Utils
     {

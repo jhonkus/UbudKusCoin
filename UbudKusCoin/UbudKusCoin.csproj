@@ -22,8 +22,6 @@
     <PackageReference Include="Grpc.AspNetCore" Version="2.42.0" />
     <PackageReference Include="Grpc.AspNetCore.Web" Version="2.42.0" />
     <PackageReference Include="LiteDB" Version="5.0.10" />
-    <PackageReference Include="Coravel" Version="4.0.2" />
-    <PackageReference Include="NetCoreServer" Version="5.0.13" />
     <PackageReference Include="SimpleBase" Version="3.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1"/>
     <PackageReference Include="NBitcoin" Version="4.2.16" />
@@ -31,11 +29,11 @@
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <Protobuf Include="Models\account.proto" GrpcServices="Server, Client" />
-    <Protobuf Include="Models\block.proto" GrpcServices="Server, Client" />
-    <Protobuf Include="Models\peer.proto" GrpcServices="Server, Client" />
-    <Protobuf Include="Models\stake.proto" GrpcServices="Server, Client" />
-    <Protobuf Include="Models\transaction.proto" GrpcServices="Server, Client" />
+    <Protobuf Include="Protos\account.proto" GrpcServices="Server, Client" />
+    <Protobuf Include="Protos\block.proto" GrpcServices="Server, Client" />
+    <Protobuf Include="Protos\peer.proto" GrpcServices="Server, Client" />
+    <Protobuf Include="Protos\stake.proto" GrpcServices="Server, Client" />
+    <Protobuf Include="Protos\transaction.proto" GrpcServices="Server, Client" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Sceduler\" />

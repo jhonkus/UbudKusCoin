@@ -2,23 +2,33 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
+
 using Newtonsoft.Json;
-using UbudKusCoin.Services;
-using static UbudKusCoin.Services.BChainService;
-namespace Main
+using static UbudKusCoin.Grpc.TransactionService;
+using static UbudKusCoin.Grpc.BlockService;
+using static UbudKusCoin.Grpc.AccountService;
+using Grpc.Net.Client;
+using UbudKusCoin.Grpc;
+using UbudKusCoin.BlockExplorer.Others;
+
+namespace UbudKusCoin.BlockExplorer
 {
-    public class ConsoleExplorer
+    public class BlockExplorer
     {
-        readonly BChainServiceClient service;
-        public ConsoleExplorer(BChainServiceClient service)
+        private AccountServiceClient accountService;
+        private BlockServiceClient blockService;
+        private TransactionServiceClient transactionService;
+
+        public BlockExplorer(GrpcChannel channel)
         {
-            this.service = service;
+            this.accountService = new AccountServiceClient(channel);
+            this.blockService = new BlockServiceClient(channel);
+            this.transactionService = new TransactionServiceClient(channel);
             MenuItem();
             GetInput();
         }
         private void MenuItem()
         {
-
 
             Console.Clear();
             Console.WriteLine("\n\n\n");
@@ -92,18 +102,23 @@ namespace Main
         private void ShowLastBlock()
         {
 
-            Console.Clear();
-            Console.WriteLine("\n\n\n\nLast Block");
-            Console.WriteLine("- Time: {0}", DateTime.Now);
-            Console.WriteLine("======================");
-            var response = service.LastBlock(new EmptyRequest());
-            var block = response.Block;
+            try
+            {
+                Console.Clear();
+                Console.WriteLine("\n\n\n\nLast Block");
+                Console.WriteLine("- Time: {0}", DateTime.Now);
+                Console.WriteLine("======================");
+                var block = blockService.GetLast(new EmptyRequest());
 
-            PrintBlock(block);
+                PrintBlock(block);
 
 
-            Console.WriteLine("--------------\n");
-
+                Console.WriteLine("--------------\n");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(" error!, {0}", "Please check UbudKusCoin node, it must running!");
+            }
 
         }
 
@@ -117,22 +132,20 @@ namespace Main
 
             try
             {
-                var response = service.GenesisBlock(new EmptyRequest());
-                var block = response.Block;
-
+                var block = blockService.GetFirst(new EmptyRequest());
 
                 PrintBlock(block);
 
                 Console.WriteLine("--------------\n");
             }
-            catch
+            catch (Exception e)
             {
-                Console.WriteLine(" error !!!!");
+                Console.WriteLine(" error!, {0}", "Please check UbudKusCoin node, it must running!");
             }
 
         }
 
-        private static void PrintBlock(BlockModel block)
+        private static void PrintBlock(Block block)
         {
             Console.WriteLine("Height        : {0}", block.Height);
             Console.WriteLine("Version       : {0}", block.Version);
@@ -149,7 +162,7 @@ namespace Main
             Console.WriteLine("Build Time    : {0}", block.BuildTime);
 
 
-            var transactions = JsonConvert.DeserializeObject<List<TxnModel>>(block.Transactions);
+            var transactions = JsonConvert.DeserializeObject<List<Transaction>>(block.Transactions);
             Console.WriteLine("Transactions:");
             foreach (var Txn in transactions)
             {
@@ -209,7 +222,7 @@ namespace Main
 
             try
             {
-                var response = service.GetBlocks(new PagingRequest
+                var response = blockService.GetRange(new BlockParams
                 {
                     PageNumber = pageNumber,
                     ResultPerPage = 5
@@ -227,9 +240,8 @@ namespace Main
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine(" error!, {0}", "Please check UbudKusCoin node, it must running!");
             }
-
 
         }
 

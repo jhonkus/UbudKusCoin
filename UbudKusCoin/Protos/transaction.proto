@@ -1,0 +1,60 @@
+// Created by I Putu Kusuma Negara. markbrain2013[at]gmail.com
+// 
+// Ubudkuscoin is free software distributed under the MIT software license,
+// Redistribution and use in source and binary forms with or without
+// modifications are permitted.
+
+syntax = "proto3";
+
+
+option csharp_namespace = "UbudKusCoin.Grpc";
+
+service TransactionService {
+  rpc Receive(TransactionPost) returns (TransactionStatus);
+  rpc Transfer(TransactionPost) returns (TransactionStatus);
+  rpc GetByHash(Transaction) returns (Transaction);
+  rpc GetRangeByAddress(TransactionPaging) returns (TransactionList);
+  rpc GetRangeByHeight(TransactionPaging) returns (TransactionList);
+  rpc GetRange(TransactionPaging) returns (TransactionList);
+  rpc GetPoolRange(TransactionPaging) returns (TransactionList);
+  rpc GetPendingTxns(TransactionPaging) returns (TransactionList);
+}
+
+message TransactionPaging{
+  string address = 1;
+  int64 height = 2;
+  int32 page_number = 3;
+  int32 result_per_page = 4; 
+}
+
+message TransactionGet{
+  string address = 1;
+  string hash = 2;
+}
+
+message TransactionPost{
+  Transaction Transaction = 1;
+  string sending_from = 2;
+}
+
+message TransactionStatus{
+  string status = 1;
+  string message = 2;
+}
+
+message TransactionList {
+  repeated Transaction transactions = 1;
+}
+
+message Transaction{
+  string hash = 1;
+  int64 time_stamp = 2;
+  string sender = 3;
+  string recipient = 4;
+  double amount = 5;
+  double fee = 6;
+  int64 height = 7;
+  string signature = 8;
+  string pub_key = 9;
+  string tx_type =  10;
+}

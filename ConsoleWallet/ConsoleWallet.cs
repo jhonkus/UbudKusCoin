@@ -1,25 +1,43 @@
-﻿using System;
+﻿// Created by I Putu Kusuma Negara
+// markbrain2013[at]gmail.com
+// 
+// Ubudkuscoin is free software distributed under the MIT software license,
+// Redistribution and use in source and binary forms with or without
+// modifications are permitted.
+
+using System;
 using System.Globalization;
 using System.Threading.Tasks;
-using UbudKusCoin.Services;
-using static UbudKusCoin.Services.BChainService;
 
-namespace Main
+using UbudKusCoin.ConsoleWallet.Others;
+using UbudKusCoin.Grpc;
+using static UbudKusCoin.Grpc.TransactionService;
+using static UbudKusCoin.Grpc.BlockService;
+using static UbudKusCoin.Grpc.AccountService;
+using Grpc.Net.Client;
+
+namespace UbudKusCoin.ConsoleWallet
 {
     public class ConsoleWallet
     {
-        readonly BChainServiceClient service;
-        public Account account;
-        public ConsoleWallet(BChainServiceClient service)
+
+        AccountServiceClient accountService;
+        BlockServiceClient blockService;
+        TransactionServiceClient transactionService;
+
+        public AccountExt accountExt;
+        public ConsoleWallet(GrpcChannel channel)
         {
-            this.service = service;
+            this.accountService = new AccountServiceClient(channel);
+            this.blockService = new BlockServiceClient(channel);
+            this.transactionService = new TransactionServiceClient(channel);
             MenuItem();
             GetInput();
         }
         private void MenuItem()
         {
 
-            if (account == null)
+            if (accountExt == null)
             {
                 Console.Clear();
                 Console.WriteLine("\n\n\n");
@@ -38,7 +56,7 @@ namespace Main
                 Console.WriteLine("\n\n\n");
                 Console.WriteLine("                    UBUDKUS COIN WALLET ");
                 Console.WriteLine("============================================================");
-                Console.WriteLine("  Address: {0}", account.GetAddress());
+                Console.WriteLine("  Address: {0}", accountExt.GetAddress());
                 Console.WriteLine("============================================================");
                 Console.WriteLine("                    1. Create Account");
                 Console.WriteLine("                    2. Restore Account");
@@ -49,7 +67,7 @@ namespace Main
                 Console.WriteLine("                    7. Send Bulk Tx");
                 Console.WriteLine("                    9. Exit");
                 Console.WriteLine("------------------------------------------------------------");
-                
+
             }
         }
 
@@ -135,7 +153,7 @@ namespace Main
             Console.WriteLine("======================");
 
             Console.WriteLine("Sender address:");
-            string sender = account.GetAddress();
+            string sender = accountExt.GetAddress();
             Console.WriteLine(sender);
 
 
@@ -157,10 +175,10 @@ namespace Main
                 return;
             }
 
-         
-            var response = service.GetBalance(new CommonRequest
+
+            var response = accountService.GetByAddress(new Account
             {
-                Address = sender
+                
             });
 
             var senderBalance = response.Balance;
@@ -173,10 +191,10 @@ namespace Main
                 return;
             }
 
-            for (int i = 0; i < numOfTx; i++ )
+            for (int i = 0; i < numOfTx; i++)
             {
                 Console.Write(i + "- ");
-                SendCoin(account.GetAddress(), recipient, amount, fee);
+                SendCoin(accountExt.GetAddress(), recipient, amount, fee);
                 System.Threading.Thread.Sleep(50);
             }
 
@@ -185,40 +203,41 @@ namespace Main
 
         private void SendCoin(string sender, string recipient, double amount, float fee)
         {
-            var Txnin = new TxnInput
-            {
-                SenderAddress = sender,
-                TimeStamp = Utils.GetTime()
-            };
 
-            var TxnOut = new TxnOutput
+            var newTxn = new Transaction
             {
-                RecipientAddress = recipient,
+                Sender = sender,
+                TimeStamp = Utils.GetTime(),
+                Recipient = recipient,
                 Amount = amount,
                 Fee = fee,
+                Height = 0,
+                TxType = "Transfer",
             };
 
-            var TxnHash = Utils.GetTransactionHash(Txnin, TxnOut);
-            var signature = account.CreateSignature(TxnHash);
-            Txnin.Signature = signature;
-            var sendRequest = new SendRequest
+            var TxnHash = Utils.GetTransactionHash(newTxn);
+            var signature = accountExt.CreateSignature(TxnHash);
+            newTxn.Hash = TxnHash;
+            newTxn.Signature = signature;
+
+
+            var transferRequest = new TransactionPost
             {
-                TxnId = TxnHash,
-                PublicKey = account.GetPubKeyHex(),
-                TxnInput = Txnin,
-                TxnOutput = TxnOut
+                SendingFrom = "Console Wallet",
+                Transaction = newTxn
             };
+
 
             try
             {
-                var responseSend = service.SendCoin(sendRequest);
-                if (responseSend.Result.ToLower() == "success")
-                {                   
+                var transferResponse = transactionService.Transfer(transferRequest);
+                if (transferResponse.Status.ToLower() == "success")
+                {
                     Console.WriteLine("== success == ");
                 }
                 else
                 {
-                    Console.WriteLine("Error: {0}", responseSend.Result);
+                    Console.WriteLine("Error: {0}", transferResponse.Message);
                 }
 
             }
@@ -242,7 +261,7 @@ namespace Main
             Console.WriteLine("======================");
 
             Console.WriteLine("Sender address:");
-            string sender = account.GetAddress();
+            string sender = accountExt.GetAddress();
             Console.WriteLine(sender);
 
 
@@ -288,7 +307,7 @@ namespace Main
             }
 
 
-            var response = service.GetBalance(new CommonRequest
+            var response = accountService.GetByAddress(new Account
             {
                 Address = sender
             });
@@ -303,54 +322,51 @@ namespace Main
                 return;
             }
 
-            var Txnin = new TxnInput
+            var NewTxn = new Transaction
             {
-                SenderAddress = account.GetAddress(),
+                Sender = accountExt.GetAddress(),
                 TimeStamp = Utils.GetTime(),
-            };
-
-            var TxnOut = new TxnOutput
-            {
-                RecipientAddress = recipient,
+                Recipient = recipient,
                 Amount = amount,
                 Fee = fee,
+                Height = 0,
+                TxType = "Transfer",
+                PubKey =  accountExt.GetPubKeyHex(),
             };
 
-            var TxnHash = Utils.GetTransactionHash(Txnin, TxnOut);
-            var signature = account.CreateSignature(TxnHash);
-            
+            var TxnHash = Utils.GetTransactionHash(NewTxn);
+            var signature = accountExt.CreateSignature(TxnHash);
 
-            Txnin.Signature = signature;
+            NewTxn.Hash = TxnHash;
+            NewTxn.Signature = signature;
 
-            var sendRequest = new SendRequest
+            var transferRequest = new TransactionPost
             {
-                TxnId = TxnHash,
-                PublicKey = account.GetPubKeyHex(),
-                TxnInput = Txnin,
-                TxnOutput = TxnOut
+                SendingFrom = "Console Wallet",
+                Transaction = NewTxn
             };
 
             try
             {
-                var responseSend = service.SendCoin(sendRequest);
+                var transferResponse = transactionService.Transfer(transferRequest);
 
-                if (responseSend.Result.ToLower() == "success")
+                if (transferResponse.Status.ToLower() == "success")
                 {
-                    DateTime utcDate = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMilliseconds(Convert.ToDouble(Txnin.TimeStamp));
+                    DateTime utcDate = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMilliseconds(Convert.ToDouble(NewTxn.TimeStamp));
 
                     Console.Clear();
                     Console.WriteLine("\n\n\n\nTransaction has send to Blockchain.!.");
                     Console.WriteLine("Timestamp: {0}", utcDate.ToLocalTime());
-                    Console.WriteLine("Sender: {0}", Txnin.SenderAddress);
-                    Console.WriteLine("Recipient {0}", TxnOut.RecipientAddress);
-                    Console.WriteLine("Amount: {0}", TxnOut.Amount);
-                    Console.WriteLine("Fee: {0}", TxnOut.Fee);
+                    Console.WriteLine("Sender: {0}", NewTxn.Sender);
+                    Console.WriteLine("Recipient {0}", NewTxn.Recipient);
+                    Console.WriteLine("Amount: {0}", NewTxn.Amount);
+                    Console.WriteLine("Fee: {0}", NewTxn.Fee);
                     Console.WriteLine("-------------------");
                     Console.WriteLine("Need around 1 minute to be processed!");
                 }
                 else
                 {
-                    Console.WriteLine("Error: {0}", responseSend.Result);
+                    Console.WriteLine("Error: {0}", transferResponse.Message);
                 }
 
             }
@@ -376,22 +392,22 @@ namespace Main
 
             try
             {
-                account = new Account(screet);
+                accountExt = new AccountExt(screet);
                 WalletInfo();
             }
             catch
             {
                 Console.WriteLine(" Wrong secreet key!");
             }
-         
+
         }
 
         private void DoCreateAccount()
         {
-      
-            account = new Account();
+
+            accountExt = new AccountExt();
             WalletInfo();
-           
+
         }
 
         private void WalletInfo()
@@ -399,9 +415,9 @@ namespace Main
             Console.Clear();
             Console.WriteLine("\n\n\nYour Wallet");
             Console.WriteLine("======================");
-            Console.WriteLine("\nADDRESS:\n{0}", account.GetAddress());
-            Console.WriteLine("\nPUBLIC KEY:\n{0}", account.GetPubKeyHex());
-            Console.WriteLine("\nSECREET NUMBER:\n{0}", account.SecretNumber);
+            Console.WriteLine("\nADDRESS:\n{0}", accountExt.GetAddress());
+            Console.WriteLine("\nPUBLIC KEY:\n{0}", accountExt.GetPubKeyHex());
+            Console.WriteLine("\nSECREET NUMBER:\n{0}", accountExt.SecretNumber);
             Console.WriteLine("\n - - - - - - - - - - - - - - - - - - - - - - ");
             Console.WriteLine("*** save secreet number!                   ***");
             Console.WriteLine("*** use secreet number to restore account! ***");
@@ -417,7 +433,7 @@ namespace Main
 
         private void DoGetTransactionHistory()
         {
-            string address = account.GetAddress();
+            string address = accountExt.GetAddress();
             if (string.IsNullOrEmpty(address))
             {
                 Console.WriteLine("\n\nError, Address empty, please create account first!\n");
@@ -431,9 +447,11 @@ namespace Main
 
             try
             {
-                var response = service.GetTxnsByAccount(new CommonRequest
+                var response = transactionService.GetRangeByAddress(new TransactionPaging
                 {
-                    Address = address
+                    Address = address,
+                    PageNumber = 1,
+                    ResultPerPage = 50
                 });
 
 
@@ -466,7 +484,7 @@ namespace Main
         private void DoGetBalance()
         {
 
-            string address = account.GetAddress();
+            string address = accountExt.GetAddress();
             if (string.IsNullOrEmpty(address))
             {
                 Console.WriteLine("\n\nError, Address empty, please create account first!\n");
@@ -479,7 +497,7 @@ namespace Main
             Console.WriteLine("======================");
             try
             {
-                var response = service.GetBalance(new CommonRequest
+                var response = accountService.GetByAddress(new Account
                 {
                     Address = address
                 });

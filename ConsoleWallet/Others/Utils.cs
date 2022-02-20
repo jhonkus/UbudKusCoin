@@ -1,11 +1,17 @@
-﻿
+﻿// Created by I Putu Kusuma Negara
+// markbrain2013[at]gmail.com
+// 
+// Ubudkuscoin is free software distributed under the MIT software license,
+// Redistribution and use in source and binary forms with or without
+// modifications are permitted.
+
 using System;
 using System.Security.Cryptography;
 using System.Text;
-using UbudKusCoin.Services;
+using UbudKusCoin.Grpc;
 
 
-namespace Main
+namespace UbudKusCoin.ConsoleWallet.Others
 {
     public static class Utils
     {
@@ -45,10 +51,6 @@ namespace Main
 
         public static byte[] HexToBytes(string hex)
         {
-            //    return Enumerable.Range(0, hex.Length)
-            //     .Where(x => x % 2 == 0)
-            //     .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
-            //     .ToArray();
 
             int NumberChars = hex.Length;
             byte[] bytes = new byte[NumberChars / 2];
@@ -59,9 +61,9 @@ namespace Main
             return bytes;
         }
 
-        public static string GetTransactionHash(TxnInput input, TxnOutput output)
+        public static string GetTransactionHash(Transaction txn)
         {
-            var TxnId = GenHash(GenHash(input.TimeStamp + input.SenderAddress + output.Amount + output.Fee + output.RecipientAddress));
+            var TxnId = GenHash(GenHash(txn.TimeStamp + txn.Sender + txn.Amount + txn.Fee + txn.Recipient));
             return TxnId;
         }
 

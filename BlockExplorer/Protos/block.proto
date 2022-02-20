@@ -14,8 +14,12 @@ service BlockService {
   rpc GetRange(BlockParams) returns (BlockList);
   rpc GetByHeight(Block) returns (Block);
   rpc GetByHash(Block) returns (Block);
-  rpc GetFirst(Block) returns (Block);
-  rpc GetLast(Block)  returns (Block);
+  rpc GetFirst(EmptyRequest) returns (Block);
+  rpc GetLast(EmptyRequest)  returns (Block);
+}
+
+
+message EmptyRequest{
 }
 
 message AddBlockStatus{
