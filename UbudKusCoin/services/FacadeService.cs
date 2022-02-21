@@ -34,8 +34,6 @@ namespace UbudKusCoin.Services
             this.TransactionPool = new TransactionPoolFacade();
             this.Transaction = new TransactionFacade();
             this.Block = new BlockFacade();
-
-            ServicePool.StateService.IsFacadeServiceReady = true;
             Console.WriteLine("...... Facade service is ready");
         }
     }

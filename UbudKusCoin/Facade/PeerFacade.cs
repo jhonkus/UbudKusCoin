@@ -52,7 +52,7 @@ namespace UbudKusCoin.Facade
                         Address = tempPeers[i],
                         IsBootstrap = true,
                         IsCanreach = false,
-                        LastReach = Utils.GetTime()
+                        LastReach = UkcUtils.GetTime()
                     };
                     ServicePool.DbService.peerDb.Add(newPeer);
                     InitialPeers.Add(newPeer);

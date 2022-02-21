@@ -36,7 +36,6 @@ namespace UbudKusCoin.Services
             Console.WriteLine("... Wallet service is starting");
             this.Mnemonic = new Mnemonic(this.passphrase);
             this.KeyPair = GenerateKeyPair(this.Mnemonic, 0);
-            ServicePool.StateService.IsWalletServiceReady = true;
             Console.WriteLine("...... Wallet service is Ready");
         }
 
@@ -71,7 +70,7 @@ namespace UbudKusCoin.Services
         public string GetAddress()
         {
             byte[] hash = SHA256.Create().ComputeHash(this.KeyPair.PublicKey.ToBytes());
-            return Base58.Ripple.Encode(hash);
+            return Base58.Bitcoin.Encode(hash);
         }
 
         public string Sign(string dataHash)

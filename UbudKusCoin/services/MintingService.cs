@@ -30,11 +30,6 @@ namespace UbudKusCoin.Services
 
         public void Start()
         {
-            // Console.WriteLine("...... Waiiting P2P Ready");
-            while (!ServicePool.StateService.IsNodeStateReady())
-            {
-                Console.WriteLine(" ..Waiting P2P Ready ...");
-            }
 
             // sync state with others
             Console.WriteLine(".... Synchronizing state other peer(s) ");
@@ -67,8 +62,10 @@ namespace UbudKusCoin.Services
         public void MintingBlock()
         {
             isAlreadyMakeBlock = true;
-            Console.WriteLine("\n\n= = = = = = = = NODE IS RUNNING =  = = = = = = =");
-            Console.WriteLine(".... I am ready to fight to validate blocks ....\n");
+            Console.WriteLine("\n\n= = = = = = = = = = = = NODE IS RUNNING = = = = = = = = = = = =");
+            Console.WriteLine(". Account Address: {0}", ServicePool.WalletService.GetAddress());
+            Console.WriteLine("..Network Address: {0} ", ServicePool.FacadeService.Peer.NodeAddress);
+            Console.WriteLine("\n.......... I am ready to fight to validate blocks ....\n");
             while (true)
             {
                 var timeMinting = DateTime.UtcNow;
@@ -93,11 +90,11 @@ namespace UbudKusCoin.Services
 
                     var myAddress = ServicePool.WalletService.GetAddress();
 
-                    var maxStake = ServicePool.DbService.stakeDb.GetMaxStake();
+                    var maxStake = ServicePool.DbService.stakeDb.GetMax();
                     if (maxStake is not null && myAddress == maxStake.Address)
                     {
                         Console.WriteLine("\n-- Horee, I am validator for next Block \n");
-                        ServicePool.FacadeService.Block.CreateNew();
+                        ServicePool.FacadeService.Block.New();
                     }
                     else
                     {
@@ -114,17 +111,15 @@ namespace UbudKusCoin.Services
             }
         }
 
-
+        /// <summary>
+        /// To send staking one time, before time to create block.
+        /// </summary>
         public void AutoStake()
         {
-
             ServicePool.DbService.stakeDb.DeleteAll();
-
-
             while (true)
             {
                 var timeStaking = DateTime.UtcNow;
-
                 // Clean the stakes before create a block.
                 if (timeStaking.Second < 3)
                 {
@@ -134,31 +129,24 @@ namespace UbudKusCoin.Services
                     Thread.Sleep(4000);
                     timeStaking = DateTime.UtcNow;
                 }
-
-
                 // staking will do in limited time starting from second: 4 to 30
                 if (!isAlreadyStaking && timeStaking.Second < 35)
                 {
-
-
                     // Make stakeing with random amount        
                     var stake = new Stake
                     {
                         Address = ServicePool.WalletService.GetAddress(),
                         Amount = rnd.Next(10, 100),
-                        TimeStamp = UbudKusCoin.Others.Utils.GetTime()
+                        TimeStamp = UbudKusCoin.Others.UkcUtils.GetTime()
                     };
-
-
                     Console.WriteLine("... Now I stake {0} coins at: {1}\n", stake.Amount, DateTime.UtcNow);
                     ServicePool.P2PService.BroadcastStake(stake);
                     timeStaking = DateTime.UtcNow;
 
                     isAlreadyStaking = true;
                 }
-
                 // sleep 1 second
-                Thread.Sleep(500);
+                Thread.Sleep(1000);
             }
         }
 

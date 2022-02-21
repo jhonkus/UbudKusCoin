@@ -1,6 +1,8 @@
 # rm -rf publish-linux
 
 dotnet publish -c Release -r linux-x64 -o ./publish-linux
+#dotnet publish -c Release -r osx-x64 -o ./publish-osx
+#dotnet publish -c Release -r win-x64 -o ./publish-win64  
 
 # zip -r uksc.zip publish-linux
 

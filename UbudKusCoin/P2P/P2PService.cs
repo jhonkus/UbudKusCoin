@@ -35,49 +35,17 @@ namespace UbudKusCoin.P2P
         public void Start()
         {
             Console.WriteLine("... P2P service is starting");
-            ListenEvent();
-            ServicePool.StateService.IsP2PServiceReady = true;
+            // do some task
             Console.WriteLine("...... P2P service is ready");
         }
 
 
-        /// <summary>
-        /// This method to register event blockCreated, and EventTransaction created.
-        /// </summary>
-        private void ListenEvent()
-        {
-            ServicePool.EventService.EventBlockCreated += Evt_EventBlockCreated;
-            ServicePool.EventService.EventTransactionCreated += Evt_EventTransactionCreated;
-        }
-
-
-        /// <summary>
-        /// This method is listening, when there is event block created,
-        ///  and call BroadcasBlock function.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="block"></param>
-        void Evt_EventBlockCreated(object sender, Block block)
-        {
-            BroadcastBlock(block);
-        }
-
-        /// <summary>
-        /// Event transaction listener, when transaction created, it will call
-        /// function BroadcastTransaction
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="txn"></param>
-        void Evt_EventTransactionCreated(object sender, Transaction txn)
-        {
-            BroadcastTransaction(txn);
-        }
 
         /// <summary>
         /// Do Braodcast a block to all peer in known peers
         /// </summary>
         /// <param name="block"></param>
-        private void BroadcastBlock(Block block)
+        public void BroadcastBlock(Block block)
         {
             var knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();
             var nodeAddress = ServicePool.FacadeService.Peer.NodeAddress;
@@ -157,7 +125,7 @@ namespace UbudKusCoin.P2P
                     DownloadBlocks(blockService, lastHeight, peerHeight);
                 }
             }
-            catch{}
+            catch { }
         }
 
         /// <summary>
@@ -178,6 +146,10 @@ namespace UbudKusCoin.P2P
             return false;
         }
 
+
+        /// <summary>
+        /// Sincronize blockchain states, make block height same with other peer
+        /// </summary>
         public void SyncState()
         {
             var knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();

@@ -35,14 +35,6 @@ namespace UbudKusCoin.Grpc
             return Task.FromResult(response);
         }
 
-        public override Task<TransactionList> GetRangeByHeight(TransactionPaging req, ServerCallContext context)
-        {
-            var response = new TransactionList();
-            var transactions = ServicePool.DbService.transactionDb.GetRangeByHeight(req.Height, req.PageNumber, req.ResultPerPage);
-            response.Transactions.AddRange(transactions);
-            return Task.FromResult(response);
-        }
-
         public override Task<TransactionList> GetRange(TransactionPaging req, ServerCallContext context)
         {
             var response = new TransactionList();
@@ -70,7 +62,7 @@ namespace UbudKusCoin.Grpc
         public override Task<TransactionStatus> Receive(TransactionPost req, ServerCallContext context)
         {
 
-            var TxnHash = UbudKusCoin.Others.Utils.GetTransactionHash(req.Transaction);
+            var TxnHash = UbudKusCoin.Others.UkcUtils.GetTransactionHash(req.Transaction);
             if (!TxnHash.Equals(req.Transaction.Hash))
             {
                 return Task.FromResult(new TransactionStatus
@@ -105,7 +97,7 @@ namespace UbudKusCoin.Grpc
         public override Task<TransactionStatus> Transfer(TransactionPost req, ServerCallContext context)
         {
             // Validating hash
-            var isHashValid = UbudKusCoin.Others.Utils.GetTransactionHash(req.Transaction);
+            var isHashValid = UbudKusCoin.Others.UkcUtils.GetTransactionHash(req.Transaction);
             if (!isHashValid.Equals(req.Transaction.Hash))
             {
                 return Task.FromResult(new TransactionStatus

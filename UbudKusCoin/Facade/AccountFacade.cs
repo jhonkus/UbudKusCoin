@@ -28,9 +28,13 @@ namespace UbudKusCoin.Facade
             return ServicePool.DbService.accountDb.GetByAddress(address);
         }
 
+        /// <summary>
+        /// Genesis account have initial balance
+        /// </summary>
+        /// <returns></returns>
         public List<Account> GetGenesis()
         {
-            var timestamp = Utils.GetTime();
+            var timestamp = UkcUtils.GetTime();
             var list = new List<Account> {
                 new Account{
                     // owner elevator visual public loyal actual outside trumpet sugar drama impact royal
@@ -52,10 +56,105 @@ namespace UbudKusCoin.Facade
                     Created = timestamp,
                     Updated = timestamp
                 },
-   
+
             };
             return list;
         }
+
+        /// <summary>
+        /// Add amount to Balance
+        /// </summary>
+        /// <param name="to"></param>
+        /// <param name="amount"></param>
+        public void AddToBalance(string to, double amount)
+        {
+            var acc = ServicePool.DbService.accountDb.GetByAddress(to);
+            if (acc is null)
+            {
+                acc = new Account
+                {
+                    Address = to,
+                    Balance = amount,
+                    TxnCount = 1,
+                    Created = UkcUtils.GetTime(),
+                    Updated = UkcUtils.GetTime(),
+                    PubKey = "-"
+                };
+                ServicePool.DbService.accountDb.Add(acc);
+            }
+            else
+            {
+                acc.Balance += amount;
+                acc.TxnCount += 1;
+                acc.Updated = UkcUtils.GetTime();
+                ServicePool.DbService.accountDb.Update(acc);
+            }
+        }
+
+        /// <summary>
+        /// Reduce amount from Balance
+        /// </summary>
+        /// <param name="from"></param>
+        /// <param name="amount"></param>
+        /// <param name="pubKey"></param>
+        public void ReduceFromBalance(string from, double amount, string pubKey)
+        {
+
+            var acc = ServicePool.DbService.accountDb.GetByAddress(from);
+
+            if (acc is null)
+            {
+
+                acc = new Account
+                {
+                    Address = from,
+                    Balance = -amount,
+                    TxnCount = 1,
+                    Created = UkcUtils.GetTime(),
+                    Updated = UkcUtils.GetTime(),
+                    PubKey = pubKey,
+                };
+                ServicePool.DbService.accountDb.Add(acc);
+            }
+            else
+            {
+                acc.Balance -= amount;
+                acc.TxnCount += 1;
+                acc.PubKey = pubKey;
+                acc.Updated = UkcUtils.GetTime();
+
+                ServicePool.DbService.accountDb.Update(acc);
+            }
+        }
+
+        /// <summary>
+        /// Update Balance
+        /// </summary>
+        /// <param name="txns"></param>
+        public void UpdateBalance(List<Transaction> txns)
+        {
+            foreach (var txn in txns)
+            {
+
+                ReduceFromBalance(txn.Sender, txn.Amount, txn.PubKey);
+                AddToBalance(txn.Recipient, txn.Amount);
+
+            }
+        }
+
+        /// <summary>
+        /// Update Genesis Account Balance
+        /// </summary>
+        /// <param name="trxs"></param>
+        public void UpdateBalanceGenesis(List<Transaction> trxs)
+        {
+            foreach (var trx in trxs)
+            {
+                AddToBalance(trx.Recipient, trx.Amount);
+            }
+        }
+
+
     }
 
 }

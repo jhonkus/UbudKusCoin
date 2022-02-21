@@ -16,6 +16,9 @@ using UbudKusCoin.Services;
 namespace UbudKusCoin.Facade
 {
 
+    /// <summary>
+    /// Transaction Facade
+    /// </summary>
     public class TransactionFacade
     {
 
@@ -24,21 +27,25 @@ namespace UbudKusCoin.Facade
             Console.WriteLine("...... Transaction initilized.");
         }
 
+        /// <summary>
+        /// Add some transactions in same times
+        /// </summary>
+        /// <param name="transactions"></param>
+        /// <returns></returns>
         public string AddBulk(List<Transaction> transactions)
         {
             return ServicePool.DbService.transactionDb.AddBulk(transactions);
         }
 
-
-
-
-        /**
-        create transaction for each genesis account
-        **/
+        /// <summary>
+        /// Create genesis transaction for each genesis account
+        /// Sender and recipeint is same
+        /// </summary>
+        /// <returns></returns>
         public List<Transaction> CreateGenesis()
         {
             var genesisTrx = new List<Transaction>();
-            var timeStamp = Utils.GetTime();
+            var timeStamp = UkcUtils.GetTime();
             var accounts = ServicePool.FacadeService.Account.GetGenesis();
             for (int i = 0; i < accounts.Count; i++)
             {
@@ -53,8 +60,11 @@ namespace UbudKusCoin.Facade
                     Height = 1,
                     PubKey = accounts[i].PubKey
                 };
-                newTxn.Hash = GetHash(newTxn);
-                newTxn.Signature = "-"; //TODO Generate signauter
+                var txHash = GetHash(newTxn);
+
+                newTxn.Hash = txHash;
+                newTxn.Signature = ServicePool.WalletService.Sign(txHash);
+
                 genesisTrx.Add(newTxn);
             }
 
@@ -62,66 +72,18 @@ namespace UbudKusCoin.Facade
         }
 
 
+        /// <summary>
+        ///  Get transaction hash
+        /// </summary>
+        /// <param name="txn"></param>
+        /// <returns></returns>
         public string GetHash(Transaction txn)
         {
             var data = txn.TimeStamp + txn.Sender + txn.Amount + txn.Fee + txn.Recipient;
-            return Utils.GenHash(Utils.GenHash(data));
+            return UkcUtils.GenHash(UkcUtils.GenHash(data));
         }
 
-        public void AddBalance(string to, double amount)
-        {
-            var acc = ServicePool.DbService.accountDb.GetByAddress(to);
-            if (acc is null)
-            {
-                acc = new Account
-                {
-                    Address = to,
-                    Balance = amount,
-                    TxnCount = 1,
-                    Created = Utils.GetTime(),
-                    Updated = Utils.GetTime(),
-                    PubKey = "-"
-                };
-                ServicePool.DbService.accountDb.Add(acc);
-            }
-            else
-            {
-                acc.Balance += amount;
-                acc.TxnCount += 1;
-                acc.Updated = Utils.GetTime();
-                ServicePool.DbService.accountDb.Update(acc);
-            }
-        }
-
-        public void ReduceBalance(string from, double amount, string pubKey)
-        {
-
-            var acc = ServicePool.DbService.accountDb.GetByAddress(from);
-
-            if (acc is null)
-            {
-
-                acc = new Account
-                {
-                    Address = from,
-                    Balance = -amount,
-                    TxnCount = 1,
-                    Created = Utils.GetTime(),
-                    Updated = Utils.GetTime(),
-                    PubKey = pubKey,
-                };
-                ServicePool.DbService.accountDb.Add(acc);
-            }
-            else
-            {
-                acc.Balance -= amount;
-                acc.TxnCount += 1;
-                acc.PubKey = pubKey;
-                acc.Updated = Utils.GetTime();
-
-                ServicePool.DbService.accountDb.Update(acc);
-            }
-        }
+    
 
         public double GetBalance(string address)
         {
@@ -133,8 +95,8 @@ namespace UbudKusCoin.Facade
                     Address = address,
                     Balance = 0,
                     TxnCount = 0,
-                    Created = Utils.GetTime(),
-                    Updated = Utils.GetTime(),
+                    Created = UkcUtils.GetTime(),
+                    Updated = UkcUtils.GetTime(),
                     PubKey = address,
                 };
                 return 0;
@@ -145,46 +107,6 @@ namespace UbudKusCoin.Facade
             }
         }
 
-        public void UpdateBalance(List<Transaction> txns)
-        {
-            foreach (var txn in txns)
-            {
-
-                switch (txn.TxType)
-                {
-
-                    case Constants.TXN_TYPE_TRANSFER:
-                        ReduceBalance(txn.Sender, txn.Amount, txn.PubKey);
-                        AddBalance(txn.Recipient, txn.Amount);
-                        break;
-                    case Constants.TXN_TYPE_STAKE:
-
-                        // add logic for stake
-
-
-                        break;
-                    case Constants.TXN_TYPE_VALIDATOR_FEE:
-                        //    if (this.validators.update(transaction)) {
-                        //         this.accounts.decrement(
-                        //         transaction.input.from,
-                        //         transaction.output.amount
-                        //         );
-                        //         this.accounts.transferFee(block, transaction);
-                        //     }
-                        break;
-                }
-
-
-            }
-        }
-
-        public void UpdateBalanceGenesis(List<Transaction> trxs)
-        {
-            foreach (var trx in trxs)
-            {
-                AddBalance(trx.Recipient, trx.Amount);
-            }
-        }
 
         public List<Transaction> GetForMinting(long height)
         {
@@ -197,7 +119,7 @@ namespace UbudKusCoin.Facade
             // to keep total coin in Blockchain not changed
             var conbaseTrx = new Transaction
             {
-                TimeStamp = Utils.GetTime(),
+                TimeStamp = UkcUtils.GetTime(),
                 Sender = "-",
                 Signature = "-",
                 PubKey = "-",
@@ -211,8 +133,8 @@ namespace UbudKusCoin.Facade
             if (txnsInPool.Count() > 0)
             {
                 //sum all fees and give block creator as reward
-                conbaseTrx.Amount = Utils.GetTotalFees(txnsList);
-                conbaseTrx.Hash = Utils.GetTransactionHash(conbaseTrx);
+                conbaseTrx.Amount = UkcUtils.GetTotalFees(txnsList);
+                conbaseTrx.Hash = UkcUtils.GetTransactionHash(conbaseTrx);
 
                 // add coinbase trx to list    
                 transactions.Add(conbaseTrx);
@@ -220,7 +142,7 @@ namespace UbudKusCoin.Facade
             }
             else
             {
-                conbaseTrx.Hash = Utils.GetTransactionHash(conbaseTrx);
+                conbaseTrx.Hash = UkcUtils.GetTransactionHash(conbaseTrx);
                 transactions.Add(conbaseTrx);
             }
             return transactions;

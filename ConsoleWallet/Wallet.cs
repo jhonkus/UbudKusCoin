@@ -25,6 +25,7 @@ namespace UbudKusCoin.ConsoleWallet
         public Mnemonic Mnemonic { set; get; }
 
         public string passphrase { set; get; }
+
         public Wallet()
         {
             this.Mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
@@ -51,8 +52,8 @@ namespace UbudKusCoin.ConsoleWallet
 
         public string GetAddress()
         {
-            byte[] hash = SHA256.Create().ComputeHash(this.KeyPair.PublicKey.ToBytes());
-            return Base58.Ripple.Encode(hash);
+            byte[] bytes = SHA256.Create().ComputeHash(KeyPair.PublicKey.ToBytes());
+            return Base58.Bitcoin.Encode(bytes);
         }
 
         public string Sign(string dataHash)

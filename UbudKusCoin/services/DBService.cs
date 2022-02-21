@@ -50,7 +50,6 @@ namespace UbudKusCoin.Services
             this.DB_STAKE = new LiteDatabase(@"DbFiles//stake.db");
             this.DB_PEER = new LiteDatabase(@"DbFiles//peer.db");
 
-
         }
 
         public void Start()
@@ -62,7 +61,6 @@ namespace UbudKusCoin.Services
             this.transactionsPooldb = new TransactionPoolDb(this.DB_TRANSACTION_POOL);
             this.stakeDb = new StakeDb(this.DB_STAKE);
             this.peerDb = new PeerDb(this.DB_PEER);
-            ServicePool.StateService.IsDbServiceReady = true;
             Console.WriteLine("...... DB Servie is ready");
         }
 

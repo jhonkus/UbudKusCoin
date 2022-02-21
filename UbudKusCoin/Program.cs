@@ -25,13 +25,11 @@ namespace UbudKusCoin
             DotNetEnv.Env.TraversePath().Load();
 
             ServicePool.Add(
-                new StateService(),
                 new WalletService(),
                 new DbService(),
                 new FacadeService(),
                 new MintingService(),
-                new P2PService(),
-                new EventService()
+                new P2PService()
             );
             ServicePool.Start();
 

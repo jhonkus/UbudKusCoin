@@ -15,7 +15,7 @@ using UbudKusCoin.Others;
 namespace UbudKusCoin.DB
 {
     /// <summary>
-    /// This is the Account Database Service that for Add. Update and retrieve account related data
+    /// Account Database, for Add. Update and retrieve account
     /// </summary>
     public class AccountDb
     {
@@ -23,21 +23,35 @@ namespace UbudKusCoin.DB
         private readonly LiteDatabase _db;
         public AccountDb(LiteDatabase db)
         {
-            this._db =db;
+            this._db = db;
         }
 
+        /// <summary>
+        /// Add new Account
+        /// </summary>
+        /// <param name="acc"></param>
         public void Add(Account acc)
         {
             var accs = GetAll();
             accs.Insert(acc);
         }
 
+        /// <summary>
+        /// update an Account 
+        /// </summary>
+        /// <param name="acc"></param>
         public void Update(Account acc)
         {
             var accs = GetAll();
             accs.Update(acc);
         }
 
+        /// <summary>
+        /// Get accounts with paging, page number and result per page
+        /// </summary>
+        /// <param name="pageNumber"></param>
+        /// <param name="resultPerPage"></param>
+        /// <returns></returns>
         public IEnumerable<Account> GetRange(int pageNumber, int resultPerPage)
         {
             var accs = GetAll();
@@ -49,16 +63,28 @@ namespace UbudKusCoin.DB
             return query;
         }
 
+        /// <summary>
+        /// Get Account by it's Address
+        /// </summary>
+        /// <param name="address"></param>
+        /// <returns></returns>
         public Account GetByAddress(string address)
         {
             var accounts = GetAll();
-            if (accounts is null){
+            if (accounts is null)
+            {
                 return null;
             }
             accounts.EnsureIndex(x => x.Address);
             var acc = accounts.FindOne(x => x.Address == address);
             return acc;
         }
+
+        /// <summary>
+        /// Get an Account by its Public Key
+        /// </summary>
+        /// <param name="pubkey"></param>
+        /// <returns></returns>
         public Account GetByPubKey(string pubkey)
         {
             var accounts = GetAll();
@@ -72,7 +98,7 @@ namespace UbudKusCoin.DB
             return _db.GetCollection<Account>(Constants.TBL_ACCOUNTS); ;
         }
 
-   
+
 
     }
 }

@@ -28,8 +28,8 @@ namespace UbudKusCoin.Grpc
                 Address = request.NodeIpAddress,
                 IsBootstrap = false,
                 IsCanreach = true,
-                LastReach = Others.Utils.GetTime(),
-                TimeStamp = Others.Utils.GetTime()
+                LastReach = Others.UkcUtils.GetTime(),
+                TimeStamp = Others.UkcUtils.GetTime()
             });
 
             var nodeState = ServicePool.FacadeService.Peer.GetNodeState();

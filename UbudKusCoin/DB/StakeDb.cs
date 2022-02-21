@@ -8,10 +8,13 @@
 using LiteDB;
 using UbudKusCoin.Grpc;
 using UbudKusCoin.Others;
-using System.Collections.Generic;
 
 namespace UbudKusCoin.DB
 {
+
+    /// <summary>
+    /// Stake databases
+    /// </summary>
     public class StakeDb
     {
         private readonly LiteDatabase _db;
@@ -21,6 +24,10 @@ namespace UbudKusCoin.DB
             this._db = db;
         }
 
+        /// <summary>
+        /// add or update stake
+        /// </summary>
+        /// <param name="stake"></param>
         public void AddOrUpdate(Stake stake)
         {
             var locStake = GetByAddress(stake.Address);
@@ -31,6 +38,9 @@ namespace UbudKusCoin.DB
             GetAll().Update(stake);
         }
 
+        /// <summary>
+        /// Delete all stake
+        /// </summary>
         public void DeleteAll()
         {
             var stakers = GetAll();
@@ -41,7 +51,12 @@ namespace UbudKusCoin.DB
             stakers.DeleteAll();
         }
 
-        public Stake GetMaxStake()
+
+        /// <summary>
+        /// Get maximum stake, base on amount
+        /// </summary>
+        /// <returns></returns>
+        public Stake GetMax()
         {
             var stakes = GetAll();
             if (stakes is null || stakes.Count() < 1)
@@ -55,6 +70,11 @@ namespace UbudKusCoin.DB
             return query.FirstOrDefault();
         }
 
+        /// <summary>
+        /// Get stake by address
+        /// </summary>
+        /// <param name="address"></param>
+        /// <returns></returns>
         public Stake GetByAddress(string address)
         {
             var stakes = GetAll();
@@ -67,6 +87,11 @@ namespace UbudKusCoin.DB
             return stake;
         }
 
+
+        /// <summary>
+        /// Get all stake
+        /// </summary>
+        /// <returns></returns>
         public ILiteCollection<Stake> GetAll()
         {
             var stakes = this._db.GetCollection<Stake>(Constants.TBL_STAKES);
@@ -74,20 +99,5 @@ namespace UbudKusCoin.DB
             return stakes;
         }
 
-        public List<Stake> GetOrdered()
-        {
-            var stakes = GetAll();
-            if (stakes is null || stakes.Count() < 1)
-            {
-                return null;
-            }
-
-            stakes.EnsureIndex(x => x.Amount);
-
-            var query = stakes.Query()
-                .OrderByDescending(x => x.Amount);
-
-            return query.ToList();
-        }
     }
 }

@@ -12,6 +12,8 @@ using System.Threading.Tasks;
 using Grpc.Core;
 
 using UbudKusCoin.Services;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace UbudKusCoin.Grpc
 {
@@ -34,7 +36,7 @@ namespace UbudKusCoin.Grpc
             }
 
             // validate block height
-            if (block.Height != lastBlock.Height+1)
+            if (block.Height != lastBlock.Height + 1)
             {
                 return Task.FromResult(new AddBlockStatus
                 {
@@ -43,9 +45,24 @@ namespace UbudKusCoin.Grpc
                 });
             }
 
-           // Console.WriteLine("\n- - - - >> Receiving block , height: {0} \n- - - - >> from: {1}\n", block.Height, block.Validator);
+            // Console.WriteLine("\n- - - - >> Receiving block , height: {0} \n- - - - >> from: {1}\n", block.Height, block.Validator);
             var addStatus = ServicePool.DbService.blockDb.Add(block);
             //Console.WriteLine("- - - - >> Block added to db.");
+
+            //extract transaction
+            var transactions = JsonConvert.DeserializeObject<List<Transaction>>(block.Transactions);
+
+
+            // update balances
+            ServicePool.FacadeService.Account.UpdateBalance(transactions);
+
+            // move pool to to transactions db
+            ServicePool.FacadeService.Transaction.AddBulk(transactions);
+
+            // clear mempool
+            ServicePool.DbService.transactionsPooldb.DeleteAll();
+
+
             return Task.FromResult(addStatus);
         }
 

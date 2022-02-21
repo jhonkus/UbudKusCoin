@@ -14,6 +14,10 @@ using UbudKusCoin.Others;
 
 namespace UbudKusCoin.DB
 {
+
+    /// <summary>
+    /// Peer database, for add, update list of peers
+    /// </summary>
     public class PeerDb
     {
         private readonly LiteDatabase _db;
@@ -23,6 +27,10 @@ namespace UbudKusCoin.DB
             this._db = db;
         }
 
+        /// <summary>
+        /// Add a peer
+        /// </summary>
+        /// <param name="peer"></param>
         public void Add(Peer peer)
         {
             var existingPeer = GetByAddress(peer.Address);
@@ -32,6 +40,12 @@ namespace UbudKusCoin.DB
             }
         }
 
+        /// <summary>
+        /// Get list of peer, page number and number of row per page
+        /// </summary>
+        /// <param name="pageNumber"></param>
+        /// <param name="resultPerPage"></param>
+        /// <returns></returns>
         public List<Peer> GetRange(int pageNumber, int resultPerPage)
         {
             var peers = GetAll();
@@ -44,11 +58,10 @@ namespace UbudKusCoin.DB
         }
 
 
-        public Peer GetByID(int id)
-        {
-            return GetAll().FindById(id);
-        }
-
+        /// <summary>
+        /// Get all peer
+        /// </summary>
+        /// <returns></returns>
         public ILiteCollection<Peer> GetAll()
         {
             var peers = this._db.GetCollection<Peer>(Constants.TBL_PEERS);
@@ -57,6 +70,11 @@ namespace UbudKusCoin.DB
         }
         public List<Peer> PeerrList { get; set; }
 
+        /// <summary>
+        /// Get peer by network address/IP
+        /// </summary>
+        /// <param name="address"></param>
+        /// <returns></returns>
         public Peer GetByAddress(string address)
         {
             var peers = GetAll();

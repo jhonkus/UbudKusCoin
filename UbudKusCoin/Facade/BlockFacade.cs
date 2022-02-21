@@ -1,4 +1,5 @@
-﻿// Created by I Putu Kusuma Negara
+﻿using Microsoft.VisualBasic.CompilerServices;
+// Created by I Putu Kusuma Negara
 // markbrain2013[at]gmail.com
 // 
 // Ubudkuscoin is free software distributed under the MIT software license,
@@ -7,9 +8,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Numerics;
 using System.Text.Json;
-using System.Threading;
 
 using UbudKusCoin.Grpc;
 using UbudKusCoin.Others;
@@ -25,7 +24,7 @@ namespace UbudKusCoin.Facade
         public BlockFacade()
         {
             this.rnd = new Random();
-            
+
             Initialize();
             Console.WriteLine("...... Block initilized.");
         }
@@ -33,67 +32,49 @@ namespace UbudKusCoin.Facade
 
         private void Initialize()
         {
-
             var blocks = ServicePool.DbService.blockDb.GetAll();
-
             if (blocks.Count() < 1)
             {
-                // start block time
-                var startTimer = DateTime.UtcNow.Millisecond;
-
-                // crate genesis transaction
-                var genesisTxns = ServicePool.FacadeService.Transaction.CreateGenesis();
-
-
                 // create genesis block
-                var block = CreateGenesis(genesisTxns);
-
-                //convert transaction to json for more easy
-                var str = System.Text.Json.JsonSerializer.Serialize(block);
-                block.Size = str.Length;
-
-                // get build time    
-                var endTimer = DateTime.UtcNow.Millisecond;
-                block.BuildTime = (endTimer - startTimer);
-                // end of    
-
-                // update accoiunt table
-                ServicePool.FacadeService.Transaction.UpdateBalanceGenesis(genesisTxns);
-
-                // add genesis block to blockchain
-                ServicePool.DbService.blockDb.Add(block);
-
-                ServicePool.EventService.OnEventBlockCreated(block);
+                CreateGenesis();
             }
-
-
 
         }
 
-
-        /**
-        Create genesis block
-        **/
-        public Block CreateGenesis(List<Transaction> transactions)
+        /// <summary>
+        /// Create genesis block, the first block in blockchain
+        /// </summary>
+        /// <param name="transactions"></param>
+        /// <returns></returns>
+        public void CreateGenesis()
         {
             var startTimer = DateTime.UtcNow.Millisecond;
 
-            var ts = Utils.GetTime(); //time creating block
+            //Assume Genesis will start on 2022
+            var genesisTicks = new DateTime(2022, 5, 29).Ticks;
+            long epochTicks = new DateTime(1970, 1, 1).Ticks;
+
+            long timeStamp = ((genesisTicks - epochTicks) / TimeSpan.TicksPerSecond);
 
             // for genesis bloc we set creator with first of Genesis Account
             var listGenesis = ServicePool.FacadeService.Account.GetGenesis();
+            var nodeAccountAddresss = ServicePool.WalletService.GetAddress();
+
+            // crate genesis transaction
+            var genesisTxns = ServicePool.FacadeService.Transaction.CreateGenesis();
+
             var block = new Block
             {
                 Height = 1,
-                TimeStamp = ts,
+                TimeStamp = timeStamp,
                 PrevHash = "-",
-                Transactions = System.Text.Json.JsonSerializer.Serialize(transactions),
-                Validator = listGenesis[0].Address, //TODO improve logic
+                Transactions = System.Text.Json.JsonSerializer.Serialize(genesisTxns),
+                Validator = nodeAccountAddresss,
                 Version = 1,
-                NumOfTx = transactions.Count,
-                TotalAmount = Utils.GetTotalAmount(transactions),
-                TotalReward = Utils.GetTotalFees(transactions),
-                MerkleRoot = CreateMerkleRoot(transactions),
+                NumOfTx = genesisTxns.Count,
+                TotalAmount = UbudKusCoin.Others.UkcUtils.GetTotalAmount(genesisTxns),
+                TotalReward = UbudKusCoin.Others.UkcUtils.GetTotalFees(genesisTxns),
+                MerkleRoot = CreateMerkleRoot(genesisTxns),
                 ValidatorBalance = 0,
                 Difficulty = 1,
                 Nonce = 1
@@ -114,38 +95,36 @@ namespace UbudKusCoin.Facade
             // Console.WriteLine("=== genesis {0}", block);
             // end of    
 
-            return block;
+            // update accoiunt table
+            ServicePool.FacadeService.Account.UpdateBalanceGenesis(genesisTxns);
+
+
+            // add genesis block to blockchain
+            ServicePool.DbService.blockDb.Add(block);
+
         }
 
-        public void CreateNew()
+
+        /// <summary>
+        /// Create new Block
+        /// </summary>
+        public void New()
         {
 
-
-            // get last block before sleep
-            var lastBlockBefore = ServicePool.DbService.blockDb.GetLast();
-
-
-
-            // get last block after sleep
-            var lastBlockAfterSleep = ServicePool.DbService.blockDb.GetLast();
-
-            // Check if new block already created by other nodes
-            if (lastBlockAfterSleep.Height > lastBlockBefore.Height)
-            {
-                // new block added by other nodes
-                return;
-            }
 
             var startTimer = DateTime.UtcNow.Millisecond;
 
             // get transaction from pool
             var txnsInPool = ServicePool.DbService.transactionsPooldb.GetAll();
 
-
             var wallet = ServicePool.WalletService;
 
-            var nextHeight = lastBlockAfterSleep.Height + 1;
-            var prevHash = lastBlockAfterSleep.Hash;
+
+            // get last block before sleep
+            var lastBlock = ServicePool.DbService.blockDb.GetLast();
+            var nextHeight = lastBlock.Height + 1;
+            var prevHash = lastBlock.Hash;
+
             // var validator = ServicePool.FacadeService.Stake.GetValidator();
 
             var transactions = ServicePool.FacadeService.Transaction.GetForMinting(nextHeight);
@@ -156,7 +135,7 @@ namespace UbudKusCoin.Facade
             var minterBalance = minterAccount.Balance;
 
 
-            var timestamp = Utils.GetTime();
+            var timestamp = UkcUtils.GetTime();
 
             var block = new Block
             {
@@ -168,8 +147,8 @@ namespace UbudKusCoin.Facade
                 Validator = minterAddress,
                 Version = 1,
                 NumOfTx = transactions.Count,
-                TotalAmount = Utils.GetTotalAmount(transactions),
-                TotalReward = Utils.GetTotalFees(transactions),
+                TotalAmount = UkcUtils.GetTotalAmount(transactions),
+                TotalReward = UkcUtils.GetTotalFees(transactions),
                 MerkleRoot = CreateMerkleRoot(transactions),
                 ValidatorBalance = minterBalance,
                 Nonce = rnd.Next(100000),
@@ -189,10 +168,7 @@ namespace UbudKusCoin.Facade
             block.BuildTime = (endTimer - startTimer);
             // end of    
 
-            // get last block after build
-            var lastBlockAfterBuild = ServicePool.DbService.blockDb.GetLast();
-
-            ServicePool.FacadeService.Transaction.UpdateBalance(transactions);
+            ServicePool.FacadeService.Account.UpdateBalance(transactions);
 
             // move pool to to transactions db
             ServicePool.FacadeService.Transaction.AddBulk(transactions);
@@ -200,25 +176,20 @@ namespace UbudKusCoin.Facade
             // clear mempool
             ServicePool.DbService.transactionsPooldb.DeleteAll();
 
-            // Check if new block already created by other nodes
-            if (lastBlockAfterBuild.Height > lastBlockAfterSleep.Height)
-            {
-                // new block added by other nodes
-                return;
-            }
 
-            //triger event block created
-            ServicePool.EventService.OnEventBlockCreated(block);
 
-            // broadcast block and wait until confirm.
-            // ServicePool.DbService.blockDb.Add(block);
+            //add block to db
+            //ServicePool.DbService.blockDb.Add(block);
+
+            // broadcast block
+            ServicePool.P2PService.BroadcastBlock(block);
 
         }
 
         public string GetBlockHash(Block block)
         {
             var strSum = block.Version + block.PrevHash + block.MerkleRoot + block.TimeStamp + block.Difficulty + block.Validator;
-            var hash = Utils.GenHash(strSum);
+            var hash = UkcUtils.GenHash(strSum);
             return hash;
         }
 
@@ -232,101 +203,33 @@ namespace UbudKusCoin.Facade
             {
                 txsHash.Add(tx.Hash);
             }
-            var hashRoot = Utils.CreateMerkleRoot(txsHash.ToArray());
+            var hashRoot = UkcUtils.CreateMerkleRoot(txsHash.ToArray());
             return hashRoot;
         }
-        private int GetAdjustedDifficulty(Block latestBlock)
-        {
-
-            var blocks = ServicePool.DbService.blockDb.GetAll();
-            var adjustment = blocks.Count() - Constants.DIFFICULTY_ADJUSTMENT_INTERVAL;
-            if (adjustment <= 0)
-            {
-                adjustment = 1;
-            }
-
-            var prevAdjustmentBlock = ServicePool.DbService.blockDb.GetByHeight(adjustment);
-            var timeExpected = Constants.BLOCK_GENERATION_INTERVAL * Constants.DIFFICULTY_ADJUSTMENT_INTERVAL;
-
-            var timeTaken = latestBlock.TimeStamp - prevAdjustmentBlock.TimeStamp;
-
-            if (timeTaken < (timeExpected / 2))
-            {
-                return prevAdjustmentBlock.Difficulty + 1;
-            }
-            else if (timeTaken > timeExpected * 2)
-            {
-                return prevAdjustmentBlock.Difficulty - 1;
-            }
-            else
-            {
-                return prevAdjustmentBlock.Difficulty;
-            }
-
-        }
-
-        private int GetDifficullty()
-        {
-            var latestBlock = ServicePool.DbService.blockDb.GetLast();
-
-            Console.WriteLine("== Latest Block: {0}", latestBlock.Difficulty);
-            // Console.WriteLine("Constants.DIFFICULTY_ADJUSTMENT_INTERVAL:" + Constants.DIFFICULTY_ADJUSTMENT_INTERVAL);
-
-            if (latestBlock.Height % Constants.DIFFICULTY_ADJUSTMENT_INTERVAL == 0 && latestBlock.Height != 0)
-            {
-                return GetAdjustedDifficulty(latestBlock);
-            }
-
-            return latestBlock.Difficulty;
-
-        }
-
-        public bool IsStakingMeetRule(string prevhash, string address, long timestamp, double balance, int difficulty, long height)
-        {
-            try
-            {
-                Console.WriteLine("== IsStakingMeetRule start 1");
-                var nextDifficulty = difficulty + 1;
-                var big1 = new BigInteger(Math.Pow(2, 256));
-                Console.WriteLine("== IsStakingMeetRule start 2");
-                var big2 = BigInteger.Multiply(big1, new BigInteger(balance));
-                Console.WriteLine("== IsStakingMeetRule start 3 big2 {0}", big2);
-                Console.WriteLine("== IsStakingMeetRule start 3 nextDifficulty {0}", nextDifficulty);
-                var balanceOverDifficulty = BigInteger.Divide(big2, nextDifficulty);
-                Console.WriteLine("== IsStakingMeetRule start 3");
-                var stakingHash = Utils.GenHashBytes(prevhash + address + timestamp);
-                var decimalStakingHash = new BigInteger(stakingHash);
-                Console.WriteLine("== IsStakingMeetRule start 4");
-                var difference = BigInteger.Min(balanceOverDifficulty, decimalStakingHash);
-                Console.WriteLine("== IsStakingMeetRule start 5");
-                return difference >= 0;
-            }
-            catch (Exception e)
-            {
-
-                Console.WriteLine(" exception {0}", e);
-                return false;
-            }
-        }
 
 
-        public bool isValidBlock(Block block)
+
+        /// <summary>
+        /// When receive a block from peer, validate it before insert to DB
+        /// </summary>
+        /// <param name="block"></param>
+        /// <returns></returns>
+        public bool IsValidBlock(Block block)
         {
             var lastBlock = ServicePool.DbService.blockDb.GetLast();
-
             //compare block height with prev
             if (block.Height != (lastBlock.Height + 1))
             {
                 return false;
             }
 
-            //compare block hash with prev
+            //compare block hash with prev block hash
             if (block.PrevHash != lastBlock.Hash)
             {
                 return false;
             }
 
-            //compare hash
+            //validate hash
             if (block.Hash != GetBlockHash(block))
             {
                 return false;
@@ -337,9 +240,7 @@ namespace UbudKusCoin.Facade
             {
                 return false;
             }
-
             return true;
-
         }
 
     }

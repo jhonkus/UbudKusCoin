@@ -15,7 +15,7 @@ using UbudKusCoin.Grpc;
 
 namespace UbudKusCoin.Others
 {
-    public static class Utils
+    public static class UkcUtils
     {
         public static string GenHash(string data)
         {
@@ -145,7 +145,7 @@ namespace UbudKusCoin.Others
             Console.WriteLine(" = Prev Hash   : {0}", block.PrevHash);
             Console.WriteLine(" = Hash        : {0}", block.Hash);
             Console.WriteLine(" = Merkle Hash : {0}", block.MerkleRoot);
-            Console.WriteLine(" = Timestamp   : {0}", Utils.ToDateTime(block.TimeStamp));
+            Console.WriteLine(" = Timestamp   : {0}", UkcUtils.ToDateTime(block.TimeStamp));
             Console.WriteLine(" = Difficulty  : {0}", block.Difficulty);
             Console.WriteLine(" = Validator   : {0}", block.Validator);
             Console.WriteLine(" = Nonce       : {0}", block.Nonce);

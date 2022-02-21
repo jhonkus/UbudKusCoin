@@ -11,43 +11,33 @@ namespace UbudKusCoin.Services
 {
     public static class ServicePool
     {
-
-        public static StateService StateService { set; get; }
         public static MintingService MintingService { set; get; }
 
         public static DbService DbService { set; get; }
 
         public static FacadeService FacadeService { set; get; }
 
-        public static EventService EventService { set; get; }
-
         public static WalletService WalletService { set; get; }
         public static P2PService P2PService { set; get; }
 
         public static void Add(
-                  StateService state,
                   WalletService wallet,
                   DbService db,
                   FacadeService facade,
                   MintingService minter,
-                  P2PService p2p,
-                  EventService evtserv)
+                  P2PService p2p)
         {
-            StateService = state;
             WalletService = wallet;
             DbService = db;
             FacadeService = facade;
             MintingService = minter;
-            EventService = evtserv;
             P2PService = p2p;
         }
         public static void Start()
         {
-            StateService.Start();
-            EventService.Start();
             WalletService.Start();
             DbService.Start();
-            FacadeService.start();           
+            FacadeService.start();
             P2PService.Start();
             MintingService.Start();
         }

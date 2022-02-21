@@ -10,11 +10,14 @@ using System.Collections.Generic;
 using LiteDB;
 using UbudKusCoin.Others;
 using UbudKusCoin.Grpc;
+using UbudKusCoin.Services;
 
 namespace UbudKusCoin.DB
 {
 
-
+    /// <summary>
+    /// Transaction DB, for add, update transaction
+    /// </summary>
     public class TransactionDb
     {
 
@@ -24,6 +27,11 @@ namespace UbudKusCoin.DB
             this._db = db;
         }
 
+        /// <summary>
+        /// Add some transaction in smae time
+        /// </summary>
+        /// <param name="transactions"></param>
+        /// <returns></returns>
         public string AddBulk(List<Transaction> transactions)
         {
             try
@@ -38,6 +46,11 @@ namespace UbudKusCoin.DB
             }
         }
 
+        /// <summary>
+        /// Add a transaction
+        /// </summary>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
         public string Add(Transaction transaction)
         {
             try
@@ -53,46 +66,13 @@ namespace UbudKusCoin.DB
         }
 
 
-        /**
-          * Get balance by address
-          */
-        public double GetBalanceByScan(string address)
-        {
-            double balance = 0;
-            double spending = 0;
-            double income = 0;
-
-            var txns = GetAll();
-            if (txns is null || txns.Count() < 1)
-            {
-                return 0;
-            }
-            var transactions = txns.Find(x => x.Sender == address || x.Recipient == address);
-
-            foreach (Transaction trx in transactions)
-            {
-                var sender = trx.Sender;
-                var recipient = trx.Recipient;
-
-                if (address.ToLower().Equals(sender.ToLower()))
-                {
-                    spending += trx.Amount + trx.Fee;
-                }
-
-                if (address.ToLower().Equals(recipient.ToLower()))
-                {
-                    income += trx.Amount;
-                }
-
-                balance = income - spending;
-            }
-
-            return balance;
-        }
-
-        /**
-        * get all transaction by address
-        */
+        /// <summary>
+        /// Get A;l Transactions by Address and with paging
+        /// </summary>
+        /// <param name="address"></param>
+        /// <param name="pageNumber"></param>
+        /// <param name="resultPerPage"></param>
+        /// <returns></returns>
         public IEnumerable<Transaction> GetRangeByAddress(string address, int pageNumber, int resultPerPage)
         {
             var txns = GetAll();
@@ -110,9 +90,11 @@ namespace UbudKusCoin.DB
             return query;
         }
 
-        /**
-         * get a transaction by hash
-         */
+        /// <summary>
+        /// Get Transaction by Hash
+        /// </summary>
+        /// <param name="hash"></param>
+        /// <returns></returns>
         public Transaction GetByHash(string hash)
         {
             var txns = GetAll();
@@ -123,39 +105,6 @@ namespace UbudKusCoin.DB
             txns.EnsureIndex(x => x.Hash);
             var transaction = txns.FindOne(x => x.Hash == hash);
             return transaction;
-        }
-
-        public Transaction GetFirst()
-        {
-
-            var txns = GetAll();
-            if (txns is null || txns.Count() < 1)
-            {
-                return null;
-            }
-            txns.EnsureIndex(x => x.TimeStamp);
-            var trx = txns.FindOne(Query.All(Query.Ascending));
-            return trx;
-        }
-
-        /**
-           * get transactions by block height
-           */
-        public IEnumerable<Transaction> GetRangeByHeight(long height, int pageNumber, int resultPerPage)
-        {
-            var txns = GetAll();
-            if (txns is null || txns.Count() < 1)
-            {
-                return null;
-            }
-            txns.EnsureIndex(x => x.TimeStamp);
-            var query = txns.Query()
-                .OrderByDescending(x => x.TimeStamp)
-                .Where(x => x.Height == height)
-                .Offset((pageNumber - 1) * resultPerPage)
-                .Limit(resultPerPage).ToList();
-            return query;
-
         }
 
 

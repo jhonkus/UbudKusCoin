@@ -21,7 +21,7 @@ namespace UbudKusCoin.Facade
 
         public Stake GetMaxStake()
         {
-            var validator = ServicePool.DbService.stakeDb.GetMaxStake();
+            var validator = ServicePool.DbService.stakeDb.GetMax();
             return validator;
         }
         public void AddOrUpdate(Stake stake)
