@@ -1,25 +1,37 @@
-﻿syntax = "proto3";
+// Created by I Putu Kusuma Negara. markbrain2013[at]gmail.com
+// 
+// Ubudkuscoin is free software distributed under the MIT software license,
+// Redistribution and use in source and binary forms with or without
+// modifications are permitted.
 
-option csharp_namespace = "UbudKusCoin.Services";
+syntax = "proto3";
 
+option csharp_namespace = "UbudKusCoin.Grpc";
 
 service AccountService {
-  rpc GetAll(AllAccountRequest) returns (AllAccountResponse);
+  rpc Add(Account) returns (Account);
+  rpc Update(Account) returns (Account);
+  rpc GetByPubKey(Account) returns (Account);
+  rpc GetByAddress(Account) returns (Account);
+  rpc GetRange(AccountParams) returns (AccountList);
 }
 
-message AllAccountRequest{
+
+message AccountParams{
   int32 page_number = 1;
   int32 result_per_page = 2; 
 }
 
-message AllAccountResponse {
+message AccountList {
   repeated Account accounts = 1;
 }
 
 message Account {
-  int64 Id = 1;
+	int64 Id = 1;
   string address = 2;
-	double balance = 3;
-  int32 txn_count = 4;
-  int64 last_update = 5;
-}
+  string pub_key = 3;
+	double balance = 4;
+  int64 txn_count = 5;
+	int64 created = 6;
+  int64 updated = 7;
+} 

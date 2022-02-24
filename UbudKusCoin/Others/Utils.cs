@@ -1,18 +1,34 @@
+// Created by I Putu Kusuma Negara
+// markbrain2013[at]gmail.com
+// 
+// Ubudkuscoin is free software distributed under the MIT software license,
+// Redistribution and use in source and binary forms with or without
+// modifications are permitted.
+
 using System;
-using System.Security.Cryptography;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
+
+using UbudKusCoin.Grpc;
 
 namespace UbudKusCoin.Others
 {
-    public static class Utils
+    public static class UkcUtils
     {
         public static string GenHash(string data)
         {
             byte[] bytes = Encoding.UTF8.GetBytes(data);
             byte[] hash = SHA256.Create().ComputeHash(bytes);
             return BytesToHex(hash);
+        }
+
+        public static byte[] GenHashBytes(string data)
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes(data);
+            byte[] hash = SHA256.Create().ComputeHash(bytes);
+            return hash;
         }
 
         public static string GenHashHex(string hex)
@@ -53,7 +69,7 @@ namespace UbudKusCoin.Others
 
         public static string CreateMerkleRoot(string[] txsHash)
         {
-    
+
             while (true)
             {
                 if (txsHash.Length == 0)
@@ -101,9 +117,44 @@ namespace UbudKusCoin.Others
             return BytesToHex(sendHash).ToLower();
         }
 
+        public static double GetTotalFees(List<Transaction> txns)
+        {
+            var totFee = txns.AsEnumerable().Sum(x => x.Fee);
+            return totFee;
+        }
 
+        public static double GetTotalAmount(List<Transaction> txns)
+        {
+            var totalAmount = txns.AsEnumerable().Sum(x => x.Amount);
+            return totalAmount;
+        }
+
+        public static string GetTransactionHash(Transaction txn)
+        {
+            // Console.WriteLine(" get transaction hash {0}", txn);
+            var TxnId = GenHash(GenHash(txn.TimeStamp + txn.Sender + txn.Amount + txn.Fee + txn.Recipient));
+            // Console.WriteLine(" get transaction hash {0}", TxnId);
+            return TxnId;
+        }
+
+        public static void PrintBlock(Block block)
+        {
+            Console.WriteLine("\n===========\nNew Block created");
+            Console.WriteLine(" = Height      : {0}", block.Height);
+            Console.WriteLine(" = Version     : {0}", block.Version);
+            Console.WriteLine(" = Prev Hash   : {0}", block.PrevHash);
+            Console.WriteLine(" = Hash        : {0}", block.Hash);
+            Console.WriteLine(" = Merkle Hash : {0}", block.MerkleRoot);
+            Console.WriteLine(" = Timestamp   : {0}", UkcUtils.ToDateTime(block.TimeStamp));
+            Console.WriteLine(" = Difficulty  : {0}", block.Difficulty);
+            Console.WriteLine(" = Validator   : {0}", block.Validator);
+            Console.WriteLine(" = Nonce       : {0}", block.Nonce);
+            Console.WriteLine(" = Number Of Tx: {0}", block.NumOfTx);
+            Console.WriteLine(" = Amout       : {0}", block.TotalAmount);
+            Console.WriteLine(" = Reward      : {0}", block.TotalReward);
+            Console.WriteLine(" = Size        : {0}", block.Size);
+            Console.WriteLine(" = Build Time  : {0}", block.BuildTime);
+        }
     }
-
-
 
 }

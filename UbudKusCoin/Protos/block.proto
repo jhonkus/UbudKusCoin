@@ -1,0 +1,60 @@
+﻿// Created by I Putu Kusuma Negara. markbrain2013[at]gmail.com
+// 
+// Ubudkuscoin is free software distributed under the MIT software license,
+// Redistribution and use in source and binary forms with or without
+// modifications are permitted.
+
+syntax = "proto3";
+
+option csharp_namespace = "UbudKusCoin.Grpc";
+
+service BlockService {
+  rpc Add(Block)returns (AddBlockStatus);
+  rpc GetRemains(StartingParam)returns (BlockList);
+  rpc GetRange(BlockParams) returns (BlockList);
+  rpc GetByHeight(Block) returns (Block);
+  rpc GetByHash(Block) returns (Block);
+  rpc GetFirst(EmptyRequest) returns (Block);
+  rpc GetLast(EmptyRequest)  returns (Block);
+}
+
+
+message EmptyRequest{
+}
+
+message AddBlockStatus{
+  string status = 1;
+  string message = 2;
+}
+
+message StartingParam{
+  int64 height = 1;
+}
+
+message BlockParams{
+  int32 page_number = 1;
+  int32 result_per_page = 2; 
+}
+
+message BlockList {
+  repeated Block blocks = 1;
+}
+
+message Block {
+	int32 version = 1;
+	int64 height = 2;
+	int64 time_stamp = 3;
+	string prev_hash = 4;
+	string hash = 5;
+	string transactions = 6;
+  string validator = 7;
+  double validator_balance = 8;
+  string merkle_root = 9;
+  int32  num_of_tx = 10;
+  double total_amount = 11;
+  double total_reward = 12;
+  int32 difficulty = 13;
+  int32 nonce  = 14;
+  int32 size = 15;
+  int32 build_time = 16;
+}

@@ -1,0 +1,10 @@
+#BOOTSRTAP_PEERS is same for all nodes
+BOOTSRTAP_PEERS="127.0.0.1:5002"
+
+#NODE PASSPHRASE and NODE ADDRESS is specific for each node
+GRPC_WEB_PORT = 5003
+GRPC_PORT = 5004
+NODE_ADDRESS = "127.0.0.1:5004"
+NODE_PASSPHRASE="owner elevator visual public loyal actual outside trumpet sugar drama impact royal"
+
+STAKE = 1500

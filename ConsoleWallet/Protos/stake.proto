@@ -1,0 +1,37 @@
+// Created by I Putu Kusuma Negara. markbrain2013[at]gmail.com
+// 
+// Ubudkuscoin is free software distributed under the MIT software license,
+// Redistribution and use in source and binary forms with or without
+// modifications are permitted.
+
+syntax = "proto3";
+
+option csharp_namespace = "UbudKusCoin.Grpc";
+
+
+service StakeService {
+  rpc Add(Stake) returns (AddStakeStatus);
+  rpc GetRange(StakeParams) returns (StakeList);
+}
+
+message AddStakeStatus{
+  string status = 1;
+  string message = 2;
+}
+
+message StakeParams{
+  int32 page_number = 1;
+  int32 result_per_page = 2; 
+}
+
+message StakeList {
+  repeated Stake stakes = 1;
+}
+
+message Stake {
+  int32 Id = 1;
+	string address = 2;
+	double amount = 3;
+  int64 time_stamp = 4;
+}
+

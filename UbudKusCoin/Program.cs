@@ -1,9 +1,18 @@
-﻿using System.Runtime.InteropServices;
-using Coravel;
+﻿// Created by I Putu Kusuma Negara
+// markbrain2013[at]gmail.com
+// 
+// Ubudkuscoin is free software distributed under the MIT software license,
+// Redistribution and use in source and binary forms with or without
+// modifications are permitted.
+
+using System;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Hosting;
 using UbudKusCoin.Services;
+using UbudKusCoin.P2P;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 
 namespace UbudKusCoin
 {
@@ -12,16 +21,21 @@ namespace UbudKusCoin
         public static void Main(string[] args)
         {
 
-            // blockchain
-            _ = new Blockchain();
+            DotNetEnv.Env.Load();
+            DotNetEnv.Env.TraversePath().Load();
+
+            ServicePool.Add(
+                new WalletService(),
+                new DbService(),
+                new FacadeService(),
+                new MintingService(),
+                new P2PService()
+            );
+            ServicePool.Start();
+
 
             // grpc
             IHost host = CreateHostBuilder(args).Build();
-            host.Services.UseScheduler(scheduler =>
-            {
-                scheduler.Schedule<SomeJobs>()
-                    .EveryThirtySeconds();
-            });
             host.Run();
 
         }
@@ -31,27 +45,34 @@ namespace UbudKusCoin
            .UseSystemd()
           .ConfigureWebHostDefaults(webBuilder =>
           {
-
-              // if macos
-              //   if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-              //   {
-
-              //       webBuilder.ConfigureKestrel(options =>
-              //       {
-              //           // Setup a HTTP/2 endpoint without TLS.
-              //           options.ListenLocalhost(5002, o => o.Protocols =
-              //               HttpProtocols.Http2);
-              //       });
-              //   }
-
               webBuilder.ConfigureKestrel(options =>
               {
-                  options.ListenAnyIP(5001, listenOptions => listenOptions.Protocols = HttpProtocols.Http1AndHttp2); //webapi
-                   options.ListenAnyIP(5002, listenOptions => listenOptions.Protocols = HttpProtocols.Http2); //grpc
-               });
+
+                  var GRPC_WEB_PORT = DotNetEnv.Env.GetInt("GRPC_WEB_PORT");
+                  var GRPC_PORT = DotNetEnv.Env.GetInt("GRPC_PORT");
+
+                  options.ListenAnyIP(GRPC_WEB_PORT, listenOptions => listenOptions.Protocols = HttpProtocols.Http1AndHttp2); //webapi
+                  options.ListenAnyIP(GRPC_PORT, listenOptions => listenOptions.Protocols = HttpProtocols.Http2); //grpc
+
+                  //   options.Listen(IPAddress.Loopback, 5000);
+                  //   options.Listen(IPAddress.Loopback, 5005, configure => configure.UseHttps());
+              });
 
               // start
-              webBuilder.UseStartup<Startup>();
+              webBuilder.UseStartup<Startup>()
+            //   .ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
+
+            .ConfigureLogging((Action<WebHostBuilderContext, ILoggingBuilder>)((hostingContext, logging) =>
+            {
+                // logging.AddConfiguration((IConfiguration)hostingContext.Configuration.GetSection("Logging"));
+                // logging.AddConsole();
+                // logging.AddDebug();
+                // logging.AddEventSourceLogger();
+                logging.ClearProviders();
+
+            }));
+
+              //===
           });
 
 
