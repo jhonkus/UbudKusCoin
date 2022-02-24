@@ -17,21 +17,22 @@ This Solution have 3 projects
 - BlockExporer is desktop explorer
 
 
-## Requirement
+### Requirement
 Net SDK 5.0 https://dotnet.microsoft.com/download/dotnet/5.0
 
-## How Install Net SDK 5.0
+### How Install Net SDK 5.0
 - download https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-5.0.100-linux-x64-binaries
 - cd ~/Downloads  (assume the sdk downloaded in Downloads folter)
 - mkdir -p $HOME/dotnet && tar zxf dotnet-sdk-5.0.100-linux-x64.tar.gz -C $HOME/dotnet
 - export DOTNET_ROOT=$HOME/dotnet
 - export PATH=$PATH:$HOME/dotnet
 
-## IDE
+### IDE
 - Visual Studio Comunity Edition https://visualstudio.microsoft.com/downloads
 - For linux user VSCode, follow instruction in this website  https://code.visualstudio.com/docs/languages/dotnet 
 
-## Instalation
+
+### Instalation
 
 Afer install .Net Core SDK 5.0 and Visual Studio Code, do next step
 
@@ -46,7 +47,8 @@ Clone repository
 
 ```
 
-## Build project to produce binnary files.  
+### Build project to produce binnary files.  
+
 The binnary files can copy to the some folder to easy test P2P and Proof of Stake
 
 build for linux:
@@ -65,7 +67,7 @@ Build for windows
 dotnet publish -c Release -r win-x64 -o ./publish-win64  
 ```
 
-## Create 4 folder and Copy binnary files to the folder
+#### Create 4 folder and Copy binnary files to the folder
 ```
 mkdir NODES
 cd NODES
@@ -75,24 +77,29 @@ mkdir node3
 mkdir node4
 ```
 
-## Copy binnary files to each folders, here i use linux
+#### Copy binnary files to each folders, here i use linux
+
+```
 cp publish-linux/* -d ~/NODES/node1 
 cp publish-linux/* -d ~/NODES/node2 
 cp publish-linux/* -d ~/NODES/node3 
 cp publish-linux/* -d ~/NODES/node4 
+```
 
-## Copy .env* files to each folder and rename it to .env
+#### Copy .env* files to each folder and rename it to .env
+```
 cp env-examples/.env1 ~/NODES/node1/.env
 cp env-examples/.env2 ~/NODES/node2/.env
 cp env-examples/.env3 ~/NODES/node3/.env
 cp env-examples/.env4 ~/NODES/node4/.env
+```
 
 
 until here you have 4 folder and each folder hamve .env file
 each .env file have diffrent values.
 
 
-## Run all nodes 
+### Run all nodes 
 
 Run node1
 ```
