@@ -33,8 +33,9 @@ Net SDK 5.0 https://dotnet.microsoft.com/download/dotnet/5.0
 
 ## Instalation
 
-First install .Net Core SDK 5.0
+Afer install .Net Core SDK 5.0 and Visual Studio Code, do next step
 
+Clone repository
 
 ```
 > git clone https://github.com/jhonkus/UbudKusCoin.git
@@ -45,22 +46,105 @@ First install .Net Core SDK 5.0
 
 ```
 
-To run Blockchain core, after above command
+## Build project to produce binnary files.  
+The binnary files can copy to the some folder to easy test P2P and Proof of Stake
+
+build for linux:
 
 ```
-> cd UbudKuscoin
-> dotnet run
+dotnet publish -c Release -r linux-x64 -o ./publish-linux
+```
+
+Build for macosx
+```
+dotnet publish -c Release -r osx-x64 -o ./publish-osx
+```
+
+Build for windows
+```
+dotnet publish -c Release -r win-x64 -o ./publish-win64  
+```
+
+## Create 4 folder and Copy binnary files to the folder
+```
+mkdir NODES
+cd NODES
+mkdir node1
+mkdir node2
+mkdir node3
+mkdir node4
+```
+
+## Copy binnary files to each folders, here i use linux
+cp publish-linux/* -d ~/NODES/node1 
+cp publish-linux/* -d ~/NODES/node2 
+cp publish-linux/* -d ~/NODES/node3 
+cp publish-linux/* -d ~/NODES/node4 
+
+## Copy .env* files to each folder and rename it to .env
+cp env-examples/.env1 ~/NODES/node1/.env
+cp env-examples/.env2 ~/NODES/node2/.env
+cp env-examples/.env3 ~/NODES/node3/.env
+cp env-examples/.env4 ~/NODES/node4/.env
+
+
+until here you have 4 folder and each folder hamve .env file
+each .env file have diffrent values.
+
+
+## Run all nodes 
+
+Run node1
+```
+> cd NODES/node1
+> ./UbudKusCoin
+```
+wait until node1 generate some blocks, let's saya 5 blocks
+
+
+Run node2
+Open new terminal
 
 ```
-To run 4 nodes, to see how Proof of Stake and p2p works
-Please reade deploy.sh and try to understand it
-run itu on linux, for windows need modification
+> cd NODES/node2
+> ./UbudKusCoin
+```
 
-cd UbudKusCoin
-./deploy.sh
+See on the console of node2, node2 will download blocks from node1
+both node1 and node2 will do minting and do staking.
+and one of them will make blokcs.
 
-run node1, node2, node3 and node4
-I will edit this readme later for more detail
+
+Run node3
+Open new terminal
+
+```
+> cd NODES/node3
+> ./UbudKusCoin
+```
+
+See on the console of node3, node3 will download blocks from node1
+and node2, 
+All 3 nodes:  node1, node2 and node3 will do minting and do staking.
+and one of them will make blokcs.
+
+
+
+Run node4
+Open new terminal
+
+```
+> cd NODES/node4
+> ./UbudKusCoin
+```
+
+See on the console of node4, node4 will download blocks from node1, node2 and node3. 
+All 4 nodes:  node1, node2, node3 and node4 will do minting and do staking.
+and one of them will make blokcs.
+
+
+Any question please put on github issues.
+
 
 
 To run BlockExplorer
