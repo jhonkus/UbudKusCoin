@@ -1,6 +1,4 @@
 # UbudKusCoin
-
-
 Simple Cryptocurrencies with Proof Of Stake  Consensus Algorithm.
 
 WHAT NEW 23 Feb 2022
@@ -54,6 +52,16 @@ To run Blockchain core, after above command
 > dotnet run
 
 ```
+To run 4 nodes, to see how Proof of Stake and p2p works
+Please reade deploy.sh and try to understand it
+run itu on linux, for windows need modification
+
+cd UbudKusCoin
+./deploy.sh
+
+run node1, node2, node3 and node4
+I will edit this readme later for more detail
+
 
 To run BlockExplorer
 
