@@ -1,3 +1,5 @@
+#This is backup before using use p2p 
+
 # UbudKusCoin
 Simple Cryptocurrencies with Proof Of Stake  Consensus Algorithm.
 
