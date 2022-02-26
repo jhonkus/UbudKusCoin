@@ -21,7 +21,7 @@ namespace UbudKusCoin.Grpc
             return Task.FromResult(new AddStakeStatus
             {
                 Message = "success add stake",
-                Status = "success"
+                Status = Others.Constants.TXN_STATUS_SUCCESS,
             });
         }
 

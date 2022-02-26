@@ -31,9 +31,8 @@ namespace UbudKusCoin.Grpc
 
         public override Task<TransactionList> GetRangeByAddress(TransactionPaging req, ServerCallContext context)
         {
-            Console.WriteLine("== Address: {0}", req.Address);
+
             var transactions = ServicePool.DbService.transactionDb.GetRangeByAddress(req.Address, req.PageNumber, req.ResultPerPage);
-            Console.WriteLine("== transactions: {0}", transactions);
 
             var response = new TransactionList();
             response.Transactions.AddRange(transactions);
@@ -66,13 +65,14 @@ namespace UbudKusCoin.Grpc
 
         public override Task<TransactionStatus> Receive(TransactionPost req, ServerCallContext context)
         {
+            Console.WriteLine("-- Receive Txn with Hash: {0}, amount {1}", req.Transaction.Hash, req.Transaction.Amount);
 
             var TxnHash = UbudKusCoin.Others.UkcUtils.GetTransactionHash(req.Transaction);
             if (!TxnHash.Equals(req.Transaction.Hash))
             {
                 return Task.FromResult(new TransactionStatus
                 {
-                    Status = "fail",
+                    Status = Others.Constants.TXN_STATUS_FAIL,
                     Message = "Transaction Hash is not valid!"
                 });
             }
@@ -83,7 +83,7 @@ namespace UbudKusCoin.Grpc
             {
                 return Task.FromResult(new TransactionStatus
                 {
-                    Status = "fail",
+                    Status = Others.Constants.TXN_STATUS_FAIL,
                     Message = "Signature  is not valid!"
                 });
             }
@@ -94,8 +94,8 @@ namespace UbudKusCoin.Grpc
             ServicePool.DbService.transactionsPooldb.Add(req.Transaction);
             return Task.FromResult(new TransactionStatus
             {
-                Status = "success",
-                Message = "Transaction received!"
+                Status = Others.Constants.TXN_STATUS_SUCCESS,
+                Message = "Transaction received successfully!"
             });
         }
 
@@ -110,7 +110,7 @@ namespace UbudKusCoin.Grpc
             {
                 return Task.FromResult(new TransactionStatus
                 {
-                    Status = "fail",
+                    Status = Others.Constants.TXN_STATUS_FAIL,
                     Message = "Transaction Hash is not valid!"
                 });
             }
@@ -122,7 +122,7 @@ namespace UbudKusCoin.Grpc
             {
                 return Task.FromResult(new TransactionStatus
                 {
-                    Status = "fail",
+                    Status = Others.Constants.TXN_STATUS_FAIL,
                     Message = "Signature  is not valid!"
                 });
             }
@@ -135,7 +135,7 @@ namespace UbudKusCoin.Grpc
             {
                 return Task.FromResult(new TransactionStatus
                 {
-                    Status = "fail",
+                    Status = Others.Constants.TXN_STATUS_FAIL,
                     Message = "Double transaction!"
                 });
 
@@ -149,7 +149,7 @@ namespace UbudKusCoin.Grpc
             // Response transaction success
             return Task.FromResult(new TransactionStatus
             {
-                Status = "success",
+                Status = Others.Constants.TXN_STATUS_SUCCESS,
                 Message = "Transaction done!"
             });
         }

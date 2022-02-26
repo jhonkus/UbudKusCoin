@@ -40,16 +40,16 @@ namespace UbudKusCoin.DB
                 blocks.Insert(block);
                 return new AddBlockStatus
                 {
-                    Status = "success",
+                    Status = Others.Constants.TXN_STATUS_SUCCESS,
                     Message = "block added successfully"
                 };
             }
-            catch (Exception e)
+            catch
             {
                 return new AddBlockStatus
                 {
-                    Status = "fail",
-                    Message = e.Message
+                    Status = Others.Constants.TXN_STATUS_FAIL,
+                    Message = "Rttpt add transaction to pool"
                 };
             }
         }
