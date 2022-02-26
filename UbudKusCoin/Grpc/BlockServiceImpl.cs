@@ -5,8 +5,6 @@
 // Redistribution and use in source and binary forms with or without
 // modifications are permitted.
 
-using System;
-
 using System.Threading.Tasks;
 
 using Grpc.Core;
@@ -30,7 +28,7 @@ namespace UbudKusCoin.Grpc
             {
                 return Task.FromResult(new AddBlockStatus
                 {
-                    Status = "fail",
+                    Status = Others.Constants.TXN_STATUS_FAIL,
                     Message = "hash not valid"
                 });
             }
@@ -40,7 +38,7 @@ namespace UbudKusCoin.Grpc
             {
                 return Task.FromResult(new AddBlockStatus
                 {
-                    Status = "fail",
+                    Status = Others.Constants.TXN_STATUS_FAIL,
                     Message = "height not valid"
                 });
             }
