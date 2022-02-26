@@ -52,9 +52,12 @@ namespace UbudKusCoin.P2P
 
             Parallel.ForEach(knownPeers, peer =>
             {
-                GrpcChannel channel = GrpcChannel.ForAddress("http://" + peer.Address);
-                var blockService = new BlockServiceClient(channel);
-                var response = blockService.Add(block);
+                if (nodeAddress != peer.Address)
+                {
+                    GrpcChannel channel = GrpcChannel.ForAddress(peer.Address);
+                    var blockService = new BlockServiceClient(channel);
+                    var response = blockService.Add(block);
+                }
             });
         }
 
@@ -70,9 +73,12 @@ namespace UbudKusCoin.P2P
             var nodeAddress = ServicePool.FacadeService.Peer.NodeAddress;
             Parallel.ForEach(knownPeers, peer =>
             {
-                GrpcChannel channel = GrpcChannel.ForAddress("http://" + peer.Address);
-                var stakeService = new StakeServiceClient(channel);
-                stakeService.Add(stake);
+                if (nodeAddress != peer.Address)
+                {
+                    GrpcChannel channel = GrpcChannel.ForAddress(peer.Address);
+                    var stakeService = new StakeServiceClient(channel);
+                    stakeService.Add(stake);
+                }
             });
         }
 
@@ -86,13 +92,16 @@ namespace UbudKusCoin.P2P
             var nodeAddress = ServicePool.FacadeService.Peer.NodeAddress;
             Parallel.ForEach(knownPeers, peer =>
             {
-                GrpcChannel channel = GrpcChannel.ForAddress("http://" + peer.Address);
-                var txnService = new TransactionServiceClient(channel);
-                var response = txnService.Receive(new TransactionPost
+                if (nodeAddress != peer.Address)
                 {
-                    SendingFrom = nodeAddress,
-                    Transaction = tx
-                });
+                    GrpcChannel channel = GrpcChannel.ForAddress(peer.Address);
+                    var txnService = new TransactionServiceClient(channel);
+                    var response = txnService.Receive(new TransactionPost
+                    {
+                        SendingFrom = nodeAddress,
+                        Transaction = tx
+                    });
+                }
             });
 
         }
@@ -162,7 +171,7 @@ namespace UbudKusCoin.P2P
                 {
                     try
                     {
-                        GrpcChannel channel = GrpcChannel.ForAddress("http://" + peer.Address);
+                        GrpcChannel channel = GrpcChannel.ForAddress(peer.Address);
                         var peerService = new PeerServiceClient(channel);
                         var peerState = peerService.GetNodeState(new NodeParam { NodeIpAddress = nodeAddress });
 
@@ -184,7 +193,7 @@ namespace UbudKusCoin.P2P
                 {
                     try
                     {
-                        GrpcChannel channel = GrpcChannel.ForAddress("http://" + peer.Address);
+                        GrpcChannel channel = GrpcChannel.ForAddress(peer.Address);
                         var peerService = new PeerServiceClient(channel);
                         var peerState = peerService.GetNodeState(new NodeParam { NodeIpAddress = nodeAddress });
 

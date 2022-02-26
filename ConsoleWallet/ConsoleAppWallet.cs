@@ -447,6 +447,8 @@ namespace UbudKusCoin.ConsoleWallet
 
             try
             {
+                Console.WriteLine("OKe");
+
                 var response = transactionService.GetRangeByAddress(new TransactionPaging
                 {
                     Address = address,
@@ -454,6 +456,7 @@ namespace UbudKusCoin.ConsoleWallet
                     ResultPerPage = 50
                 });
 
+                Console.WriteLine("=== response");
 
                 if (response != null && response.Transactions != null)
                 {

@@ -14,7 +14,6 @@ service TransactionService {
   rpc Transfer(TransactionPost) returns (TransactionStatus);
   rpc GetByHash(Transaction) returns (Transaction);
   rpc GetRangeByAddress(TransactionPaging) returns (TransactionList);
-  rpc GetRangeByHeight(TransactionPaging) returns (TransactionList);
   rpc GetRange(TransactionPaging) returns (TransactionList);
   rpc GetPoolRange(TransactionPaging) returns (TransactionList);
   rpc GetPendingTxns(TransactionPaging) returns (TransactionList);

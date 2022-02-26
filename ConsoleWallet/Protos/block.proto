@@ -57,4 +57,5 @@ message Block {
   int32 nonce  = 14;
   int32 size = 15;
   int32 build_time = 16;
+  string signature = 17;
 }

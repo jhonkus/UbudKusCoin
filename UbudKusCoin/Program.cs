@@ -12,7 +12,6 @@ using Microsoft.Extensions.Hosting;
 using UbudKusCoin.Services;
 using UbudKusCoin.P2P;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Configuration;
 
 namespace UbudKusCoin
 {
@@ -53,9 +52,6 @@ namespace UbudKusCoin
 
                   options.ListenAnyIP(GRPC_WEB_PORT, listenOptions => listenOptions.Protocols = HttpProtocols.Http1AndHttp2); //webapi
                   options.ListenAnyIP(GRPC_PORT, listenOptions => listenOptions.Protocols = HttpProtocols.Http2); //grpc
-
-                  //   options.Listen(IPAddress.Loopback, 5000);
-                  //   options.Listen(IPAddress.Loopback, 5005, configure => configure.UseHttps());
               });
 
               // start

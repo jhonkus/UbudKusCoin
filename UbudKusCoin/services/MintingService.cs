@@ -62,10 +62,12 @@ namespace UbudKusCoin.Services
         public void MintingBlock()
         {
             isAlreadyMakeBlock = true;
-            Console.WriteLine("\n\n= = = = = = = = = = = = NODE IS RUNNING = = = = = = = = = = = =");
+            Console.WriteLine("\n\n= = = = = = = = = = = = NODE IS RUNNING = = = = = = = = = = = =\n");
             Console.WriteLine(". Account Address: {0}", ServicePool.WalletService.GetAddress());
-            Console.WriteLine("..Network Address: {0} ", ServicePool.FacadeService.Peer.NodeAddress);
-            Console.WriteLine("\n.......... I am ready to fight to validate blocks ....\n");
+            Console.WriteLine(". Network Address: {0} ", ServicePool.FacadeService.Peer.NodeAddress);
+            var lastBlook = ServicePool.DbService.blockDb.GetLast();
+            Console.WriteLine("- Last Block: {0}", lastBlook.Height);
+            Console.WriteLine("\n................ I am ready to validate blocks ..................\n");
             while (true)
             {
                 var timeMinting = DateTime.UtcNow;
@@ -81,28 +83,33 @@ namespace UbudKusCoin.Services
                 {
                     isAlreadyMakeBlock = true;
 
-                    Console.WriteLine("\n\n= = = = TIME TO MINTING = = = =");
+                    Console.WriteLine("\n\n= = = = TIME TO MINTING = = = =\n");
                     Console.WriteLine("- Time: {0}", timeMinting.Second);
+                    lastBlook = ServicePool.DbService.blockDb.GetLast();
+                    Console.WriteLine("- Last Block: {0}", lastBlook.Height);
 
-                    Console.WriteLine("\n-------------------------------\n Stakes Leaderboard:");
+                    Console.WriteLine("\n---------------------------------------------\n Stakes Leaderboard:");
                     Task.Run(() => LeaderBoard());
-                    Console.WriteLine("-------------------------------\n");
 
+                    //give some delay
+                    Thread.Sleep(rnd.Next(2000,5000));
+                    timeMinting = DateTime.UtcNow;
+                
                     var myAddress = ServicePool.WalletService.GetAddress();
 
                     var maxStake = ServicePool.DbService.stakeDb.GetMax();
                     if (maxStake is not null && myAddress == maxStake.Address)
                     {
                         Console.WriteLine("\n-- Horee, I am validator for next Block \n");
-                        ServicePool.FacadeService.Block.New();
+                        ServicePool.FacadeService.Block.New(maxStake);
                     }
                     else
                     {
-                        Console.WriteLine("-- Damn, I am not lucky this time. \n");
+                        Console.WriteLine("\n-- Damn, I am not lucky this time. \n");
                     }
 
                     timeMinting = DateTime.UtcNow;
-                    Console.WriteLine("= = = = Minting Time finish = = = \n\n\n");
+                    Console.WriteLine("= = = = Minting finish = = = \n\n\n");
                 }
 
                 // sleep 1 second
@@ -140,7 +147,10 @@ namespace UbudKusCoin.Services
                         TimeStamp = UbudKusCoin.Others.UkcUtils.GetTime()
                     };
                     Console.WriteLine("... Now I stake {0} coins at: {1}\n", stake.Amount, DateTime.UtcNow);
+
+                    ServicePool.DbService.stakeDb.AddOrUpdate(stake);
                     ServicePool.P2PService.BroadcastStake(stake);
+
                     timeStaking = DateTime.UtcNow;
 
                     isAlreadyStaking = true;
@@ -158,6 +168,7 @@ namespace UbudKusCoin.Services
             {
                 Console.WriteLine(" {0}, {1}", stake.Address, stake.Amount);
             }
+            Console.WriteLine("-----------------------------------------------\n");
         }
 
 

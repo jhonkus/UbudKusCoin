@@ -7,6 +7,8 @@
 
 using System.Threading.Tasks;
 
+using System;
+
 using Grpc.Core;
 
 using NBitcoin;
@@ -29,7 +31,10 @@ namespace UbudKusCoin.Grpc
 
         public override Task<TransactionList> GetRangeByAddress(TransactionPaging req, ServerCallContext context)
         {
+            Console.WriteLine("== Address: {0}", req.Address);
             var transactions = ServicePool.DbService.transactionDb.GetRangeByAddress(req.Address, req.PageNumber, req.ResultPerPage);
+            Console.WriteLine("== transactions: {0}", transactions);
+
             var response = new TransactionList();
             response.Transactions.AddRange(transactions);
             return Task.FromResult(response);
@@ -96,9 +101,12 @@ namespace UbudKusCoin.Grpc
 
         public override Task<TransactionStatus> Transfer(TransactionPost req, ServerCallContext context)
         {
+            Console.WriteLine("=== REq: {0}", req);
+
             // Validating hash
-            var isHashValid = UbudKusCoin.Others.UkcUtils.GetTransactionHash(req.Transaction);
-            if (!isHashValid.Equals(req.Transaction.Hash))
+            var calculateHash = UbudKusCoin.Others.UkcUtils.GetTransactionHash(req.Transaction);
+
+            if (!calculateHash.Equals(req.Transaction.Hash))
             {
                 return Task.FromResult(new TransactionStatus
                 {
@@ -107,6 +115,7 @@ namespace UbudKusCoin.Grpc
                 });
             }
 
+            Console.WriteLine("=== calculateHash: {0}", calculateHash);
             // validating signature
             var isSignatureValid = verifySignature(req.Transaction);
             if (!isSignatureValid)
@@ -117,6 +126,8 @@ namespace UbudKusCoin.Grpc
                     Message = "Signature  is not valid!"
                 });
             }
+
+            Console.WriteLine("=== isSignatureValid: {0}", isSignatureValid);
 
             // Check if transaction already in Pool
             var txinPool = ServicePool.DbService.transactionsPooldb.GetByHash(req.Transaction.Hash);
@@ -130,7 +141,7 @@ namespace UbudKusCoin.Grpc
 
             }
 
-            // ServicePool.DbService.transactionsPooldb.Add(req.Transaction);
+            ServicePool.DbService.transactionsPooldb.Add(req.Transaction);
 
             // broadcast transaction to all peer including myself.
             Task.Run(() => ServicePool.P2PService.BroadcastTransaction(req.Transaction));

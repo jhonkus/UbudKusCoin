@@ -1,0 +1,51 @@
+// Created by I Putu Kusuma Negara. markbrain2013[at]gmail.com
+// 
+// Ubudkuscoin is free software distributed under the MIT software license,
+// Redistribution and use in source and binary forms with or without
+// modifications are permitted.
+
+syntax = "proto3";
+
+
+option csharp_namespace = "UbudKusCoin.Grpc";
+
+service PeerService {
+  rpc Add(Peer) returns (AddPeerReply);
+  rpc GetAll(PeerPaging) returns (PeerList);
+  rpc GetNodeState(NodeParam) returns (NodeState);
+}
+
+message NodeParam{
+  string nodeIpAddress = 1;
+}
+
+message AddPeerReply{
+  string status = 1;
+  string message = 2;
+}
+
+message PeerPaging{
+  int32 page_number = 1;
+  int32 result_per_page = 2; 
+}
+
+message PeerList {
+  repeated Peer peers = 1;
+}
+
+message Peer {
+  int32 Id = 1;
+  string address = 2;
+  int64 last_reach  = 3;
+  bool is_bootstrap = 4;
+  bool is_canreach = 5;
+  int64 time_stamp = 6;
+}
+
+message NodeState {
+  string hash = 1;
+  int64 height  = 2;
+  repeated Peer known_peers = 3;
+  string address = 4;
+  int32 version = 5;
+}
