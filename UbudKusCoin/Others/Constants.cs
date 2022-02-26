@@ -22,6 +22,10 @@ namespace UbudKusCoin.Others
         public const string TXN_TYPE_STAKE = "Staking";
         public const string TXN_TYPE_TRANSFER = "Transfer";
         public const string TXN_TYPE_VALIDATOR_FEE = "Validation_Fee";
+
+        public const string TXN_STATUS_SUCCESS = "Success";
+        public const string TXN_STATUS_FAIL = "Fail";
+
         public const string MESSAGE_TYPE_INV = "INVENTORY";
         public const string MESSAGE_TYPE_GET_BLOCKS = "GET_BLOCKS";
         public const string MESSAGE_TYPE_GET_DATA = "GET_DATA";
