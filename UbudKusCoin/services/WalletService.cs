@@ -10,7 +10,7 @@ using System.Security.Cryptography;
 
 using NBitcoin;
 
-using SimpleBase;
+using NBitcoin.DataEncoders;
 
 namespace UbudKusCoin.Services
 {
@@ -70,7 +70,7 @@ namespace UbudKusCoin.Services
         public string GetAddress()
         {
             byte[] hash = SHA256.Create().ComputeHash(this.KeyPair.PublicKey.ToBytes());
-            return Base58.Bitcoin.Encode(hash);
+            return Encoders.Base58.EncodeData(hash);
         }
 
         public string Sign(string dataHash)

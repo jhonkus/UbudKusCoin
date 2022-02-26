@@ -6,7 +6,7 @@
 // modifications are permitted.
 
 using System.Security.Cryptography;
-using SimpleBase;
+using NBitcoin.DataEncoders;
 using NBitcoin;
 
 namespace UbudKusCoin.ConsoleWallet
@@ -53,7 +53,7 @@ namespace UbudKusCoin.ConsoleWallet
         public string GetAddress()
         {
             byte[] bytes = SHA256.Create().ComputeHash(KeyPair.PublicKey.ToBytes());
-            return Base58.Bitcoin.Encode(bytes);
+            return Encoders.Base58.EncodeData(bytes);
         }
 
         public string Sign(string dataHash)

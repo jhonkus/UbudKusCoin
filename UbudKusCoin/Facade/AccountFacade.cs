@@ -37,9 +37,9 @@ namespace UbudKusCoin.Facade
             var timestamp = UkcUtils.GetTime();
             var list = new List<Account> {
                 new Account{
-                    // owner elevator visual public loyal actual outside trumpet sugar drama impact royal
-                    Address = "NFrwmp2Wo6zvPBpzCmDeLH5PNu6pcAg1ZDAUyUTDRYVC",
-                    PubKey = "03d8bf992ebda445a512ae687a0601a43d85e623b3df052c3b32a44a895d9b3abd",
+                    // live uniform pudding know thumb hand deposit critic relief asset demand barrel
+                    Address = "9SBqYME6T5trNHXqdsYPMPha4yWQbzxd4DPjJBR7KG9A",
+                    PubKey = "02c51f708f279643811af172b9f838aabb2cb4c90b683da9c5d4b81d70f00e9af2",
                     Balance = 2000000000,
                     TxnCount = 1,
                     Created = timestamp,
@@ -48,9 +48,9 @@ namespace UbudKusCoin.Facade
 
                 new Account
                 {
-                    // actual lucky tail message acquire alarm bomb finger route wool reward bike
-                    Address = "nBnrTvVoNyx2qg3yeBg3HtaHMbEyFPGJ4EQ183BBsphM",
-                    PubKey = "034ab41cd9592200344a8c170cd26510966be1920a60943ea883458719d9e916f9",
+                    // carbon snack lab junk moment shiver gas dry stem real scale cannon
+                    Address = "3pXA6G3o2bu3Mbp9k2NDfXGWPuhCMn4wvZeTAFCf4N5r",
+                    PubKey = "03155bbe7fa31d0ebfd779a50a02c1d9444bbf79deb90e1725216d5e8786c632f8",
                     Balance = 3000000000,
                     TxnCount = 2,
                     Created = timestamp,

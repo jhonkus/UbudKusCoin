@@ -22,7 +22,6 @@
     <PackageReference Include="Grpc.AspNetCore" Version="2.42.0" />
     <PackageReference Include="Grpc.AspNetCore.Web" Version="2.42.0" />
     <PackageReference Include="LiteDB" Version="5.0.10" />
-    <PackageReference Include="SimpleBase" Version="3.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1"/>
     <PackageReference Include="NBitcoin" Version="4.2.16" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="5.0.1" />

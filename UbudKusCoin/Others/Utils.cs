@@ -154,6 +154,7 @@ namespace UbudKusCoin.Others
             Console.WriteLine(" = Reward      : {0}", block.TotalReward);
             Console.WriteLine(" = Size        : {0}", block.Size);
             Console.WriteLine(" = Build Time  : {0}", block.BuildTime);
+            Console.WriteLine(" = Signature   : {0}", block.Signature);
         }
     }
 

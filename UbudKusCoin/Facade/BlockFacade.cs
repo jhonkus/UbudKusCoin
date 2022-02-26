@@ -82,7 +82,7 @@ namespace UbudKusCoin.Facade
 
             var blockHash = GetBlockHash(block);
             block.Hash = blockHash;
-
+            block.Signature = ServicePool.WalletService.Sign(blockHash);
 
             //block size
             var str = JsonSerializer.Serialize(block);
@@ -108,32 +108,40 @@ namespace UbudKusCoin.Facade
         /// <summary>
         /// Create new Block
         /// </summary>
-        public void New()
+        public void New(Stake stake)
         {
 
+          
 
             var startTimer = DateTime.UtcNow.Millisecond;
 
             // get transaction from pool
             var txnsInPool = ServicePool.DbService.transactionsPooldb.GetAll();
 
+       
+
             var wallet = ServicePool.WalletService;
 
 
             // get last block before sleep
             var lastBlock = ServicePool.DbService.blockDb.GetLast();
+   
+
             var nextHeight = lastBlock.Height + 1;
             var prevHash = lastBlock.Hash;
 
             // var validator = ServicePool.FacadeService.Stake.GetValidator();
 
             var transactions = ServicePool.FacadeService.Transaction.GetForMinting(nextHeight);
+ 
 
 
-            var minterAddress = wallet.GetAddress();
-            var minterAccount = ServicePool.FacadeService.Account.GetByAddress(minterAddress);
-            var minterBalance = minterAccount.Balance;
 
+            var minterAddress = stake.Address;
+
+
+            var minterBalance = stake.Amount;
+       
 
             var timestamp = UkcUtils.GetTime();
 
@@ -152,10 +160,14 @@ namespace UbudKusCoin.Facade
                 MerkleRoot = CreateMerkleRoot(transactions),
                 ValidatorBalance = minterBalance,
                 Nonce = rnd.Next(100000),
+
             };
             var blockHash = GetBlockHash(block);
             block.Hash = blockHash;
+            block.Signature = ServicePool.WalletService.Sign(blockHash);
 
+
+            UkcUtils.PrintBlock(block);
 
             //block size
             var str = System.Text.Json.JsonSerializer.Serialize(block);
@@ -179,7 +191,7 @@ namespace UbudKusCoin.Facade
 
 
             //add block to db
-            //ServicePool.DbService.blockDb.Add(block);
+            ServicePool.DbService.blockDb.Add(block);
 
             // broadcast block
             ServicePool.P2PService.BroadcastBlock(block);
