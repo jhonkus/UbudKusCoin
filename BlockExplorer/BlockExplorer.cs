@@ -115,7 +115,7 @@ namespace UbudKusCoin.BlockExplorer
 
                 Console.WriteLine("--------------\n");
             }
-            catch (Exception e)
+            catch
             {
                 Console.WriteLine(" error!, {0}", "Please check UbudKusCoin node, it must running!");
             }
@@ -138,7 +138,7 @@ namespace UbudKusCoin.BlockExplorer
 
                 Console.WriteLine("--------------\n");
             }
-            catch (Exception e)
+            catch
             {
                 Console.WriteLine(" error!, {0}", "Please check UbudKusCoin node, it must running!");
             }
@@ -238,7 +238,7 @@ namespace UbudKusCoin.BlockExplorer
 
 
             }
-            catch (Exception ex)
+            catch
             {
                 Console.WriteLine(" error!, {0}", "Please check UbudKusCoin node, it must running!");
             }

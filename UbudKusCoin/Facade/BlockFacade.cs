@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualBasic.CompilerServices;
-// Created by I Putu Kusuma Negara
+﻿// Created by I Putu Kusuma Negara
 // markbrain2013[at]gmail.com
 // 
 // Ubudkuscoin is free software distributed under the MIT software license,
@@ -13,6 +12,8 @@ using System.Text.Json;
 using UbudKusCoin.Grpc;
 using UbudKusCoin.Others;
 using UbudKusCoin.Services;
+using System.Threading.Tasks;
+
 namespace UbudKusCoin.Facade
 {
 
@@ -191,10 +192,11 @@ namespace UbudKusCoin.Facade
 
 
             //add block to db
-            ServicePool.DbService.blockDb.Add(block);
+            // ServicePool.DbService.blockDb.Add(block);
 
             // broadcast block
-            ServicePool.P2PService.BroadcastBlock(block);
+          
+            Task.Run(() =>  ServicePool.P2PService.BroadcastBlock(block));
 
         }
 

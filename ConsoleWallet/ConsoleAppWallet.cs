@@ -369,7 +369,7 @@ namespace UbudKusCoin.ConsoleWallet
                 }
 
             }
-            catch (Exception e)
+            catch
             {
                  Console.WriteLine("\nError! Please check UbudKusCoin Node, it musth running!");
             }
@@ -477,7 +477,7 @@ namespace UbudKusCoin.ConsoleWallet
                     Console.WriteLine("\n---- no record found! ---");
                 }
             }
-            catch (Exception e)
+            catch
             {
                   Console.WriteLine("\nError! Please check UbudKusCoin Node, it musth running!");
             }

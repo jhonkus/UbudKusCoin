@@ -52,11 +52,20 @@ namespace UbudKusCoin.P2P
 
             Parallel.ForEach(knownPeers, peer =>
             {
-                if (nodeAddress != peer.Address)
+                if (!nodeAddress.Equals(peer.Address))
                 {
+                    Console.WriteLine("-- BroadcastBlock to {0}", peer.Address);
                     GrpcChannel channel = GrpcChannel.ForAddress(peer.Address);
                     var blockService = new BlockServiceClient(channel);
-                    var response = blockService.Add(block);
+                    try
+                    {
+                        var response = blockService.Add(block);
+                        Console.WriteLine("--- Done ");
+                    }
+                    catch
+                    {
+                        Console.WriteLine("--- Fail ");
+                    }
                 }
             });
         }
@@ -73,11 +82,20 @@ namespace UbudKusCoin.P2P
             var nodeAddress = ServicePool.FacadeService.Peer.NodeAddress;
             Parallel.ForEach(knownPeers, peer =>
             {
-                if (nodeAddress != peer.Address)
+                if (!nodeAddress.Equals(peer.Address))
                 {
+                    Console.WriteLine("-- BroadcastStake to {0}", peer.Address);
                     GrpcChannel channel = GrpcChannel.ForAddress(peer.Address);
                     var stakeService = new StakeServiceClient(channel);
-                    stakeService.Add(stake);
+                    try
+                    {
+                        var response = stakeService.Add(stake);
+                        Console.WriteLine("--- Done");
+                    }
+                    catch
+                    {
+                        Console.WriteLine("--- Fail");
+                    }
                 }
             });
         }
@@ -92,15 +110,33 @@ namespace UbudKusCoin.P2P
             var nodeAddress = ServicePool.FacadeService.Peer.NodeAddress;
             Parallel.ForEach(knownPeers, peer =>
             {
-                if (nodeAddress != peer.Address)
+                if (!nodeAddress.Equals(peer.Address))
                 {
+
+                    Console.WriteLine("-- BroadcastTransaction to {0}", peer.Address);
                     GrpcChannel channel = GrpcChannel.ForAddress(peer.Address);
                     var txnService = new TransactionServiceClient(channel);
-                    var response = txnService.Receive(new TransactionPost
+                    try
                     {
-                        SendingFrom = nodeAddress,
-                        Transaction = tx
-                    });
+                        var response = txnService.Receive(new TransactionPost
+                        {
+                            SendingFrom = nodeAddress,
+                            Transaction = tx
+                        });
+                        if (response.Status == Others.Constants.TXN_STATUS_SUCCESS)
+                        {
+                            Console.WriteLine(".. Done");
+                        }
+                        else
+                        {
+                            Console.WriteLine(".. Fail");
+                        }
+                    }
+                    catch
+                    {
+                        Console.WriteLine(".. Fail");
+                    }
+
                 }
             });
 
@@ -115,26 +151,32 @@ namespace UbudKusCoin.P2P
         /// <param name="peerHeight"></param>
         private void DownloadBlocks(BlockServiceClient blockService, long lastBlockHeight, long peerHeight)
         {
-            try
+
+            var response = blockService.GetRemains(new StartingParam { Height = lastBlockHeight });
+            List<Block> blocks = response.Blocks.ToList();
+            blocks.Reverse();
+
+            var lastHeight = 0L;
+            foreach (var block in blocks)
             {
-                var response = blockService.GetRemains(new StartingParam { Height = lastBlockHeight });
-                List<Block> blocks = response.Blocks.ToList();
-                blocks.Reverse();
-
-                var lastHeight = 0L;
-                foreach (var block in blocks)
+                try
                 {
-                    Console.WriteLine("==== Block" + block.Height);
-                    ServicePool.DbService.blockDb.Add(block);
+                    Console.WriteLine("==== Download block: {0}", block.Height);
+                    var status = ServicePool.DbService.blockDb.Add(block);
                     lastHeight = block.Height;
+                    Console.WriteLine("==== Done");
                 }
-
-                if (lastHeight < peerHeight)
+                catch
                 {
-                    DownloadBlocks(blockService, lastHeight, peerHeight);
+                    Console.WriteLine("==== Fail");
                 }
             }
-            catch { }
+
+            if (lastHeight < peerHeight)
+            {
+                DownloadBlocks(blockService, lastHeight, peerHeight);
+            }
+
         }
 
         /// <summary>
@@ -169,6 +211,7 @@ namespace UbudKusCoin.P2P
             {
                 if (!nodeAddress.Equals(peer.Address))
                 {
+                    Console.WriteLine("Sync state to {0}", peer.Address);
                     try
                     {
                         GrpcChannel channel = GrpcChannel.ForAddress(peer.Address);

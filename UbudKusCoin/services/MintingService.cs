@@ -91,10 +91,6 @@ namespace UbudKusCoin.Services
                     Console.WriteLine("\n---------------------------------------------\n Stakes Leaderboard:");
                     Task.Run(() => LeaderBoard());
 
-                    //give some delay
-                    Thread.Sleep(rnd.Next(2000,5000));
-                    timeMinting = DateTime.UtcNow;
-                
                     var myAddress = ServicePool.WalletService.GetAddress();
 
                     var maxStake = ServicePool.DbService.stakeDb.GetMax();
@@ -149,7 +145,9 @@ namespace UbudKusCoin.Services
                     Console.WriteLine("... Now I stake {0} coins at: {1}\n", stake.Amount, DateTime.UtcNow);
 
                     ServicePool.DbService.stakeDb.AddOrUpdate(stake);
-                    ServicePool.P2PService.BroadcastStake(stake);
+
+                    Task.Run(() => ServicePool.P2PService.BroadcastStake(stake));
+
 
                     timeStaking = DateTime.UtcNow;
 
