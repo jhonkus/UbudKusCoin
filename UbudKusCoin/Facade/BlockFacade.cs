@@ -190,12 +190,10 @@ namespace UbudKusCoin.Facade
             ServicePool.DbService.transactionsPooldb.DeleteAll();
 
 
-
             //add block to db
-            // ServicePool.DbService.blockDb.Add(block);
+            ServicePool.DbService.blockDb.Add(block);
 
-            // broadcast block
-          
+            // broadcast block          
             Task.Run(() =>  ServicePool.P2PService.BroadcastBlock(block));
 
         }
