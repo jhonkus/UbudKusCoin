@@ -7,6 +7,39 @@ WHAT NEW 23 Feb 2022
 - P2P with Grpc
 
 
+Articles for This Project:
+
+- Part 1
+
+https://putukusuma.medium.com/developing-simple-crypto-application-using-c-48258c2d4e45
+
+- part 2
+
+https://putukusuma.medium.com/creating-simple-cryptocurrency-using-c-and-net-core-part-2-menu-and-database-4ae842098f55
+
+- Part3
+
+https://putukusuma.medium.com/creating-simple-cryptocurrency-using-c-and-net-core-part-3-wallet-8bbfe0544770
+
+- Part4
+
+https://putukusuma.medium.com/creating-simple-cryptocurrency-using-c-and-net-part-4-block-header-c8ad97fd237b
+
+
+- Part5
+https://putukusuma.medium.com/creating-simple-cryptocurrency-part-5-peer-to-peer-p2p-with-grpc-f96913ddd7dd
+
+
+Videos:
+
+- https://youtu.be/TYM55x7I8us
+
+- https://youtu.be/gpYKUWGBxf4
+
+- https://youtu.be/tAJKbySs9JY
+ 
+
+
 
 Developed with C# and .Net Core 5.0
 
@@ -328,31 +361,5 @@ References:
 - .Net Core with TLS
 https://andrewlock.net/creating-and-trusting-a-self-signed-certificate-on-linux-for-use-in-kestrel-and-asp-net-core/
 
-
-
-My Articles:
-
-- Part 1
-
-https://putukusuma.medium.com/developing-simple-crypto-application-using-c-48258c2d4e45
-
-- part 2
-
-https://putukusuma.medium.com/creating-simple-cryptocurrency-using-c-and-net-core-part-2-menu-and-database-4ae842098f55
-
-- Part3
-
-https://putukusuma.medium.com/creating-simple-cryptocurrency-using-c-and-net-core-part-3-wallet-8bbfe0544770
-
-- Part4
-
-https://putukusuma.medium.com/creating-simple-cryptocurrency-using-c-and-net-part-4-block-header-c8ad97fd237b
-
-
-My Videos:
-
-- https://youtu.be/TYM55x7I8us
-
-- https://youtu.be/gpYKUWGBxf4
 
 
