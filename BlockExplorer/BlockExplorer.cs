@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
-
 using Newtonsoft.Json;
 using static UbudKusCoin.Grpc.TransactionService;
 using static UbudKusCoin.Grpc.BlockService;
@@ -15,21 +14,21 @@ namespace UbudKusCoin.BlockExplorer
 {
     public class BlockExplorer
     {
-        private AccountServiceClient accountService;
-        private BlockServiceClient blockService;
-        private TransactionServiceClient transactionService;
+        private readonly AccountServiceClient _accountService;
+        private readonly BlockServiceClient _blockService;
+        private readonly TransactionServiceClient _transactionService;
 
         public BlockExplorer(GrpcChannel channel)
         {
-            this.accountService = new AccountServiceClient(channel);
-            this.blockService = new BlockServiceClient(channel);
-            this.transactionService = new TransactionServiceClient(channel);
+            _accountService = new AccountServiceClient(channel);
+            _blockService = new BlockServiceClient(channel);
+            _transactionService = new TransactionServiceClient(channel);
             MenuItem();
             GetInput();
         }
+
         private void MenuItem()
         {
-
             Console.Clear();
             Console.WriteLine("\n\n\n");
             Console.WriteLine("                    UBUDKUS COIN EXPLORER ");
@@ -39,8 +38,6 @@ namespace UbudKusCoin.BlockExplorer
             Console.WriteLine("                    3. Show All Block");
             Console.WriteLine("                    9. Exit");
             Console.WriteLine("------------------------------------------------------------");
-
-
         }
 
         private void GetInput()
@@ -64,7 +61,7 @@ namespace UbudKusCoin.BlockExplorer
                         break;
 
                     case 9:
-                        DoExit();
+                        Exit();
                         break;
                 }
 
@@ -76,55 +73,43 @@ namespace UbudKusCoin.BlockExplorer
                     {
                         Console.Clear();
                         MenuItem();
-
                     }
                 }
 
                 Console.WriteLine("\n**** Please select menu!!! *****");
+                
                 string action = Console.ReadLine();
-                try
-                {
-                    selection = int.Parse(action);
-
-                }
-
-                catch
+                if (!int.TryParse(action, out selection))
                 {
                     selection = 0;
                     Console.Clear();
                     MenuItem();
                 }
             }
-
         }
-
 
         private void ShowLastBlock()
         {
-
             try
             {
                 Console.Clear();
                 Console.WriteLine("\n\n\n\nLast Block");
                 Console.WriteLine("- Time: {0}", DateTime.Now);
                 Console.WriteLine("======================");
-                var block = blockService.GetLast(new EmptyRequest());
-
+                
+                var block = _blockService.GetLast(new EmptyRequest());
                 PrintBlock(block);
-
 
                 Console.WriteLine("--------------\n");
             }
             catch
             {
-                Console.WriteLine(" error!, {0}", "Please check UbudKusCoin node, it must running!");
+                Console.WriteLine(" error!, {0}", "Please check the UbudKusCoin node. It needs to be running!");
             }
-
         }
 
         private void ShowFirstBlock()
         {
-
             Console.Clear();
             Console.WriteLine("\n\n\n\nGenesis Block");
             Console.WriteLine("Time: {0}", DateTime.Now);
@@ -132,7 +117,7 @@ namespace UbudKusCoin.BlockExplorer
 
             try
             {
-                var block = blockService.GetFirst(new EmptyRequest());
+                var block = _blockService.GetFirst(new EmptyRequest());
 
                 PrintBlock(block);
 
@@ -140,9 +125,8 @@ namespace UbudKusCoin.BlockExplorer
             }
             catch
             {
-                Console.WriteLine(" error!, {0}", "Please check UbudKusCoin node, it must running!");
+                Console.WriteLine(" error!, {0}", "Please check the UbudKusCoin node. It needs to be running!");
             }
-
         }
 
         private static void PrintBlock(Block block)
@@ -160,10 +144,9 @@ namespace UbudKusCoin.BlockExplorer
             Console.WriteLine("Total Fee     : {0}", block.TotalReward);
             Console.WriteLine("Size          : {0}", block.Size);
             Console.WriteLine("Build Time    : {0}", block.BuildTime);
-
-
+            
             var transactions = JsonConvert.DeserializeObject<List<Transaction>>(block.Transactions);
-            Console.WriteLine("Transactions:");
+            Console.WriteLine("Transactions: ");
             foreach (var Txn in transactions)
             {
                 Console.WriteLine("   ID          : {0}", Txn.Hash);
@@ -173,56 +156,42 @@ namespace UbudKusCoin.BlockExplorer
                 Console.WriteLine("   Amount      : {0}", Txn.Amount.ToString("N", CultureInfo.InvariantCulture));
                 Console.WriteLine("   Fee         : {0}", Txn.Fee.ToString("N4", CultureInfo.InvariantCulture));
                 Console.WriteLine("   - - - - - - ");
-
             }
         }
 
-        private static async void DoExit()
+        private static async void Exit()
         {
             Console.Clear();
             Console.WriteLine("\n\nApplication closed!\n");
             await Task.Delay(2000);
             Environment.Exit(0);
         }
-
-
+        
         private void ShowAllBlocks()
         {
             Console.Clear();
             Console.WriteLine("\n\n\nBlockchain Explorer");
             Console.WriteLine("Time: {0}", DateTime.Now);
             Console.WriteLine("======================");
-
-
             Console.WriteLine("\nPlease enter the page number!:");
-            string strPageNumber = Console.ReadLine();
-
-
-
+            
             // validate input
-            if (string.IsNullOrEmpty(strPageNumber))
+            string strPageNumber = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(strPageNumber))
             {
-
-                Console.WriteLine("\n\nError, Please input page number!\n");
+                Console.WriteLine("\n\nError, Please input the page number!\n");
                 return;
             }
 
-
-
-            int pageNumber;
-            try
+            if (!int.TryParse(strPageNumber, out var pageNumber))
             {
-                pageNumber = int.Parse(strPageNumber);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("\n\nError, Please input number {0}!\n", e.Message);
+                Console.WriteLine("\n\nError, page is not a number!\n");
                 return;
             }
 
             try
             {
-                var response = blockService.GetRange(new BlockParams
+                var response = _blockService.GetRange(new BlockParams
                 {
                     PageNumber = pageNumber,
                     ResultPerPage = 5
@@ -231,20 +200,13 @@ namespace UbudKusCoin.BlockExplorer
                 foreach (var block in response.Blocks)
                 {
                     PrintBlock(block);
-
                     Console.WriteLine("--------------\n");
-
                 }
-
-
             }
             catch
             {
-                Console.WriteLine(" error!, {0}", "Please check UbudKusCoin node, it must running!");
+                Console.WriteLine(" error!, {0}", "Please check the UbudKusCoin node, it needs to be running!");
             }
-
         }
-
-
     }
 }

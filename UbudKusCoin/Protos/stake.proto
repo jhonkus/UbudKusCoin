@@ -8,7 +8,6 @@ syntax = "proto3";
 
 option csharp_namespace = "UbudKusCoin.Grpc";
 
-
 service StakeService {
   rpc Add(Stake) returns (AddStakeStatus);
   rpc GetRange(StakeParams) returns (StakeList);
@@ -21,7 +20,7 @@ message AddStakeStatus{
 
 message StakeParams{
   int32 page_number = 1;
-  int32 result_per_page = 2; 
+  int32 result_per_page = 2;
 }
 
 message StakeList {
@@ -30,8 +29,7 @@ message StakeList {
 
 message Stake {
   int32 Id = 1;
-	string address = 2;
-	double amount = 3;
+  string address = 2;
+  double amount = 3;
   int64 time_stamp = 4;
 }
-

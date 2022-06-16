@@ -13,24 +13,20 @@ namespace UbudKusCoin.Facade
 {
     public class TransactionPoolFacade
     {
-
         public TransactionPoolFacade()
         {
-            Console.WriteLine("...... Transaction pool initilized");
+            Console.WriteLine("...... Transaction pool innitialized");
         }
 
-        public bool IsTransactionExist(Transaction txn)
+        public bool TransactionExists(Transaction txn)
         {
-            var transaction = ServicePool.DbService.transactionsPooldb.GetByHash(txn.Hash);
+            var transaction = ServicePool.DbService.PoolTransactionsDb.GetByHash(txn.Hash);
             if (transaction is null)
             {
                 return false;
             }
-            else
-            {
-                return false;
-            }
-        }
 
+            return false;
+        }
     }
 }

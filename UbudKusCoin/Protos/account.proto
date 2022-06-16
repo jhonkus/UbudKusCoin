@@ -19,7 +19,7 @@ service AccountService {
 
 message AccountParams{
   int32 page_number = 1;
-  int32 result_per_page = 2; 
+  int32 result_per_page = 2;
 }
 
 message AccountList {
@@ -27,11 +27,11 @@ message AccountList {
 }
 
 message Account {
-	int64 Id = 1;
+  int64 Id = 1;
   string address = 2;
   string pub_key = 3;
-	double balance = 4;
+  double balance = 4;
   int64 txn_count = 5;
-	int64 created = 6;
+  int64 created = 6;
   int64 updated = 7;
 } 

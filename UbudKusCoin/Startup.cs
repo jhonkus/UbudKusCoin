@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-
 using UbudKusCoin.Grpc;
 
 namespace UbudKusCoin
@@ -23,14 +22,10 @@ namespace UbudKusCoin
             services.AddCors(o => o.AddPolicy("AllowAll", builder =>
             {
                 builder.AllowAnyOrigin()
-                       .AllowAnyMethod()
-                       .AllowAnyHeader()
-                       .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
-         
-         
-         
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
             }));
-            
         }
 
         public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -50,12 +45,9 @@ namespace UbudKusCoin
             app.UseCors();
             app.UseEndpoints(endpoints =>
             {
-                
                 endpoints.MapGrpcService<AccountServiceImpl>().RequireCors("AllowAll");
                 endpoints.MapGrpcService<BlockServiceImpl>().RequireCors("AllowAll");
-
                 endpoints.MapGrpcService<PeerServiceImpl>().RequireCors("AllowAll");
-
                 endpoints.MapGrpcService<StakeServiceImpl>().RequireCors("AllowAll");
                 endpoints.MapGrpcService<TransactionServiceImpl>().RequireCors("AllowAll");
                 endpoints.MapGet("/", async context =>
@@ -64,7 +56,6 @@ namespace UbudKusCoin
                         "Communication with gRPC endpoints" +
                         " must be made through a gRPC client.");
                 });
-
             });
         }
     }

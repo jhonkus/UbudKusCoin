@@ -11,9 +11,8 @@ using UbudKusCoin.Others;
 
 namespace UbudKusCoin.DB
 {
-
     /// <summary>
-    /// Stake databases
+    /// Stake database
     /// </summary>
     public class StakeDb
     {
@@ -21,13 +20,12 @@ namespace UbudKusCoin.DB
 
         public StakeDb(LiteDatabase db)
         {
-            this._db = db;
+            _db = db;
         }
 
         /// <summary>
         /// add or update stake
         /// </summary>
-        /// <param name="stake"></param>
         public void AddOrUpdate(Stake stake)
         {
             var locStake = GetByAddress(stake.Address);
@@ -35,6 +33,7 @@ namespace UbudKusCoin.DB
             {
                 GetAll().Insert(stake);
             }
+
             GetAll().Update(stake);
         }
 
@@ -48,14 +47,13 @@ namespace UbudKusCoin.DB
             {
                 return;
             }
+
             stakers.DeleteAll();
         }
-
-
+        
         /// <summary>
         /// Get maximum stake, base on amount
         /// </summary>
-        /// <returns></returns>
         public Stake GetMax()
         {
             var stakes = GetAll();
@@ -65,16 +63,16 @@ namespace UbudKusCoin.DB
             }
 
             stakes.EnsureIndex(x => x.Amount);
+            
             var query = stakes.Query()
                 .OrderByDescending(x => x.Amount);
+            
             return query.FirstOrDefault();
         }
 
         /// <summary>
         /// Get stake by address
         /// </summary>
-        /// <param name="address"></param>
-        /// <returns></returns>
         public Stake GetByAddress(string address)
         {
             var stakes = GetAll();
@@ -82,22 +80,24 @@ namespace UbudKusCoin.DB
             {
                 return null;
             }
+
             stakes.EnsureIndex(x => x.Address);
+            
             var stake = stakes.FindOne(x => x.Address == address);
+            
             return stake;
         }
-
-
+        
         /// <summary>
         /// Get all stake
         /// </summary>
-        /// <returns></returns>
         public ILiteCollection<Stake> GetAll()
         {
-            var stakes = this._db.GetCollection<Stake>(Constants.TBL_STAKES);
+            var stakes = _db.GetCollection<Stake>(Constants.TBL_STAKES);
+            
             stakes.EnsureIndex(x => x.Amount);
+            
             return stakes;
         }
-
     }
 }

@@ -5,160 +5,159 @@
 // Redistribution and use in source and binary forms with or without
 // modifications are permitted.
 
-
 using System.Collections.Generic;
 using LiteDB;
 using UbudKusCoin.Others;
 using UbudKusCoin.Grpc;
-using UbudKusCoin.Services;
 
 namespace UbudKusCoin.DB
 {
-
     /// <summary>
     /// Transaction DB, for add, update transaction
     /// </summary>
     public class TransactionDb
     {
-
         private readonly LiteDatabase _db;
+
         public TransactionDb(LiteDatabase db)
         {
-            this._db = db;
+            _db = db;
         }
 
         /// <summary>
         /// Add some transaction in smae time
         /// </summary>
-        /// <param name="transactions"></param>
-        /// <returns></returns>
-        public string AddBulk(List<Transaction> transactions)
+        public bool AddBulk(List<Transaction> transactions)
         {
             try
             {
-                var coll = GetAll();
-                coll.InsertBulk(transactions);
-                return "success";
+                var collection = GetAll();
+                
+                collection.InsertBulk(transactions);
+                
+                return true;
             }
             catch
             {
-                return "fail";
+                return false;
             }
         }
 
         /// <summary>
         /// Add a transaction
         /// </summary>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public string Add(Transaction transaction)
+        public bool Add(Transaction transaction)
         {
             try
             {
-                var txns = GetAll();
-                txns.Insert(transaction);
-                return "success";
+                var transactions = GetAll();
+                
+                transactions.Insert(transaction);
+                
+                return true;
             }
             catch
             {
-                return "fail";
+                return false;
             }
         }
 
-
         /// <summary>
-        /// Get A;l Transactions by Address and with paging
+        /// Get All Transactions by Address and with paging
         /// </summary>
-        /// <param name="address"></param>
-        /// <param name="pageNumber"></param>
-        /// <param name="resultPerPage"></param>
-        /// <returns></returns>
-        public IEnumerable<Transaction> GetRangeByAddress(string address, int pageNumber, int resultPerPage)
+        public IEnumerable<Transaction> GetRangeByAddress(string address, int pageNumber, int resultsPerPage)
         {
-            var txns = GetAll();
-            if (txns is null || txns.Count() < 1)
+            var transactions = GetAll();
+            if (transactions is null || transactions.Count() < 1)
             {
                 return null;
             }
-            txns.EnsureIndex(x => x.Sender);
-            txns.EnsureIndex(x => x.Recipient);
-            var query = txns.Query()
+
+            transactions.EnsureIndex(x => x.Sender);
+            transactions.EnsureIndex(x => x.Recipient);
+
+            var query = transactions.Query()
                 .OrderByDescending(x => x.TimeStamp)
                 .Where(x => x.Sender == address || x.Recipient == address)
-                .Offset((pageNumber - 1) * resultPerPage)
-                .Limit(resultPerPage).ToList();
+                .Offset((pageNumber - 1) * resultsPerPage)
+                .Limit(resultsPerPage).ToList();
+
             return query;
         }
 
         /// <summary>
         /// Get Transaction by Hash
         /// </summary>
-        /// <param name="hash"></param>
-        /// <returns></returns>
         public Transaction GetByHash(string hash)
         {
-            var txns = GetAll();
-            if (txns is null || txns.Count() < 1)
+            var transactions = GetAll();
+            if (transactions is null || transactions.Count() < 1)
             {
                 return null;
             }
-            txns.EnsureIndex(x => x.Hash);
-            var transaction = txns.FindOne(x => x.Hash == hash);
-            return transaction;
+
+            transactions.EnsureIndex(x => x.Hash);
+            
+            return transactions.FindOne(x => x.Hash == hash);
         }
 
-
-        /**
-        * get transactions  
-        */
+        /// <summary>
+        /// Get transactions
+        /// </summary>
         public IEnumerable<Transaction> GetRange(int pageNumber, int resultPerPage)
         {
-            var txns = GetAll();
-            if (txns is null || txns.Count() < 1)
+            var transactions = GetAll();
+            if (transactions is null || transactions.Count() < 1)
             {
                 return null;
             }
-            txns.EnsureIndex(x => x.TimeStamp);
-            var query = txns.Query()
+
+            transactions.EnsureIndex(x => x.TimeStamp);
+
+            var query = transactions.Query()
                 .OrderByDescending(x => x.TimeStamp)
                 .Offset((pageNumber - 1) * resultPerPage)
                 .Limit(resultPerPage).ToList();
+
             return query;
         }
 
-        public IEnumerable<Transaction> GetLasts(int num)
+        public IEnumerable<Transaction> GetLast(int num)
         {
-            var txns = GetAll();
-            if (txns is null || txns.Count() < 1)
+            var transactions = GetAll();
+            if (transactions is null || transactions.Count() < 1)
             {
                 return null;
             }
-            txns.EnsureIndex(x => x.TimeStamp);
-            var query = txns.Query()
+
+            transactions.EnsureIndex(x => x.TimeStamp);
+
+            var query = transactions.Query()
                 .OrderByDescending(x => x.TimeStamp)
                 .Limit(num).ToList();
+
             return query;
         }
-        /**
-       get one transaction by address
-       */
+
+        /// <summary>
+        /// get one transaction by address
+        /// </summary>
         public Transaction GetByAddress(string address)
         {
-            var txns = GetAll();
-            if (txns is null || txns.Count() < 1)
+            var transactions = GetAll();
+            if (transactions is null || transactions.Count() < 1)
             {
                 return null;
             }
-            txns.EnsureIndex(x => x.TimeStamp);
-            var transaction = txns.FindOne(x => x.Sender == address || x.Recipient == address);
+
+            transactions.EnsureIndex(x => x.TimeStamp);
+            var transaction = transactions.FindOne(x => x.Sender == address || x.Recipient == address);
             return transaction;
         }
 
         private ILiteCollection<Transaction> GetAll()
         {
-            var coll = this._db.GetCollection<Transaction>(Constants.TBL_TRANSACTIONS);
-            return coll;
+            return _db.GetCollection<Transaction>(Constants.TBL_TRANSACTIONS);
         }
-
     }
 }

@@ -22,8 +22,5 @@ namespace UbudKusCoin.ConsoleWallet
             GrpcChannel channel = GrpcChannel.ForAddress(NODE_ADDRESS);
             _ = new ConsoleAppWallet(channel);
         }
-
     }
-
-
 }

@@ -5,13 +5,11 @@
 // Redistribution and use in source and binary forms with or without
 // modifications are permitted.
 
-using System;
 using LiteDB;
 using UbudKusCoin.Grpc;
 using UbudKusCoin.Others;
 using System.Collections.Generic;
 using System.Linq;
-
 
 namespace UbudKusCoin.DB
 {
@@ -20,8 +18,8 @@ namespace UbudKusCoin.DB
     /// </summary>
     public class BlockDb
     {
+        private readonly LiteDatabase _db;
 
-        private LiteDatabase _db;
         public BlockDb(LiteDatabase db)
         {
             _db = db;
@@ -30,8 +28,6 @@ namespace UbudKusCoin.DB
         /// <summary>
         /// Add block
         /// </summary>
-        /// <param name="block"></param>
-        /// <returns></returns>
         public AddBlockStatus Add(Block block)
         {
             var blocks = GetAll();
@@ -40,15 +36,15 @@ namespace UbudKusCoin.DB
                 blocks.Insert(block);
                 return new AddBlockStatus
                 {
-                    Status = Others.Constants.TXN_STATUS_SUCCESS,
-                    Message = "block added successfully"
+                    Status = Constants.TXN_STATUS_SUCCESS,
+                    Message = "Block added successfully"
                 };
             }
             catch
             {
                 return new AddBlockStatus
                 {
-                    Status = Others.Constants.TXN_STATUS_FAIL,
+                    Status = Constants.TXN_STATUS_FAIL,
                     Message = "Rttpt add transaction to pool"
                 };
             }
@@ -57,147 +53,145 @@ namespace UbudKusCoin.DB
         /// <summary>
         /// Get First Block or Genesis block, ordered by block Height
         /// </summary>
-        /// <returns></returns>
         public Block GetFirst()
         {
-            var block = GetAll().FindAll().FirstOrDefault();
-            return block;
+            return GetAll().FindAll().FirstOrDefault();
         }
 
-
         /// <summary>
-        /// Get Last block ordered by block Height
+        /// Get Last block ordered by block weight
         /// </summary>
-        /// <returns></returns>
         public Block GetLast()
         {
-            var block = GetAll().FindOne(Query.All(Query.Descending));
-            return block;
+            return GetAll().FindOne(Query.All(Query.Descending));
         }
 
         /// <summary>
-        /// Get Block by Block Height
+        /// Get Block by Block weight
         /// </summary>
-        /// <param name="height"></param>
-        /// <returns></returns>
-        public Block GetByHeight(long height)
+        public Block GetByHeight(long weight)
         {
-            var coll = GetAll();
-            var block = coll.Query().Where(x => x.Height == height).ToEnumerable();
-            if (block.Any())
+            var blockCollection = GetAll();
+            var blocks = blockCollection.Query().Where(x => x.Height == weight).ToList();
+            
+            if (blocks.Any())
             {
-                return block.FirstOrDefault();
+                return blocks.FirstOrDefault();
             }
+
             return null;
         }
 
         /// <summary>
         /// Get Block by block Hash
         /// </summary>
-        /// <param name="hash"></param>
-        /// <returns></returns>
         public Block GetByHash(string hash)
         {
-            var coll = GetAll();
-            var block = coll.Query().Where(x => x.Hash == hash).ToEnumerable();
-            if (block.Any())
+            var blockCollection = GetAll();
+            var blocks = blockCollection.Query().Where(x => x.Hash == hash).ToList();
+            
+            if (blocks.Any())
             {
-                return block.FirstOrDefault();
+                return blocks.FirstOrDefault();
             }
+
             return null;
         }
 
         /// <summary>
         /// Get blocks with paging, page number and number of row per page
         /// </summary>
-        /// <param name="pageNumber"></param>
-        /// <param name="resultPerPage"></param>
-        /// <returns></returns>
         public List<Block> GetRange(int pageNumber, int resultPerPage)
         {
-            var blocks = GetAll();
-            blocks.EnsureIndex(x => x.Height);
-            var query = blocks.Query()
+            var blockCollection = GetAll();
+            
+            blockCollection.EnsureIndex(x => x.Height);
+            
+            var query = blockCollection.Query()
                 .OrderByDescending(x => x.Height)
                 .Offset((pageNumber - 1) * resultPerPage)
                 .Limit(resultPerPage).ToList();
+            
             return query;
         }
 
         /// <summary>
-        /// Get blocks, starting from spesific height until 50 rows
+        /// Get blocks starting from specific weight until 50 rows
         /// </summary>
-        /// <param name="startHeight"></param>
-        /// <returns></returns>
-        public List<Block> GetRemains(long startHeight)
+        public List<Block> GetRemaining(long startHeight)
         {
-            var blocks = GetAll();
-            blocks.EnsureIndex(x => x.Height);
-            var query = blocks.Query()
+            var blockCollection = GetAll();
+            
+            blockCollection.EnsureIndex(x => x.Height);
+            
+            var query = blockCollection.Query()
                 .OrderByDescending(x => x.Height)
-                .Where(x => x.Height > startHeight && x.Height <= (startHeight + 50))
+                .Where(x => x.Height > startHeight && x.Height <= startHeight + 50)
                 .ToList();
+            
             return query;
         }
 
         /// <summary>
         /// Get last blocks 
         /// </summary>
-        /// <param name="num"></param>
-        /// <returns></returns>
-        public List<Block> GetLasts(int num)
+        public List<Block> GetLast(int num)
         {
-            var blocks = GetAll();
-            blocks.EnsureIndex(x => x.Height);
-            var query = blocks.Query()
+            var blockCollection = GetAll();
+            
+            blockCollection.EnsureIndex(x => x.Height);
+            
+            var query = blockCollection.Query()
                 .OrderByDescending(x => x.Height)
                 .Limit(num).ToList();
+            
             return query;
         }
 
         /// <summary>
         /// Get blocks that validate by address / validator
         /// </summary>
-        /// <param name="address"></param>
-        /// <param name="pageNumber"></param>
-        /// <param name="resultPerPage"></param>
-        /// <returns></returns>
         public IEnumerable<Block> GetByValidator(string address, int pageNumber, int resultPerPage)
         {
-            var coll = GetAll();
-            coll.EnsureIndex(x => x.Validator);
-            var query = coll.Query()
+            var blockCollection = GetAll();
+            
+            blockCollection.EnsureIndex(x => x.Validator);
+            
+            var query = blockCollection.Query()
                 .OrderByDescending(x => x.Height)
                 .Where(x => x.Validator == address)
                 .Offset((pageNumber - 1) * resultPerPage)
                 .Limit(resultPerPage).ToList();
+            
             return query;
         }
 
         /// <summary>
         /// Get all blocks
         /// </summary>
-        /// <returns></returns>
         public ILiteCollection<Block> GetAll()
         {
-            var coll = _db.GetCollection<Block>(Constants.TBL_BLOCKS);
-            coll.EnsureIndex(x => x.Height);
-            return coll;
+            var blockCollection = _db.GetCollection<Block>(Constants.TBL_BLOCKS);
+            
+            blockCollection.EnsureIndex(x => x.Height);
+            
+            return blockCollection;
         }
 
         /// <summary>
         /// Get all hash of all blocks
         /// </summary>
-        /// <returns></returns>
         public IList<string> GetHashList()
         {
-            var blocks = GetAll();
+            var blockCollection = GetAll();
+            
             IList<string> hashList = new List<string>();
-            foreach (var block in blocks.FindAll())
+            
+            foreach (var block in blockCollection.FindAll())
             {
-                var hash = block.Hash;
-                hashList.Append(hash);
+                hashList.Add(block.Hash);
             }
+
             return hashList;
         }
     }
