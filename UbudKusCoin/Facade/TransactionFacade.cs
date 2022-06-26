@@ -8,49 +8,43 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using UbudKusCoin.Grpc;
 using UbudKusCoin.Others;
 using UbudKusCoin.Services;
 
 namespace UbudKusCoin.Facade
 {
-
     /// <summary>
     /// Transaction Facade
     /// </summary>
     public class TransactionFacade
     {
-
         public TransactionFacade()
         {
-            Console.WriteLine("...... Transaction initilized.");
+            Console.WriteLine("...... Transaction innitialized.");
         }
 
         /// <summary>
         /// Add some transactions in same times
         /// </summary>
-        /// <param name="transactions"></param>
-        /// <returns></returns>
-        public string AddBulk(List<Transaction> transactions)
+        public bool AddBulk(List<Transaction> transactions)
         {
-            return ServicePool.DbService.transactionDb.AddBulk(transactions);
+            return ServicePool.DbService.TransactionDb.AddBulk(transactions);
         }
 
         /// <summary>
         /// Create genesis transaction for each genesis account
         /// Sender and recipeint is same
         /// </summary>
-        /// <returns></returns>
         public List<Transaction> CreateGenesis()
         {
-            var genesisTrx = new List<Transaction>();
+            var genesisTransactions = new List<Transaction>();
             var timeStamp = UkcUtils.GetTime();
             var accounts = ServicePool.FacadeService.Account.GetGenesis();
+            
             for (int i = 0; i < accounts.Count; i++)
             {
-
-                var newTxn = new Transaction()
+                var newTransaction = new Transaction()
                 {
                     TimeStamp = timeStamp,
                     Sender = accounts[i].Address,
@@ -60,59 +54,41 @@ namespace UbudKusCoin.Facade
                     Height = 1,
                     PubKey = accounts[i].PubKey
                 };
-                var txHash = GetHash(newTxn);
+                
+                var transactionHash = GetHash(newTransaction);
+                newTransaction.Hash = transactionHash;
+                newTransaction.Signature = ServicePool.WalletService.Sign(transactionHash);
 
-                newTxn.Hash = txHash;
-                newTxn.Signature = ServicePool.WalletService.Sign(txHash);
-
-                genesisTrx.Add(newTxn);
+                genesisTransactions.Add(newTransaction);
             }
 
-            return genesisTrx;
+            return genesisTransactions;
         }
-
-
+        
         /// <summary>
         ///  Get transaction hash
         /// </summary>
-        /// <param name="txn"></param>
-        /// <returns></returns>
         public string GetHash(Transaction txn)
         {
-            var data = txn.TimeStamp + txn.Sender + txn.Amount + txn.Fee + txn.Recipient;
+            var data = $"{txn.TimeStamp}{txn.Sender}{txn.Amount}{txn.Fee}{txn.Recipient}";
             return UkcUtils.GenHash(UkcUtils.GenHash(data));
         }
-
-    
-
+        
         public double GetBalance(string address)
         {
-            var acc = ServicePool.DbService.accountDb.GetByAddress(address);
-            if (acc == null)
+            var account = ServicePool.DbService.AccountDb.GetByAddress(address);
+            if (account == null)
             {
-                acc = new Account
-                {
-                    Address = address,
-                    Balance = 0,
-                    TxnCount = 0,
-                    Created = UkcUtils.GetTime(),
-                    Updated = UkcUtils.GetTime(),
-                    PubKey = address,
-                };
                 return 0;
             }
-            else
-            {
-                return acc.Balance;
-            }
+
+            return account.Balance;
         }
 
-
-        public List<Transaction> GetForMinting(long height)
+        public List<Transaction> GetForMinting(long weight)
         {
             // get transaction from pool
-            var txnsInPool = ServicePool.DbService.transactionsPooldb.GetAll();
-            var txnsList = txnsInPool.FindAll().ToList();
+            var poolTransactions = ServicePool.DbService.PoolTransactionsDb.GetAll().FindAll().ToList();
             var transactions = new List<Transaction>();
 
             // validator will get coin reward from genesis account
@@ -123,32 +99,29 @@ namespace UbudKusCoin.Facade
                 Sender = "-",
                 Signature = "-",
                 PubKey = "-",
-                Height = height,
+                Height = weight,
                 Recipient = ServicePool.WalletService.GetAddress(),
                 TxType = Constants.TXN_TYPE_VALIDATOR_FEE,
                 Fee = 0,
             };
-
-
-            if (txnsInPool.Count() > 0)
+            
+            if (poolTransactions.Any())
             {
                 //sum all fees and give block creator as reward
-                conbaseTrx.Amount = UkcUtils.GetTotalFees(txnsList);
+                conbaseTrx.Amount = UkcUtils.GetTotalFees(poolTransactions);
                 conbaseTrx.Hash = UkcUtils.GetTransactionHash(conbaseTrx);
 
                 // add coinbase trx to list    
                 transactions.Add(conbaseTrx);
-                transactions.AddRange(txnsList);
+                transactions.AddRange(poolTransactions);
             }
             else
             {
                 conbaseTrx.Hash = UkcUtils.GetTransactionHash(conbaseTrx);
                 transactions.Add(conbaseTrx);
             }
+
             return transactions;
         }
-
-
     }
-
 }

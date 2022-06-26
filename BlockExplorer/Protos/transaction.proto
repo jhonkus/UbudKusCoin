@@ -6,7 +6,6 @@
 
 syntax = "proto3";
 
-
 option csharp_namespace = "UbudKusCoin.Grpc";
 
 service TransactionService {
@@ -24,7 +23,7 @@ message TransactionPaging{
   string address = 1;
   int64 height = 2;
   int32 page_number = 3;
-  int32 result_per_page = 4; 
+  int32 result_per_page = 4;
 }
 
 message TransactionGet{
@@ -56,5 +55,5 @@ message Transaction{
   int64 height = 7;
   string signature = 8;
   string pub_key = 9;
-  string tx_type =  10;
+  string tx_type = 10;
 }

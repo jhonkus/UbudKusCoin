@@ -14,7 +14,6 @@ namespace UbudKusCoin.BlockExplorer
     {
         static void Main(string[] args)
         {
-                           
             var serverAddress = "http://localhost:5002";
             AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
             GrpcChannel channel = GrpcChannel.ForAddress(serverAddress);

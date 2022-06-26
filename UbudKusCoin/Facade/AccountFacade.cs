@@ -7,36 +7,34 @@
 
 using System;
 using System.Collections.Generic;
-
 using UbudKusCoin.Grpc;
 using UbudKusCoin.Others;
 using UbudKusCoin.Services;
 
 namespace UbudKusCoin.Facade
 {
-
     public class AccountFacade
     {
-
         public AccountFacade()
         {
-            Console.WriteLine("...... Account initilized.");
+            Console.WriteLine("...... Account innitialized.");
         }
 
         public Account GetByAddress(string address)
         {
-            return ServicePool.DbService.accountDb.GetByAddress(address);
+            return ServicePool.DbService.AccountDb.GetByAddress(address);
         }
 
         /// <summary>
         /// Genesis account have initial balance
         /// </summary>
-        /// <returns></returns>
         public List<Account> GetGenesis()
         {
             var timestamp = UkcUtils.GetTime();
-            var list = new List<Account> {
-                new Account{
+            var list = new List<Account>
+            {
+                new()
+                {
                     // live uniform pudding know thumb hand deposit critic relief asset demand barrel
                     Address = "9SBqYME6T5trNHXqdsYPMPha4yWQbzxd4DPjJBR7KG9A",
                     PubKey = "02c51f708f279643811af172b9f838aabb2cb4c90b683da9c5d4b81d70f00e9af2",
@@ -46,7 +44,7 @@ namespace UbudKusCoin.Facade
                     Updated = timestamp
                 },
 
-                new Account
+                new()
                 {
                     // carbon snack lab junk moment shiver gas dry stem real scale cannon
                     Address = "3pXA6G3o2bu3Mbp9k2NDfXGWPuhCMn4wvZeTAFCf4N5r",
@@ -56,19 +54,17 @@ namespace UbudKusCoin.Facade
                     Created = timestamp,
                     Updated = timestamp
                 },
-
             };
+            
             return list;
         }
 
         /// <summary>
         /// Add amount to Balance
         /// </summary>
-        /// <param name="to"></param>
-        /// <param name="amount"></param>
         public void AddToBalance(string to, double amount)
         {
-            var acc = ServicePool.DbService.accountDb.GetByAddress(to);
+            var acc = ServicePool.DbService.AccountDb.GetByAddress(to);
             if (acc is null)
             {
                 acc = new Account
@@ -80,81 +76,70 @@ namespace UbudKusCoin.Facade
                     Updated = UkcUtils.GetTime(),
                     PubKey = "-"
                 };
-                ServicePool.DbService.accountDb.Add(acc);
+                
+                ServicePool.DbService.AccountDb.Add(acc);
             }
             else
             {
                 acc.Balance += amount;
                 acc.TxnCount += 1;
                 acc.Updated = UkcUtils.GetTime();
-                ServicePool.DbService.accountDb.Update(acc);
+                ServicePool.DbService.AccountDb.Update(acc);
             }
         }
 
         /// <summary>
         /// Reduce amount from Balance
         /// </summary>
-        /// <param name="from"></param>
-        /// <param name="amount"></param>
-        /// <param name="pubKey"></param>
-        public void ReduceFromBalance(string from, double amount, string pubKey)
+        public void ReduceFromBalance(string from, double amount, string publicKey)
         {
-
-            var acc = ServicePool.DbService.accountDb.GetByAddress(from);
-
-            if (acc is null)
+            var account = ServicePool.DbService.AccountDb.GetByAddress(from);
+            if (account is null)
             {
-
-                acc = new Account
+                account = new Account
                 {
                     Address = from,
                     Balance = -amount,
                     TxnCount = 1,
                     Created = UkcUtils.GetTime(),
                     Updated = UkcUtils.GetTime(),
-                    PubKey = pubKey,
+                    PubKey = publicKey,
                 };
-                ServicePool.DbService.accountDb.Add(acc);
+                
+                ServicePool.DbService.AccountDb.Add(account);
             }
             else
             {
-                acc.Balance -= amount;
-                acc.TxnCount += 1;
-                acc.PubKey = pubKey;
-                acc.Updated = UkcUtils.GetTime();
+                account.Balance -= amount;
+                account.TxnCount += 1;
+                account.PubKey = publicKey;
+                account.Updated = UkcUtils.GetTime();
 
-                ServicePool.DbService.accountDb.Update(acc);
+                ServicePool.DbService.AccountDb.Update(account);
             }
         }
 
         /// <summary>
         /// Update Balance
         /// </summary>
-        /// <param name="txns"></param>
-        public void UpdateBalance(List<Transaction> txns)
+        public void UpdateBalance(List<Transaction> transactions)
         {
-            foreach (var txn in txns)
+            foreach (var transaction in transactions)
             {
-
-                ReduceFromBalance(txn.Sender, txn.Amount, txn.PubKey);
-                AddToBalance(txn.Recipient, txn.Amount);
-
+                ReduceFromBalance(transaction.Sender, transaction.Amount, transaction.PubKey);
+                AddToBalance(transaction.Recipient, transaction.Amount);
             }
         }
 
         /// <summary>
         /// Update Genesis Account Balance
         /// </summary>
-        /// <param name="trxs"></param>
-        public void UpdateBalanceGenesis(List<Transaction> trxs)
+        public void UpdateBalanceGenesis(List<Transaction> transactions)
         {
-            foreach (var trx in trxs)
+            foreach (var transaction in transactions)
             {
-                AddToBalance(trx.Recipient, trx.Amount);
+                AddToBalance(transaction.Recipient, transaction.Amount);
             }
         }
-
-
     }
-
 }

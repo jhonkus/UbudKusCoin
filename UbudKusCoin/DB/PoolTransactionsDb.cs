@@ -5,78 +5,74 @@
 // Redistribution and use in source and binary forms with or without
 // modifications are permitted.
 
-using System;
 using System.Collections.Generic;
-
 using LiteDB;
-
 using UbudKusCoin.Grpc;
 using UbudKusCoin.Others;
 
 namespace UbudKusCoin.DB
 {
-
-
-    public class TransactionPoolDb
+    public class PoolTransactionsDb
     {
-
         private readonly LiteDatabase _db;
-        public TransactionPoolDb(LiteDatabase db)
+
+        public PoolTransactionsDb(LiteDatabase db)
         {
             _db = db;
         }
 
-        // Add to pool
         public void Add(Transaction transaction)
         {
-            var txns = GetAll();
-            txns.Insert(transaction);
+            var transactions = GetAll();
+            transactions.Insert(transaction);
         }
 
         public Transaction GetByHash(string hash)
         {
-            var txns = GetAll();
-            if (txns is null || txns.Count() < 1)
+            var transactions = GetAll();
+            if (transactions is null || transactions.Count() < 1)
             {
                 return null;
             }
 
-            txns.EnsureIndex(x => x.Hash);
-            var transaction = txns.FindOne(x => x.Hash == hash);
-            return transaction;
+            transactions.EnsureIndex(x => x.Hash);
+            
+            return transactions.FindOne(x => x.Hash == hash);
         }
-
 
         public IEnumerable<Transaction> GetRange(int pageNumber, int resultPerPage)
         {
-            var txns = GetAll();
-            if (txns is null || txns.Count() < 1)
+            var transactions = GetAll();
+            if (transactions is null || transactions.Count() < 1)
             {
                 return null;
             }
-            txns.EnsureIndex(x => x.TimeStamp);
-            var query = txns.Query()
+
+            transactions.EnsureIndex(x => x.TimeStamp);
+            
+            var query = transactions.Query()
                 .OrderByDescending(x => x.TimeStamp)
                 .Offset((pageNumber - 1) * resultPerPage)
                 .Limit(resultPerPage).ToList();
+            
             return query;
         }
 
 
         public void DeleteAll()
         {
-            var txns = GetAll();
-            if (txns is null || txns.Count() < 1)
+            var transactions = GetAll();
+            if (transactions is null || transactions.Count() < 1)
             {
                 return;
             }
-            txns.DeleteAll();
+
+            transactions.DeleteAll();
         }
 
         public ILiteCollection<Transaction> GetAll()
         {
-            var col = _db.GetCollection<Transaction>(Constants.TBL_TRANSACTIONS_POOL);
-            return col;
+            return _db.GetCollection<Transaction>(Constants.TBL_TRANSACTIONS_POOL);
         }
     }
 }

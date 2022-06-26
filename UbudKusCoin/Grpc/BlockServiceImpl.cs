@@ -6,22 +6,18 @@
 // modifications are permitted.
 
 using System.Threading.Tasks;
-
 using Grpc.Core;
-
 using UbudKusCoin.Services;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 
 namespace UbudKusCoin.Grpc
 {
-
     public class BlockServiceImpl : BlockService.BlockServiceBase
     {
         public override Task<AddBlockStatus> Add(Block block, ServerCallContext context)
         {
-
-            var lastBlock = ServicePool.DbService.blockDb.GetLast();
+            var lastBlock = ServicePool.DbService.BlockDb.GetLast();
 
             // validate block hash
             if (block.PrevHash != lastBlock.Hash)
@@ -39,18 +35,17 @@ namespace UbudKusCoin.Grpc
                 return Task.FromResult(new AddBlockStatus
                 {
                     Status = Others.Constants.TXN_STATUS_FAIL,
-                    Message = "height not valid"
+                    Message = "Invalid weight"
                 });
             }
 
             // Console.WriteLine("\n- - - - >> Receiving block , height: {0} \n- - - - >> from: {1}\n", block.Height, block.Validator);
-            var addStatus = ServicePool.DbService.blockDb.Add(block);
+            var addStatus = ServicePool.DbService.BlockDb.Add(block);
             //Console.WriteLine("- - - - >> Block added to db.");
 
             //extract transaction
             var transactions = JsonConvert.DeserializeObject<List<Transaction>>(block.Transactions);
-
-
+            
             // update balances
             ServicePool.FacadeService.Account.UpdateBalance(transactions);
 
@@ -58,35 +53,38 @@ namespace UbudKusCoin.Grpc
             ServicePool.FacadeService.Transaction.AddBulk(transactions);
 
             // clear mempool
-            ServicePool.DbService.transactionsPooldb.DeleteAll();
-
-
+            ServicePool.DbService.PoolTransactionsDb.DeleteAll();
+            
             return Task.FromResult(addStatus);
         }
 
         public override Task<Block> GetFirst(EmptyRequest request, ServerCallContext context)
         {
-            var block = ServicePool.DbService.blockDb.GetFirst();
+            var block = ServicePool.DbService.BlockDb.GetFirst();
             return Task.FromResult(block);
         }
+
         public override Task<Block> GetLast(EmptyRequest request, ServerCallContext context)
         {
-            var block = ServicePool.DbService.blockDb.GetLast();
+            var block = ServicePool.DbService.BlockDb.GetLast();
             return Task.FromResult(block);
         }
+
         public override Task<Block> GetByHash(Block request, ServerCallContext context)
         {
-            var block = ServicePool.DbService.blockDb.GetByHash(request.Hash);
+            var block = ServicePool.DbService.BlockDb.GetByHash(request.Hash);
             return Task.FromResult(block);
         }
+
         public override Task<Block> GetByHeight(Block request, ServerCallContext context)
         {
-            var block = ServicePool.DbService.blockDb.GetByHeight(request.Height);
+            var block = ServicePool.DbService.BlockDb.GetByHeight(request.Height);
             return Task.FromResult(block);
         }
+
         public override Task<BlockList> GetRange(BlockParams request, ServerCallContext context)
         {
-            var blocks = ServicePool.DbService.blockDb.GetRange(request.PageNumber, request.ResultPerPage);
+            var blocks = ServicePool.DbService.BlockDb.GetRange(request.PageNumber, request.ResultPerPage);
             var list = new BlockList();
             list.Blocks.AddRange(blocks);
             return Task.FromResult(list);
@@ -94,13 +92,10 @@ namespace UbudKusCoin.Grpc
 
         public override Task<BlockList> GetRemains(StartingParam request, ServerCallContext context)
         {
-            var blocks = ServicePool.DbService.blockDb.GetRemains(request.Height);
+            var blocks = ServicePool.DbService.BlockDb.GetRemaining(request.Height);
             var list = new BlockList();
             list.Blocks.AddRange(blocks);
             return Task.FromResult(list);
         }
-
-
-
     }
 }

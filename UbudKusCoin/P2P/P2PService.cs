@@ -19,17 +19,14 @@ using static UbudKusCoin.Grpc.StakeService;
 
 namespace UbudKusCoin.P2P
 {
-
     /// <summary>
     /// This class for communicating with other peer, such as to broadcasting block,
     /// broadcasting transaction, downloading block.
     /// </summary>
     public class P2PService
     {
-
         public P2PService()
         {
-
         }
 
         public void Start()
@@ -38,7 +35,6 @@ namespace UbudKusCoin.P2P
             // do some task
             Console.WriteLine("...... P2P service is ready");
         }
-
 
 
         /// <summary>
@@ -69,7 +65,6 @@ namespace UbudKusCoin.P2P
                 }
             });
         }
-
 
 
         /// <summary>
@@ -112,7 +107,6 @@ namespace UbudKusCoin.P2P
             {
                 if (!nodeAddress.Equals(peer.Address))
                 {
-
                     Console.WriteLine("-- BroadcastTransaction to {0}", peer.Address);
                     GrpcChannel channel = GrpcChannel.ForAddress(peer.Address);
                     var txnService = new TransactionServiceClient(channel);
@@ -136,10 +130,8 @@ namespace UbudKusCoin.P2P
                     {
                         Console.WriteLine(".. Fail");
                     }
-
                 }
             });
-
         }
 
 
@@ -151,7 +143,6 @@ namespace UbudKusCoin.P2P
         /// <param name="peerHeight"></param>
         private void DownloadBlocks(BlockServiceClient blockService, long lastBlockHeight, long peerHeight)
         {
-
             var response = blockService.GetRemains(new StartingParam { Height = lastBlockHeight });
             List<Block> blocks = response.Blocks.ToList();
             blocks.Reverse();
@@ -162,7 +153,7 @@ namespace UbudKusCoin.P2P
                 try
                 {
                     Console.WriteLine("==== Download block: {0}", block.Height);
-                    var status = ServicePool.DbService.blockDb.Add(block);
+                    var status = ServicePool.DbService.BlockDb.Add(block);
                     lastHeight = block.Height;
                     Console.WriteLine("==== Done");
                 }
@@ -176,7 +167,6 @@ namespace UbudKusCoin.P2P
             {
                 DownloadBlocks(blockService, lastHeight, peerHeight);
             }
-
         }
 
         /// <summary>
@@ -194,6 +184,7 @@ namespace UbudKusCoin.P2P
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -224,7 +215,9 @@ namespace UbudKusCoin.P2P
                             ServicePool.FacadeService.Peer.Add(newPeer);
                         }
                     }
-                    catch { }
+                    catch
+                    {
+                    }
                 }
             }
 
@@ -241,21 +234,20 @@ namespace UbudKusCoin.P2P
                         var peerState = peerService.GetNodeState(new NodeParam { NodeIpAddress = nodeAddress });
 
                         // local block height
-                        var lastBlockHeight = ServicePool.DbService.blockDb.GetLast().Height;
+                        var lastBlockHeight = ServicePool.DbService.BlockDb.GetLast().Height;
                         var blockService = new BlockServiceClient(channel);
                         if (lastBlockHeight < peerState.Height)
                         {
                             DownloadBlocks(blockService, lastBlockHeight, peerState.Height);
                         }
                     }
-                    catch { }
+                    catch
+                    {
+                    }
                 }
             }
+
             Console.WriteLine("---- Sync Done~");
         }
-
     }
-
-
-
 }

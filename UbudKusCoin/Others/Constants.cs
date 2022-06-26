@@ -9,7 +9,6 @@ namespace UbudKusCoin.Others
 {
     public class Constants
     {
-
         public const int VERSION = 0;
         public const double DEFAULT_TRANSACTION_FEE = 0.001;
         public const double COINT_REWARD = 0.001f;
@@ -22,10 +21,8 @@ namespace UbudKusCoin.Others
         public const string TXN_TYPE_STAKE = "Staking";
         public const string TXN_TYPE_TRANSFER = "Transfer";
         public const string TXN_TYPE_VALIDATOR_FEE = "Validation_Fee";
-
         public const string TXN_STATUS_SUCCESS = "Success";
         public const string TXN_STATUS_FAIL = "Fail";
-
         public const string MESSAGE_TYPE_INV = "INVENTORY";
         public const string MESSAGE_TYPE_GET_BLOCKS = "GET_BLOCKS";
         public const string MESSAGE_TYPE_GET_DATA = "GET_DATA";
@@ -37,6 +34,5 @@ namespace UbudKusCoin.Others
         public const int BLOCK_GENERATION_INTERVAL = 30;
         public const int DIFFICULTY_ADJUSTMENT_INTERVAL = 10;
         public const string MESSAGE_TYPE_CLEAR_TRANSACTIONS = "CLEAR_TRANSACTIONS";
-
     }
 }

@@ -6,7 +6,6 @@
 // modifications are permitted.
 
 using System;
-
 using UbudKusCoin.Facade;
 
 namespace UbudKusCoin.Services
@@ -22,18 +21,17 @@ namespace UbudKusCoin.Services
 
         public FacadeService()
         {
-            
         }
 
         public void start()
         {
             Console.WriteLine("... Facade service is starting");
-            this.Peer = new PeerFacade();
-            this.Stake = new StakeFacade();
-            this.Account = new AccountFacade();
-            this.TransactionPool = new TransactionPoolFacade();
-            this.Transaction = new TransactionFacade();
-            this.Block = new BlockFacade();
+            Peer = new PeerFacade();
+            Stake = new StakeFacade();
+            Account = new AccountFacade();
+            TransactionPool = new TransactionPoolFacade();
+            Transaction = new TransactionFacade();
+            Block = new BlockFacade();
             Console.WriteLine("...... Facade service is ready");
         }
     }

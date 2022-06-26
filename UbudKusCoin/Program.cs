@@ -19,7 +19,6 @@ namespace UbudKusCoin
     {
         public static void Main(string[] args)
         {
-
             DotNetEnv.Env.Load();
             DotNetEnv.Env.TraversePath().Load();
 
@@ -31,46 +30,38 @@ namespace UbudKusCoin
                 new P2PService()
             );
             ServicePool.Start();
-
-
+            
             // grpc
             IHost host = CreateHostBuilder(args).Build();
             host.Run();
-
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
-           Host.CreateDefaultBuilder(args)
-           .UseSystemd()
-          .ConfigureWebHostDefaults(webBuilder =>
-          {
-              webBuilder.ConfigureKestrel(options =>
-              {
+            Host.CreateDefaultBuilder(args)
+                .UseSystemd()
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.ConfigureKestrel(options =>
+                    {
+                        var GRPC_WEB_PORT = DotNetEnv.Env.GetInt("GRPC_WEB_PORT");
+                        var GRPC_PORT = DotNetEnv.Env.GetInt("GRPC_PORT");
 
-                  var GRPC_WEB_PORT = DotNetEnv.Env.GetInt("GRPC_WEB_PORT");
-                  var GRPC_PORT = DotNetEnv.Env.GetInt("GRPC_PORT");
+                        options.ListenAnyIP(GRPC_WEB_PORT, listenOptions => listenOptions.Protocols = HttpProtocols.Http1AndHttp2); //webapi
+                        options.ListenAnyIP(GRPC_PORT, listenOptions => listenOptions.Protocols = HttpProtocols.Http2); //grpc
+                    });
 
-                  options.ListenAnyIP(GRPC_WEB_PORT, listenOptions => listenOptions.Protocols = HttpProtocols.Http1AndHttp2); //webapi
-                  options.ListenAnyIP(GRPC_PORT, listenOptions => listenOptions.Protocols = HttpProtocols.Http2); //grpc
-              });
-
-              // start
-              webBuilder.UseStartup<Startup>()
-            //   .ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
-
-            .ConfigureLogging((Action<WebHostBuilderContext, ILoggingBuilder>)((hostingContext, logging) =>
-            {
-                // logging.AddConfiguration((IConfiguration)hostingContext.Configuration.GetSection("Logging"));
-                // logging.AddConsole();
-                // logging.AddDebug();
-                // logging.AddEventSourceLogger();
-                logging.ClearProviders();
-
-            }));
-
-              //===
-          });
-
-
+                    // start
+                    webBuilder.UseStartup<Startup>()
+                        //   .ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
+                        .ConfigureLogging((Action<WebHostBuilderContext, ILoggingBuilder>)((hostingContext, logging) =>
+                        {
+                            // logging.AddConfiguration((IConfiguration)hostingContext.Configuration.GetSection("Logging"));
+                            // logging.AddConsole();
+                            // logging.AddDebug();
+                            // logging.AddEventSourceLogger();
+                            logging.ClearProviders();
+                        }));
+                    //===
+                });
     }
 }

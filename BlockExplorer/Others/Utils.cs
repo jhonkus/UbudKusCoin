@@ -1,12 +1,9 @@
-﻿
-using System;
-
+﻿using System;
 
 namespace UbudKusCoin.BlockExplorer.Others
 {
     public static class Utils
     {
-
         public static DateTime ToDateTime(long unixTime)
         {
             DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
@@ -18,10 +15,7 @@ namespace UbudKusCoin.BlockExplorer.Others
         {
             long epochTicks = new DateTime(1970, 1, 1).Ticks;
             long nowTicks = DateTime.UtcNow.Ticks;
-            long tmStamp = ((nowTicks - epochTicks) / TimeSpan.TicksPerSecond);
-            return tmStamp;
+            return (nowTicks - epochTicks) / TimeSpan.TicksPerSecond;
         }
-
-
     }
 }

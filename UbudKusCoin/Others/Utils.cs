@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-
 using UbudKusCoin.Grpc;
 
 namespace UbudKusCoin.Others
@@ -64,12 +63,10 @@ namespace UbudKusCoin.Others
             long nowTicks = DateTime.UtcNow.Ticks;
             long tmStamp = ((nowTicks - epochTicks) / TimeSpan.TicksPerSecond);
             return tmStamp;
-
         }
 
         public static string CreateMerkleRoot(string[] txsHash)
         {
-
             while (true)
             {
                 if (txsHash.Length == 0)
@@ -103,38 +100,30 @@ namespace UbudKusCoin.Others
         static string DoubleHash(string leaf1, string leaf2)
         {
             byte[] leaf1Byte = HexToBytes(leaf1);
-            //Array.Reverse(leaf1Byte);
-
             byte[] leaf2Byte = HexToBytes(leaf2);
-            //Array.Reverse(leaf2Byte);
 
             var concatHash = leaf1Byte.Concat(leaf2Byte).ToArray();
             SHA256 sha256 = SHA256.Create();
             byte[] sendHash = sha256.ComputeHash(sha256.ComputeHash(concatHash));
-
-            //Array.Reverse(sendHash);
 
             return BytesToHex(sendHash).ToLower();
         }
 
         public static double GetTotalFees(List<Transaction> txns)
         {
-            var totFee = txns.AsEnumerable().Sum(x => x.Fee);
-            return totFee;
+            return txns.AsEnumerable().Sum(x => x.Fee);
         }
 
         public static double GetTotalAmount(List<Transaction> txns)
         {
-            var totalAmount = txns.AsEnumerable().Sum(x => x.Amount);
-            return totalAmount;
+            return txns.AsEnumerable().Sum(x => x.Amount);
         }
 
         public static string GetTransactionHash(Transaction txn)
         {
             // Console.WriteLine(" get transaction hash {0}", txn);
-            var TxnId = GenHash(GenHash(txn.TimeStamp + txn.Sender + txn.Amount + txn.Fee + txn.Recipient));
+            return GenHash(GenHash(txn.TimeStamp + txn.Sender + txn.Amount + txn.Fee + txn.Recipient));
             // Console.WriteLine(" get transaction hash {0}", TxnId);
-            return TxnId;
         }
 
         public static void PrintBlock(Block block)
@@ -145,7 +134,7 @@ namespace UbudKusCoin.Others
             Console.WriteLine(" = Prev Hash   : {0}", block.PrevHash);
             Console.WriteLine(" = Hash        : {0}", block.Hash);
             Console.WriteLine(" = Merkle Hash : {0}", block.MerkleRoot);
-            Console.WriteLine(" = Timestamp   : {0}", UkcUtils.ToDateTime(block.TimeStamp));
+            Console.WriteLine(" = Timestamp   : {0}", ToDateTime(block.TimeStamp));
             Console.WriteLine(" = Difficulty  : {0}", block.Difficulty);
             Console.WriteLine(" = Validator   : {0}", block.Validator);
             Console.WriteLine(" = Nonce       : {0}", block.Nonce);
@@ -157,5 +146,4 @@ namespace UbudKusCoin.Others
             Console.WriteLine(" = Signature   : {0}", block.Signature);
         }
     }
-
 }

@@ -12,20 +12,17 @@ namespace UbudKusCoin.Services
     public static class ServicePool
     {
         public static MintingService MintingService { set; get; }
-
         public static DbService DbService { set; get; }
-
         public static FacadeService FacadeService { set; get; }
-
         public static WalletService WalletService { set; get; }
         public static P2PService P2PService { set; get; }
 
         public static void Add(
-                  WalletService wallet,
-                  DbService db,
-                  FacadeService facade,
-                  MintingService minter,
-                  P2PService p2p)
+            WalletService wallet,
+            DbService db,
+            FacadeService facade,
+            MintingService minter,
+            P2PService p2p)
         {
             WalletService = wallet;
             DbService = db;
@@ -33,6 +30,7 @@ namespace UbudKusCoin.Services
             MintingService = minter;
             P2PService = p2p;
         }
+
         public static void Start()
         {
             WalletService.Start();
@@ -45,9 +43,11 @@ namespace UbudKusCoin.Services
         public static void Stop()
         {
             //stop when application exit
+            //WalletService.Stop();
             DbService.Stop();
+            //FacadeService.Stop();
+            //P2PService.Stop();
+            MintingService.Stop();
         }
-
-
     }
 }
