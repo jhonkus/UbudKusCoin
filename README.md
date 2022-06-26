@@ -1,6 +1,8 @@
 # UbudKusCoin
 Simple Cryptocurrencies with Proof Of Stake  Consensus Algorithm.
 
+The Blockchain Explorer for this Blockhain can found here: https://github.com/jhonkus/UbudKusCoin-explorer-web 
+
 WHAT NEW 23 Feb 2022
 - Support Mnemonic 12 words
 - Address with base 58
