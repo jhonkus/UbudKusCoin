@@ -80,6 +80,44 @@ public sealed class ConsensusDriverTests
         Assert.True(driver.ValidateProposal(block, 0, out var error), error);
     }
 
+    [Fact]
+    public void Commit_RequiresQuorumAndAdvancesFinality()
+    {
+        var validators = MakeValidators();
+        var set = new ValidatorSet(validators.Select(x => x.Validator));
+        var state = new State(ChainId);
+        var driver = new DeterministicBftDriver(state, set);
+        var proposer = driver.Proposer(1, 0);
+        var proposerKey = validators.Single(x => x.Address.Equals(proposer.Address)).Key;
+        var block = BuildEmptyBlock(state, proposer, proposerKey);
+        var first = SignVote(validators[0], block.Height, 0, block.ComputeHeaderHashHex());
+        var second = SignVote(validators[1], block.Height, 0, block.ComputeHeaderHashHex());
+
+        Assert.True(driver.AddVote(first, out _, out var firstError), firstError);
+        Assert.True(driver.AddVote(second, out var certificate, out var secondError), secondError);
+        Assert.NotNull(certificate);
+        Assert.True(driver.Commit(block, certificate!, out var commitError), commitError);
+        Assert.Equal(1L, driver.Finality.FinalizedHeight);
+        Assert.Equal(block.ComputeHeaderHashHex(), driver.Finality.FinalizedHash);
+    }
+
+    [Fact]
+    public void StakingLedger_EnforcesLockAndSlashesEquivocators()
+    {
+        var validator = MakeValidators()[0];
+        var ledger = new StakingLedger();
+
+        Assert.True(ledger.Bond(validator.Address, validator.Key.PubKey.ToBytes(), CoreMoney.FromCoins(10m), 1, out var bondError), bondError);
+        Assert.True(ledger.RequestUnbond(validator.Address, 2, 5, out var unbondError), unbondError);
+        Assert.False(ledger.Withdraw(validator.Address, 6, out _, out _));
+        Assert.True(ledger.Withdraw(validator.Address, 7, out var withdrawn, out var withdrawError), withdrawError);
+        Assert.Equal(CoreMoney.FromCoins(10m), withdrawn);
+
+        Assert.True(ledger.Bond(validator.Address, validator.Key.PubKey.ToBytes(), CoreMoney.FromCoins(10m), 8, out bondError), bondError);
+        Assert.True(ledger.Slash(validator.Address, CoreMoney.FromCoins(3m), out var slashError), slashError);
+        Assert.Throws<ArgumentException>(() => ledger.CreateValidatorSet());
+    }
+
     private static List<ValidatorWithKey> MakeValidators()
     {
         return new[] { 1, 2, 3 }.Select((seed, index) =>
@@ -107,6 +145,29 @@ public sealed class ConsensusDriverTests
         };
         vote.Signature = validator.Key.Sign(new uint256(vote.ComputeDigest())).ToDER();
         return vote;
+    }
+
+    private static CoreBlock BuildEmptyBlock(State state, Validator validator, Key key)
+    {
+        var block = new CoreBlock
+        {
+            ChainId = ChainId,
+            Height = state.Height + 1,
+            TimeStamp = state.TimeStamp + 1,
+            PrevHash = state.Head,
+            MerkleRoot = Merkle.ComputeRoot(Array.Empty<byte[]>()),
+            Validator = validator.Address,
+            Reward = CoreMoney.Zero
+        };
+        var resulting = StateTransition.ComputeResultingState(state, block);
+        block.StateRoot = resulting.NewState!.ComputeStateRoot();
+        if (block.Height > 1)
+        {
+            block.ValidatorPubKey = key.PubKey.ToBytes();
+            block.ValidatorSignature = key.Sign(new uint256(block.ComputeHeaderHash())).ToDER();
+        }
+
+        return block;
     }
 
     private sealed record ValidatorWithKey(Validator Validator, Key Key)

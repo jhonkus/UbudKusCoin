@@ -85,14 +85,15 @@ canonical two-node exchange/rejection tests and crash-safe snapshot rebuild test
 **Why:** current PoS is insecure (random stakes, no finality).
 - [x] Wrap the protocol behind `IConsensusDriver`: proposer selection, proposal validation, vote, and commit boundary.
 - [x] Add deterministic stake-weighted proposer selection, signed votes, `2/3+1` quorum certificates, and equivocation evidence.
+- [x] Add staking lock/unbonding rules, validator jail state, slashing, and sequential finality tracking.
 - **Option A (recommended):** integrate a mature engine (e.g., CometBFT-style) as the app/ABCI side.
 - **Option B:** implement specified PoS-BFT (e.g., Streamlet/HotStuff) — only with a formal spec + fuzz + audit.
 - [ ] Choose and integrate a mature engine (recommended) or complete a formally specified in-process BFT driver.
 - [ ] Implement staking module: locked stake, weighted selection, lock period, slashing for equivocation; remove
   `AutoStake` random logic from runtime.
 
-**Exit criteria:** multi-node tests showing finality, liveness under faults, and slashing. Current coverage is protocol-level;
-runtime finality and staking integration remain.
+**Exit criteria:** multi-node tests showing finality, liveness under faults, and slashing. Protocol-level finality and slashing
+tests pass; runtime engine integration and fault/liveness tests remain.
 
 ---
 
@@ -168,5 +169,5 @@ runtime finality and staking integration remain.
 - DB migrations only under Stage 8's backup/migration strategy.
 - Use the `docs/*.md` files as living documents updated as stages land.
 
-**Current position: Stage 6 in progress (consensus protocol boundary and quorum rules landed). Next: mature engine/runtime
-integration, staking locks, finality persistence, and slashing.**
+**Current position: Stage 6 in progress (consensus, staking, quorum, slashing, and finality protocol landed). Next: mature
+engine/runtime integration and fault/liveness tests.**

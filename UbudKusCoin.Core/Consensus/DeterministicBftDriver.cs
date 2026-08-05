@@ -9,6 +9,7 @@ public interface IConsensusDriver
     bool AddVote(ConsensusVote vote, out QuorumCertificate? certificate, out string error);
     bool Commit(Block block, QuorumCertificate certificate, out string error);
     IReadOnlyList<ConsensusVote> EquivocationEvidence { get; }
+    FinalityTracker Finality { get; }
 }
 
 public sealed class DeterministicBftDriver : IConsensusDriver
@@ -18,6 +19,7 @@ public sealed class DeterministicBftDriver : IConsensusDriver
     private readonly Dictionary<string, ConsensusVote> votes = new(StringComparer.Ordinal);
     private readonly Dictionary<string, ConsensusVote> votesByValidatorRound = new(StringComparer.Ordinal);
     private readonly List<ConsensusVote> equivocationEvidence = new();
+    public FinalityTracker Finality { get; } = new();
 
     public DeterministicBftDriver(State state, ValidatorSet validatorSet)
     {
@@ -102,7 +104,12 @@ public sealed class DeterministicBftDriver : IConsensusDriver
         }
 
         var result = StateTransition.ApplyBlock(state, block);
-        error = result.Error ?? string.Empty;
-        return result.Success;
+        if (!result.Success)
+        {
+            error = result.Error ?? string.Empty;
+            return false;
+        }
+
+        return Finality.TryFinalize(block, certificate, validatorSet, out error);
     }
 }
