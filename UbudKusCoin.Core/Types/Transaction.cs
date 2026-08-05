@@ -1,6 +1,7 @@
 using System.Buffers.Binary;
 using System.Security.Cryptography;
 using UbudKusCoin.Core.Hashing;
+using UbudKusCoin.Core.Signing;
 
 namespace UbudKusCoin.Core.Types;
 
@@ -51,8 +52,110 @@ public sealed class Transaction
         return HashUtils.DoubleSha256(ComputeDigest());
     }
 
-    public string ComputeIdHex()
+public string ComputeIdHex()
     {
         return Convert.ToHexStringLower(ComputeId());
+    }
+
+    /// <summary>
+    /// Returns the approximate serialized size of this transaction envelope in
+    /// bytes. Used to enforce the size policy before a transaction is accepted.
+    /// </summary>
+    public int ComputeSerializedSize()
+    {
+        return 4             // version
+             + 4             // chain id
+             + 8             // nonce
+             + From.Encoded.Length
+             + To.Encoded.Length
+             + 8             // amount
+             + 8             // fee
+             + 8             // valid_from
+             + 8             // valid_until
+             + PubKey.Length
+             + Signature.Length;
+    }
+
+    /// <summary>
+    /// Validates the envelope's syntax and policy (not the signature, nonce
+    /// ordering, or balance — those are checked by the mempool/state machine).
+    /// This is the first gate before any signature work is done.
+    /// </summary>
+    public bool IsEnvelopeWellFormed(uint chainId)
+    {
+        if (Version != ChainInfo.TxVersion)
+        {
+            return false;
+        }
+
+        if (ChainId != chainId)
+        {
+            return false;
+        }
+
+        if (From.Encoded is null || To.Encoded is null)
+        {
+            return false;
+        }
+
+        // Sender and recipient must belong to the same network as the chain.
+        if (From.Version != ChainInfo.AddressVersion(chainId) ||
+            To.Version != ChainInfo.AddressVersion(chainId))
+        {
+            return false;
+        }
+
+        // No self-transactions, no null recipient.
+        if (From.Encoded == To.Encoded)
+        {
+            return false;
+        }
+
+        if (Amount.BaseUnits <= 0)
+        {
+            return false;
+        }
+
+        if (Fee < FeePolicy.MinRelayFee)
+        {
+            return false;
+        }
+
+        if (Fee > FeePolicy.MaxFeePerTx)
+        {
+            return false;
+        }
+
+        if (PubKey.Length is < 33 or > FeePolicy.MaxPubKeyBytes)
+        {
+            return false;
+        }
+
+        if (Signature.Length is <= 0 or > FeePolicy.MaxSignatureBytes)
+        {
+            return false;
+        }
+
+        if (ComputeSerializedSize() > FeePolicy.MaxTxSizeBytes)
+        {
+            return false;
+        }
+
+        // Time-lock sanity: valid_until must be after valid_from (when both set).
+        if (ValidFrom > 0 && ValidUntil > 0 && ValidUntil <= ValidFrom)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Verifies the ECDSA signature over the canonical digest and that the
+    /// signer's public key matches the sender address. Never throws.
+    /// </summary>
+    public bool VerifySignature()
+    {
+        return TransactionSigner.VerifyForSender(this, PubKey, Signature);
     }
 }

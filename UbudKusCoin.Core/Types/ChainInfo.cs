@@ -15,6 +15,14 @@ public static class ChainInfo
     /// <summary>Testnet chain identifier.</summary>
     public const uint ChainIdTestnet = 2;
 
-    /// <summary>Reserved/undefined chain identifier (must not be used in signed txs).</summary>
+/// <summary>Reserved/undefined chain identifier (must not be used in signed txs).</summary>
     public const uint ChainIdUndefined = 0;
+
+    /// <summary>
+    /// Returns the address version byte for a given chain id so that testnet and
+    /// mainnet addresses are mutually incompatible (replay protection at the
+    /// address layer).
+    /// </summary>
+    public static byte AddressVersion(uint chainId)
+        => chainId == ChainIdMainnet ? Address.MainnetVersion : Address.TestnetVersion;
 }

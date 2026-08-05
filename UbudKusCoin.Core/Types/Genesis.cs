@@ -74,7 +74,7 @@ public static class Genesis
     /// </summary>
     private static (AccountSpec[] accounts, Address validator) GenesisAccounts(uint chainId)
     {
-        byte version = chainId == ChainInfo.ChainIdMainnet ? Address.MainnetVersion : Address.TestnetVersion;
+byte version = ChainInfo.AddressVersion(chainId);
 
         // Deterministic account public keys (fixed content, not secrets).
         var pub1 = new byte[33];

@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- Stage 2: Core protocol types & canonical hashing. Deliberately dependency-free (no I/O, no gRPC). -->
+  <!-- Core protocol types & canonical hashing. No I/O, no gRPC. NBitcoin is
+       used ONLY for audited secp256k1 ECDSA (the built-in .NET ECDsa does not
+       support secp256k1). We never invent our own crypto. -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -8,5 +10,9 @@
     <LangVersion>latest</LangVersion>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NBitcoin" Version="10.0.7" />
+  </ItemGroup>
 
 </Project>
