@@ -144,16 +144,12 @@ namespace UbudKusCoin.Facade
             var endTimer = DateTime.UtcNow.Millisecond;
             block.BuildTime = (endTimer - startTimer);
 
-            ServicePool.FacadeService.Account.UpdateBalance(transactions);
-
-            // move pool to to transactions db
-            ServicePool.FacadeService.Transaction.AddBulk(transactions);
-
-            // clear mempool
-            ServicePool.DbService.PoolTransactionsDb.DeleteAll();
-
-            //add block to db
-            ServicePool.DbService.BlockDb.Add(block);
+            var commit = ServicePool.BlockCommitService.ValidateAndCommit(block);
+            if (!commit.Success)
+            {
+                Console.WriteLine("-- Block was not committed: {0}", commit.Message);
+                return;
+            }
 
             // broadcast block          
             Task.Run(() => ServicePool.P2PService.BroadcastBlock(block));
@@ -175,33 +171,7 @@ namespace UbudKusCoin.Facade
         /// </summary>
         public bool IsValidBlock(Block block)
         {
-            var lastBlock = ServicePool.DbService.BlockDb.GetLast();
-            
-            //compare block height with prev
-            if (block.Height != (lastBlock.Height + 1))
-            {
-                return false;
-            }
-
-            //compare block hash with prev block hash
-            if (block.PrevHash != lastBlock.Hash)
-            {
-                return false;
-            }
-
-            //validate hash
-            if (block.Hash != GetBlockHash(block))
-            {
-                return false;
-            }
-
-            //compare timestamp
-            if (block.TimeStamp <= lastBlock.TimeStamp)
-            {
-                return false;
-            }
-
-            return true;
+            return ServicePool.BlockCommitService.Validate(block).Success;
         }
     }
 }

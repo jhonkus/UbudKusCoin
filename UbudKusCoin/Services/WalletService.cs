@@ -69,7 +69,7 @@ namespace UbudKusCoin.Services
 
         public string GetAddress()
         {
-            return GetAddress(KeyPair.PublicKey.ToBytes());
+            return GetAddress(KeyPair.PublicKey.PubKey.ToBytes());
         }
 
         public static string GetAddress(byte[] publicKey)
@@ -102,6 +102,27 @@ namespace UbudKusCoin.Services
                 var expected = new PubKey(publicKeyHex);
                 var recovered = compact.RecoverPubKey(new uint256(dataHash));
                 return recovered.ToHex() == expected.ToHex();
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static bool CheckSignatureForAddress(string address, string signature, string dataHash)
+        {
+            try
+            {
+                var encoded = Convert.FromBase64String(signature);
+                if (encoded.Length != 65 || encoded[0] < 27 || encoded[0] > 35)
+                {
+                    return false;
+                }
+
+                var recoveryId = (encoded[0] - 27) & 3;
+                var compact = new CompactSignature(recoveryId, encoded.Skip(1).ToArray());
+                var recovered = compact.RecoverPubKey(new uint256(dataHash));
+                return GetAddress(recovered.ToBytes()) == address;
             }
             catch
             {

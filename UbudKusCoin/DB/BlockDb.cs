@@ -50,6 +50,11 @@ namespace UbudKusCoin.DB
             }
         }
 
+        public bool RemoveByHash(string hash)
+        {
+            return GetAll().DeleteMany(x => x.Hash == hash) > 0;
+        }
+
         /// <summary>
         /// Get First Block or Genesis block, ordered by block Height
         /// </summary>

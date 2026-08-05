@@ -153,7 +153,13 @@ namespace UbudKusCoin.P2P
                 try
                 {
                     Console.WriteLine("==== Download block: {0}", block.Height);
-                    var status = ServicePool.DbService.BlockDb.Add(block);
+                    var status = ServicePool.BlockCommitService.ValidateAndCommit(block);
+                    if (!status.Success)
+                    {
+                        Console.WriteLine("==== Rejected: {0}", status.Message);
+                        break;
+                    }
+
                     lastHeight = block.Height;
                     Console.WriteLine("==== Done");
                 }

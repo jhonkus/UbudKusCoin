@@ -52,7 +52,7 @@ namespace UbudKusCoin.ConsoleWallet
 
         public string GetAddress()
         {
-            byte[] bytes = SHA256.Create().ComputeHash(KeyPair.PublicKey.ToBytes());
+            byte[] bytes = SHA256.Create().ComputeHash(KeyPair.PublicKey.PubKey.ToBytes());
             return Encoders.Base58.EncodeData(bytes);
         }
 

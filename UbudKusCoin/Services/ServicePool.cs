@@ -16,6 +16,7 @@ namespace UbudKusCoin.Services
         public static FacadeService FacadeService { set; get; }
         public static WalletService WalletService { set; get; }
         public static P2PService P2PService { set; get; }
+        public static BlockCommitService BlockCommitService { get; } = new();
 
         public static void Add(
             WalletService wallet,

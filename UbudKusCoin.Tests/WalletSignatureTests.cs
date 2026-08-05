@@ -26,6 +26,20 @@ public class WalletSignatureTests
     }
 
     [Fact]
+    public void NodeSignature_IsAcceptedForRecoveredAddress()
+    {
+        var mnemonic = new NBitcoin.Mnemonic(MnemonicWords);
+        var wallet = new WalletService
+        {
+            KeyPair = WalletService.GenerateKeyPair(mnemonic, 0)
+        };
+        var hash = UkcUtils.GenHash("validator-address-test");
+
+        Assert.True(WalletService.CheckSignatureForAddress(wallet.GetAddress(), wallet.Sign(hash), hash));
+        Assert.False(WalletService.CheckSignatureForAddress("wrong-address", wallet.Sign(hash), hash));
+    }
+
+    [Fact]
     public void ConsoleWalletSignature_IsAcceptedByNodeVerifier()
     {
         var wallet = new Wallet(MnemonicWords);

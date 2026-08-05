@@ -1,6 +1,6 @@
 # UbudKusCoin — Implementation Roadmap
 
-**Status:** Plan (no code changes yet). Each stage is small, has a reason, tests, and a passing build. We do **not**
+**Status:** In progress. Each stage is small, has a reason, tests, and a passing build. We do **not**
 proceed to mainnet until the security audit gate (Stage 8) passes.
 
 Rule: work one small stage per iteration; never migrate DB without backup/migration strategy; never claim
@@ -69,12 +69,14 @@ production-ready while critical gaps remain.
 
 ## Stage 5 — Block validation & atomic persistence
 **Why:** nodes must never accept an invalid/partial block.
-- Validate header (prev_hash, height, timestamp, merkle, state_root, validator signature, chain_id).
-- Apply via `StateTransition`; on success persist block + resulting state atomically (single writer).
-- Reject and quarantine invalid blocks; never trust a peer's block (`DownloadBlocks` fixed).
-- Fork choice: longest/valid chain with highest committed finality (per consensus engine).
+- [x] Validate legacy headers, merkle root, validator signature, coinbase, transaction signatures, balances, totals, and duplicates.
+- [x] Serialize block commits through one writer and compensate with rollback on persistence failure.
+- [x] Reject invalid peer blocks during gRPC receive, minting, and `DownloadBlocks` sync.
+- [ ] Apply via `UbudKusCoin.Core.StateTransition` and persist a canonical state root.
+- [ ] Quarantine invalid blocks and implement fork choice with committed finality.
 
-**Exit criteria:** integration tests: valid chain accepted; tampered/duplicate/reorg blocks rejected atomically.
+**Exit criteria:** integration tests for valid chains, tampered/duplicate/reorg blocks, and atomic rejection. Current coverage is
+unit-level signature regression plus production-path validation; integration coverage remains before Stage 5 can close.
 
 ---
 
@@ -162,4 +164,5 @@ production-ready while critical gaps remain.
 - DB migrations only under Stage 8's backup/migration strategy.
 - Use the `docs/*.md` files as living documents updated as stages land.
 
-**Current position: Stage 4 complete (transaction validation + bounded mempool). Next: Stage 5 — Block validation & atomic persistence.**
+**Current position: Stage 5 in progress (validation and compensating persistence landed). Next: canonical Core state integration,
+quarantine, fork choice, and integration tests.**

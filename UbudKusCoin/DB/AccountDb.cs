@@ -42,6 +42,11 @@ namespace UbudKusCoin.DB
             accounts.Update(acc);
         }
 
+        public bool RemoveByAddress(string address)
+        {
+            return GetAll().DeleteMany(x => x.Address == address) > 0;
+        }
+
         /// <summary>
         /// Get accounts with paging, page number and result per page
         /// </summary>

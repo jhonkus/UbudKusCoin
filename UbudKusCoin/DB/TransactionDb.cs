@@ -62,6 +62,11 @@ namespace UbudKusCoin.DB
             }
         }
 
+        public bool RemoveByHash(string hash)
+        {
+            return GetAll().DeleteMany(x => x.Hash == hash) > 0;
+        }
+
         /// <summary>
         /// Get All Transactions by Address and with paging
         /// </summary>
