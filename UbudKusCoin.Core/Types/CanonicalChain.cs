@@ -30,6 +30,9 @@ public sealed class CanonicalChain
     public IReadOnlyList<QuarantinedBlock> Quarantine => quarantine;
     public IReadOnlyCollection<ChainNode> Candidates => nodes.Values;
 
+    public void AddQuarantine(Block block, string reason)
+        => quarantine.Add(new QuarantinedBlock(block, reason));
+
     public IReadOnlyList<Block> GetCanonicalBlocks(long startHeight)
     {
         var result = new List<Block>();
@@ -54,7 +57,7 @@ public sealed class CanonicalChain
         if (nodes.ContainsKey(hash))
         {
             error = "Duplicate block.";
-            quarantine.Add(new QuarantinedBlock(block, error));
+            AddQuarantine(block, error);
             return false;
         }
 
@@ -62,7 +65,7 @@ public sealed class CanonicalChain
         if (!nodes.TryGetValue(parentHash, out var parent))
         {
             error = "Unknown parent block.";
-            quarantine.Add(new QuarantinedBlock(block, error));
+            AddQuarantine(block, error);
             return false;
         }
 
@@ -70,7 +73,7 @@ public sealed class CanonicalChain
         if (!result.Success)
         {
             error = result.Error ?? "Block rejected.";
-            quarantine.Add(new QuarantinedBlock(block, error));
+            AddQuarantine(block, error);
             return false;
         }
 

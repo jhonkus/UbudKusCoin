@@ -32,18 +32,19 @@ namespace UbudKusCoin.Services
             FacadeService = facade;
             MintingService = minter;
             P2PService = p2p;
+        }
+
+        public static void Start()
+        {
+            WalletService.Start();
             var chainId = DotNetEnv.Env.GetInt("CHAIN_ID");
             if (chainId == 0)
             {
                 chainId = (int)ChainInfo.ChainIdTestnet;
             }
 
-            CanonicalNodeService = new CanonicalNodeService((uint)chainId, @"DbFiles/canonical-chain.json");
-        }
-
-        public static void Start()
-        {
-            WalletService.Start();
+            var validatorSet = ConsensusValidatorConfig.Load((uint)chainId, WalletService);
+            CanonicalNodeService = new CanonicalNodeService((uint)chainId, @"DbFiles/canonical-chain.json", validatorSet);
             DbService.Start();
             FacadeService.start();
             P2PService.Start();

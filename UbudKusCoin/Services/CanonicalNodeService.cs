@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UbudKusCoin.Core.Types;
+using UbudKusCoin.Core.Consensus;
 using UbudKusCoin.Grpc;
 using CoreBlock = UbudKusCoin.Core.Types.Block;
 using CoreTransaction = UbudKusCoin.Core.Types.Transaction;
@@ -13,11 +14,13 @@ public sealed class CanonicalNodeService
 {
     private readonly object writeLock = new();
     private readonly CanonicalChainStore store;
+    private readonly ValidatorSet validatorSet;
     private CanonicalChain chain;
 
-    public CanonicalNodeService(uint chainId, string snapshotPath)
+    public CanonicalNodeService(uint chainId, string snapshotPath, ValidatorSet validatorSet = null)
     {
         store = new CanonicalChainStore(snapshotPath);
+        this.validatorSet = validatorSet;
         chain = File.Exists(snapshotPath) ? store.Load() : new CanonicalChain(chainId);
         if (!File.Exists(snapshotPath))
         {
@@ -43,6 +46,16 @@ public sealed class CanonicalNodeService
     {
         lock (writeLock)
         {
+            if (validatorSet is not null)
+            {
+                var driver = new DeterministicBftDriver(chain.State, validatorSet);
+                if (!driver.ValidateProposal(block, 0, out var consensusError))
+                {
+                    chain.AddQuarantine(block, consensusError);
+                    return (false, consensusError);
+                }
+            }
+
             if (!chain.TryAccept(block, out var error))
             {
                 return (false, error);
@@ -87,6 +100,11 @@ public sealed class CanonicalNodeService
                 ValidatorPubKey = validatorKey,
                 Txs = new()
             };
+            if (validatorSet is not null
+                && validatorSet.SelectProposer(block.ChainId, block.Height, 0).Address.Encoded != block.Validator.Encoded)
+            {
+                return (false, "This node is not the selected proposer for the current height", block);
+            }
             var resulting = StateTransition.ComputeResultingState(chain.State, block);
             if (!resulting.Success)
             {
