@@ -56,14 +56,14 @@ production-ready while critical gaps remain.
 
 ---
 
-## Stage 4 — Transaction validation & mempool (deterministic)
+## Stage 4 — Transaction validation & mempool (deterministic) (DONE)
 **Why:** validated, bounded, spam-resistant mempool.
-- Validate tx envelopes (canonical hash, signature, nonce, chain_id, fee policy, size limits).
-- Per-sender mempool caps + total cap; reject duplicates deterministically.
-- Fees: base fee + optional tip; min relay fee; fee floor/ceiling in base units.
-- Persist mempool safely (no blind `DeleteAll`).
+- [x] Validate tx envelopes (canonical hash, signature, nonce, chain_id, fee policy, size limits).
+- [x] Per-sender mempool caps + total cap; reject duplicates deterministically.
+- [x] Fees: base fee + optional tip; min relay fee; fee floor/ceiling in base units.
+- [x] Persist mempool safely (no blind `DeleteAll`).
 
-**Exit criteria:** unit + integration tests for validation, dedup, bounds, and nonce ordering.
+**Exit criteria:** unit + integration tests for validation, dedup, bounds, and nonce ordering. **Achieved:** `dotnet build` = 0 warnings; `dotnet test` = 67/67 pass.
 
 ---
 
@@ -162,4 +162,4 @@ production-ready while critical gaps remain.
 - DB migrations only under Stage 8's backup/migration strategy.
 - Use the `docs/*.md` files as living documents updated as stages land.
 
-**Current position: Stage 3 complete (deterministic state transition + deterministic genesis, 40/40 tests green). Next: Stage 4 — Transaction validation & mempool.**
+**Current position: Stage 4 complete (transaction validation + bounded mempool). Next: Stage 5 — Block validation & atomic persistence.**
