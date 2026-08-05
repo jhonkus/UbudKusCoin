@@ -76,8 +76,8 @@ production-ready while critical gaps remain.
 - [x] Quarantine invalid blocks and choose the longest valid fork deterministically.
 - [x] Persist canonical blocks/state atomically and wire gRPC, P2P block sync, and minting to the Core protocol.
 
-**Exit criteria:** integration tests for valid chains, tampered/duplicate/reorg blocks, and atomic rejection. Runtime paths and
-single-node persistence tests are covered; multi-node integration coverage remains before Stage 5 can close.
+**Exit criteria:** integration tests for valid chains, tampered/duplicate/reorg blocks, and atomic rejection. Achieved with
+canonical two-node exchange/rejection tests and crash-safe snapshot rebuild tests. Finality remains a Stage 6 consensus concern.
 
 ---
 
@@ -165,5 +165,5 @@ single-node persistence tests are covered; multi-node integration coverage remai
 - DB migrations only under Stage 8's backup/migration strategy.
 - Use the `docs/*.md` files as living documents updated as stages land.
 
-**Current position: Stage 5 in progress (canonical runtime and persistence landed). Next: multi-node integration tests and then
-Stage 6 consensus design.**
+**Current position: Stage 5 complete for canonical validation, persistence, runtime sync, and integration tests. Next: Stage 6 —
+consensus engine design and finality.**
