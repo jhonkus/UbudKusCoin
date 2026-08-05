@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+option csharp_namespace = "UbudKusCoin.Grpc";
+
+service CanonicalBlockService {
+  rpc Add(CanonicalBlock) returns (CanonicalBlockStatus);
+  rpc GetHead(CanonicalEmpty) returns (CanonicalBlock);
+}
+
+message CanonicalEmpty {}
+
+message CanonicalBlockStatus {
+  bool accepted = 1;
+  string message = 2;
+}
+
+message CanonicalBlock {
+  uint32 version = 1;
+  uint32 chain_id = 2;
+  int64 height = 3;
+  int64 time_stamp = 4;
+  bytes prev_hash = 5;
+  bytes merkle_root = 6;
+  bytes state_root = 7;
+  string validator = 8;
+  int64 reward = 9;
+  bytes validator_pub_key = 10;
+  bytes validator_signature = 11;
+  repeated CanonicalTransaction transactions = 12;
+}
+
+message CanonicalTransaction {
+  uint32 version = 1;
+  uint32 chain_id = 2;
+  uint64 nonce = 3;
+  string from = 4;
+  string to = 5;
+  int64 amount = 6;
+  int64 fee = 7;
+  int64 valid_from = 8;
+  int64 valid_until = 9;
+  bytes pub_key = 10;
+  bytes signature = 11;
+}

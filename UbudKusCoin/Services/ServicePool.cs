@@ -6,6 +6,7 @@
 // modifications are permitted.
 
 using UbudKusCoin.P2P;
+using UbudKusCoin.Core.Types;
 
 namespace UbudKusCoin.Services
 {
@@ -16,6 +17,7 @@ namespace UbudKusCoin.Services
         public static FacadeService FacadeService { set; get; }
         public static WalletService WalletService { set; get; }
         public static P2PService P2PService { set; get; }
+        public static CanonicalNodeService CanonicalNodeService { get; private set; }
         public static BlockCommitService BlockCommitService { get; } = new();
 
         public static void Add(
@@ -30,6 +32,13 @@ namespace UbudKusCoin.Services
             FacadeService = facade;
             MintingService = minter;
             P2PService = p2p;
+            var chainId = DotNetEnv.Env.GetInt("CHAIN_ID");
+            if (chainId == 0)
+            {
+                chainId = (int)ChainInfo.ChainIdTestnet;
+            }
+
+            CanonicalNodeService = new CanonicalNodeService((uint)chainId, @"DbFiles/canonical-chain.json");
         }
 
         public static void Start()
