@@ -54,7 +54,7 @@ namespace UbudKusCoin.Services
             Console.WriteLine("... DB Service is starting");
             BlockDb = new BlockDb(DB_BLOCK);
             AccountDb = new AccountDb(DB_ACCOUNT);
-            TransactionDb = new TransactionDb(DB_ACCOUNT);
+            TransactionDb = new TransactionDb(DB_TRANSACTION);
             PoolTransactionsDb = new PoolTransactionsDb(DB_TRANSACTION_POOL);
             StakeDb = new StakeDb(DB_STAKE);
             PeerDb = new PeerDb(DB_PEER);

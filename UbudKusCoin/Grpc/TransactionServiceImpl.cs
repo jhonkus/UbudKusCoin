@@ -40,7 +40,7 @@ namespace UbudKusCoin.Grpc
         public override Task<TransactionList> GetPoolRange(TransactionPaging req, ServerCallContext context)
         {
             var response = new TransactionList();
-            var transactions = ServicePool.DbService.TransactionDb.GetRange(req.PageNumber, req.ResultPerPage);
+            var transactions = ServicePool.DbService.PoolTransactionsDb.GetRange(req.PageNumber, req.ResultPerPage);
             response.Transactions.AddRange(transactions);
             return Task.FromResult(response);
         }
