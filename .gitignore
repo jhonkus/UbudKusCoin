@@ -18,6 +18,9 @@
 /UnitTest/bin
 /UnitTest/obj
 
+/UbudKusCoin.Tests/bin/
+/UbudKusCoin.Tests/obj/
+
 /ConsoleWallet/bin
 /ConsoleWallet/obj
 
@@ -32,3 +35,6 @@
 
 .fake
 .ionide
+
+# Temporary local API probes
+/_ApiProbe/

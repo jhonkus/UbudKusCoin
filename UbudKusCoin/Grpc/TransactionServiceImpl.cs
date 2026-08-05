@@ -8,7 +8,6 @@
 using System.Threading.Tasks;
 using System;
 using Grpc.Core;
-using NBitcoin;
 using UbudKusCoin.Services;
 using UbudKusCoin.Others;
 
@@ -48,16 +47,8 @@ namespace UbudKusCoin.Grpc
 
         public static bool VerifySignature(Transaction txn)
         {
-            try
-            {
-                var pubKey = new PubKey(txn.PubKey);
-                return pubKey.VerifyMessage(txn.Hash, txn.Signature)
-                    && WalletService.GetAddress(pubKey.ToBytes()) == txn.Sender;
-            }
-            catch
-            {
-                return false;
-            }
+            return WalletService.CheckSignature(txn.PubKey, txn.Signature, txn.Hash)
+                && WalletService.GetAddress(new NBitcoin.PubKey(txn.PubKey).ToBytes()) == txn.Sender;
         }
 
         public static bool IsValidTransfer(Transaction txn)

@@ -43,7 +43,7 @@ Videos:
 
 
 
-Developed with C# and .Net Core 5.0
+Developed with C# and .NET 10 LTS
 
 This Solution have 3 projects
 
@@ -53,12 +53,12 @@ This Solution have 3 projects
 
 
 ### Requirement
-Net SDK 5.0 https://dotnet.microsoft.com/download/dotnet/5.0
+.NET 10 SDK https://dotnet.microsoft.com/download/dotnet/10.0
 
-### How Install Net SDK 5.0
-- download https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-5.0.100-linux-x64-binaries
-- cd ~/Downloads  (assume the sdk downloaded in Downloads folter)
-- mkdir -p $HOME/dotnet && tar zxf dotnet-sdk-5.0.100-linux-x64.tar.gz -C $HOME/dotnet
+### How Install .NET 10 SDK
+- download the current .NET 10 SDK from https://dotnet.microsoft.com/download/dotnet/10.0
+- cd ~/Downloads  (assume the SDK was downloaded here)
+- mkdir -p $HOME/dotnet && tar zxf dotnet-sdk-10.0.100-linux-x64.tar.gz -C $HOME/dotnet
 - export DOTNET_ROOT=$HOME/dotnet
 - export PATH=$PATH:$HOME/dotnet
 
@@ -69,7 +69,7 @@ Net SDK 5.0 https://dotnet.microsoft.com/download/dotnet/5.0
 
 ### Instalation
 
-Afer install .Net Core SDK 5.0 and Visual Studio Code, do next step
+After installing the .NET 10 SDK and Visual Studio Code, do the following:
 
 Clone repository
 
@@ -232,15 +232,15 @@ dotnet publish -c Release -o ./publish-net
 ssh -i ~/SSH/ssh.pem your-user@your-IP     (y~/SSH/ssh.pem is path of your private key)
 ```
 
-- Download and install .net core sdk5.0 on vps
+- Download and install the .NET 10 SDK on the VPS
 ```
-wget https://download.visualstudio.microsoft.com/download/pr/820db713-c9a5-466e-b72a-16f2f5ed00e2/628aa2a75f6aa270e77f4a83b3742fb8/dotnet-sdk-5.0.100-linux-x64.tar.gz
+Download the Linux x64 SDK archive from https://dotnet.microsoft.com/download/dotnet/10.0
 
-ls   (make sure the file dotnet-sdk-5.0.100-linux-x64.tar.gz exist)
+ls   (make sure the SDK archive is available)
 
 mkdir -p $HOME/dotnet   (create folder dotnet)
 
-tar zxf dotnet-sdk-5.0.100-linux-x64.tar.gz -C $HOME/dotnet   (unzip the file to dotnet folder)
+tar zxf dotnet-sdk-10.0.100-linux-x64.tar.gz -C $HOME/dotnet   (unzip the SDK)
 
 ls $HOME/dotnet   (make sure unzip result exist)
 

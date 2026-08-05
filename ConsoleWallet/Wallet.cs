@@ -6,6 +6,8 @@
 // modifications are permitted.
 
 using System.Security.Cryptography;
+using System;
+using System.Linq;
 using NBitcoin.DataEncoders;
 using NBitcoin;
 
@@ -56,13 +58,33 @@ namespace UbudKusCoin.ConsoleWallet
 
         public string Sign(string dataHash)
         {
-            return KeyPair.PrivateKey.PrivateKey.SignMessage(dataHash);
+            var compact = KeyPair.PrivateKey.PrivateKey.SignCompact(new uint256(dataHash), true);
+            var encoded = new byte[65];
+            encoded[0] = (byte)(27 + compact.RecoveryId + 4);
+            System.Buffer.BlockCopy(compact.Signature, 0, encoded, 1, compact.Signature.Length);
+            return Convert.ToBase64String(encoded);
         }
 
         public static bool verifySignature(string publicKeyHex, string signature, string dataHash)
         {
-            var pubKey = new PubKey(publicKeyHex);
-            return pubKey.VerifyMessage(dataHash, signature);
+            try
+            {
+                var encoded = Convert.FromBase64String(signature);
+                if (encoded.Length != 65 || encoded[0] < 27 || encoded[0] > 35)
+                {
+                    return false;
+                }
+
+                var recoveryId = (encoded[0] - 27) & 3;
+                var compact = new CompactSignature(recoveryId, encoded.Skip(1).ToArray());
+                var expected = new PubKey(publicKeyHex);
+                var recovered = compact.RecoverPubKey(new uint256(dataHash));
+                return recovered.ToHex() == expected.ToHex();
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public static KeyPair GenerateKeyPair(Mnemonic mnemonic, int path)
