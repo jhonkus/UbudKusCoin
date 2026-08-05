@@ -18,6 +18,8 @@ public sealed class Block
     public byte[] MerkleRoot { get; set; } = Merkle.ZeroRoot; // over txs
     public byte[] StateRoot { get; set; } = Merkle.ZeroRoot;  // over accounts after apply
     public Address Validator { get; set; }
+    public byte[] ValidatorPubKey { get; set; } = Array.Empty<byte>();
+    public byte[] ValidatorSignature { get; set; } = Array.Empty<byte>();
     public Money Reward { get; set; } = Money.Zero; // coinbase subsidy to validator
     public List<Transaction> Txs { get; set; } = new();
 
@@ -38,4 +40,24 @@ public sealed class Block
     }
 
     public string ComputeHeaderHashHex() => Convert.ToHexStringLower(ComputeHeaderHash());
+
+    public bool VerifyValidatorSignature()
+    {
+        try
+        {
+            if (ValidatorPubKey.Length is not (33 or 65) || ValidatorSignature.Length == 0)
+            {
+                return false;
+            }
+
+            var publicKey = new NBitcoin.PubKey(ValidatorPubKey);
+            var expectedAddress = Address.FromPublicKey(Validator.Version, ValidatorPubKey);
+            return expectedAddress.Encoded == Validator.Encoded
+                && publicKey.Verify(new NBitcoin.uint256(ComputeHeaderHash()), ValidatorSignature);
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }

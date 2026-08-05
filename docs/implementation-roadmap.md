@@ -72,8 +72,9 @@ production-ready while critical gaps remain.
 - [x] Validate legacy headers, merkle root, validator signature, coinbase, transaction signatures, balances, totals, and duplicates.
 - [x] Serialize block commits through one writer and compensate with rollback on persistence failure.
 - [x] Reject invalid peer blocks during gRPC receive, minting, and `DownloadBlocks` sync.
-- [ ] Apply via `UbudKusCoin.Core.StateTransition` and persist a canonical state root.
-- [ ] Quarantine invalid blocks and implement fork choice with committed finality.
+- [x] Apply via `UbudKusCoin.Core.StateTransition` and validate a canonical state root.
+- [x] Quarantine invalid blocks and choose the longest valid fork deterministically.
+- [ ] Persist canonical blocks/state atomically and wire all network paths to the Core protocol.
 
 **Exit criteria:** integration tests for valid chains, tampered/duplicate/reorg blocks, and atomic rejection. Current coverage is
 unit-level signature regression plus production-path validation; integration coverage remains before Stage 5 can close.
@@ -164,5 +165,5 @@ unit-level signature regression plus production-path validation; integration cov
 - DB migrations only under Stage 8's backup/migration strategy.
 - Use the `docs/*.md` files as living documents updated as stages land.
 
-**Current position: Stage 5 in progress (validation and compensating persistence landed). Next: canonical Core state integration,
-quarantine, fork choice, and integration tests.**
+**Current position: Stage 5 in progress (canonical validation, quarantine, and fork choice landed). Next: atomic canonical
+storage, network integration, and persistence-level integration tests.**

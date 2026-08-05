@@ -14,13 +14,15 @@ public sealed class State
 
     public uint ChainId { get; }
     public long Height { get; private set; }
+    public long TimeStamp { get; private set; }
     public byte[] Head { get; private set; } = Merkle.ZeroRoot;
 
-    public State(uint chainId, long height = 0, byte[]? head = null)
+    public State(uint chainId, long height = 0, byte[]? head = null, long timeStamp = 0)
     {
         ChainId = chainId;
         Height = height;
         Head = head ?? Merkle.ZeroRoot;
+        TimeStamp = timeStamp;
     }
 
     public Account? GetAccount(Address address)
@@ -45,9 +47,10 @@ public void SetAccount(Account account)
     /// Advances the chain position after a successful apply. Internal because
     /// only the deterministic state transition may move the head.
     /// </summary>
-    internal void Advance(long height, byte[] head)
+    internal void Advance(long height, long timeStamp, byte[] head)
     {
         Height = height;
+        TimeStamp = timeStamp;
         Head = head;
     }
 
@@ -59,7 +62,7 @@ public void SetAccount(Account account)
     /// </summary>
     public State Derive()
     {
-        var copy = new State(ChainId, Height, Head);
+        var copy = new State(ChainId, Height, Head, TimeStamp);
         foreach (var pair in _accounts)
         {
             copy._accounts[pair.Key] = pair.Value.ShallowClone();

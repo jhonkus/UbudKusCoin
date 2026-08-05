@@ -52,6 +52,22 @@ public static class StateTransition
             return StateTransitionResult.Fail("Invalid height.");
         }
 
+        if (block.TimeStamp <= state.TimeStamp)
+        {
+            return StateTransitionResult.Fail("Invalid timestamp.");
+        }
+
+        if (block.Version != ChainInfo.TxVersion
+            || block.Validator.Version != ChainInfo.AddressVersion(state.ChainId))
+        {
+            return StateTransitionResult.Fail("Invalid block version or validator address.");
+        }
+
+        if (block.Height != 1 && !block.VerifyValidatorSignature())
+        {
+            return StateTransitionResult.Fail("Invalid validator signature.");
+        }
+
         if (!block.PrevHash.SequenceEqual(state.Head))
         {
             return StateTransitionResult.Fail("PrevHash mismatch.");
@@ -61,6 +77,11 @@ public static class StateTransition
         if (!merkle.SequenceEqual(block.MerkleRoot))
         {
             return StateTransitionResult.Fail("Transaction Merkle root mismatch.");
+        }
+
+        if (block.Txs.Select(t => t.ComputeIdHex()).Distinct(StringComparer.Ordinal).Count() != block.Txs.Count)
+        {
+            return StateTransitionResult.Fail("Duplicate transaction in block.");
         }
 
 var applied = ComputeResultingState(state, block);
@@ -76,7 +97,7 @@ var applied = ComputeResultingState(state, block);
             return StateTransitionResult.Fail("State root mismatch.");
         }
 
-        next.Advance(block.Height, block.ComputeHeaderHash());
+        next.Advance(block.Height, block.TimeStamp, block.ComputeHeaderHash());
         return StateTransitionResult.Ok(next);
     }
 
@@ -98,6 +119,17 @@ var applied = ComputeResultingState(state, block);
 
         foreach (var tx in block.Txs)
         {
+            if (!tx.IsEnvelopeWellFormed(state.ChainId) || !tx.VerifySignature())
+            {
+                return StateTransitionResult.Fail("Invalid transaction envelope or signature.");
+            }
+
+            if ((tx.ValidFrom > 0 && block.TimeStamp < tx.ValidFrom)
+                || (tx.ValidUntil > 0 && block.TimeStamp > tx.ValidUntil))
+            {
+                return StateTransitionResult.Fail("Transaction is outside its validity window.");
+            }
+
             var sender = next.GetAccount(tx.From);
             if (sender is null)
             {

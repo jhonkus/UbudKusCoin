@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
+using UbudKusCoin.Core.Signing;
 using UbudKusCoin.Core.Types;
+using Key = NBitcoin.Key;
 using Xunit;
 
 namespace UbudKusCoin.Tests;
@@ -10,20 +12,24 @@ namespace UbudKusCoin.Tests;
 public class StateTransitionTests
 {
     private const uint ChainId = ChainInfo.ChainIdTestnet;
+    private static readonly Dictionary<string, Key> Keys = new(StringComparer.Ordinal);
 
     private static Address MakeAddress(byte firstByte = 0x02)
     {
-        var pub = new byte[33];
-        RandomNumberGenerator.Fill(pub);
-        pub[0] = firstByte;
-        return Address.FromPublicKey(Address.TestnetVersion, pub);
+        var privateBytes = new byte[32];
+        privateBytes[0] = firstByte;
+        privateBytes[31] = 0x01;
+        var key = new Key(privateBytes);
+        var address = Address.FromPublicKey(Address.TestnetVersion, key.PubKey.ToBytes());
+        Keys[address.Encoded] = key;
+        return address;
     }
 
 private static Transaction MakeTransfer(Address from, Address to, Money amount, Money fee, ulong nonce)
     {
         var pubKey = new byte[33];
-        pubKey[0] = 0x02;
-        return new Transaction
+        var key = Keys[from.Encoded];
+        var transaction = new Transaction
         {
             Version = ChainInfo.TxVersion,
             ChainId = ChainId,
@@ -32,8 +38,15 @@ private static Transaction MakeTransfer(Address from, Address to, Money amount, 
             To = to,
             Amount = amount,
             Fee = fee,
-            PubKey = pubKey,
+            PubKey = key.PubKey.ToBytes(),
         };
+        if (transaction.Fee < FeePolicy.MinRelayFee)
+        {
+            transaction.Fee = FeePolicy.MinRelayFee;
+        }
+
+        transaction.Signature = TransactionSigner.Sign(transaction, key.ToBytes());
+        return transaction;
     }
 
     private static State MakeState(Address validator, Money validatorBalance, params (Address addr, Money bal)[] accounts)
