@@ -137,7 +137,8 @@ public sealed class CanonicalNodeService
 
             var candidate = chain.Candidates.FirstOrDefault(x => x.Block.Height == vote.Height
                 && x.Block.ComputeHeaderHashHex() == vote.BlockHash);
-            if (candidate is null || !finality.TryFinalize(candidate.Block, certificate, validatorSet, out error))
+            if (candidate is null || !chain.IsCanonical(candidate.Block)
+                || !finality.TryFinalize(candidate.Block, certificate, validatorSet, out error))
             {
                 return (false, false, error ?? "Block candidate not found");
             }

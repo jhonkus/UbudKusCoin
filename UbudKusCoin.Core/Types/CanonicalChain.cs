@@ -51,6 +51,10 @@ public sealed class CanonicalChain
         return result;
     }
 
+    public bool IsCanonical(Block block)
+        => GetCanonicalBlocks(block.Height - 1)
+            .Any(x => x.ComputeHeaderHashHex() == block.ComputeHeaderHashHex());
+
     public bool TryAccept(Block block, out string error)
     {
         var hash = block.ComputeHeaderHashHex();

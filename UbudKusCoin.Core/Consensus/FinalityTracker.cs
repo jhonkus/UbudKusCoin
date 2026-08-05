@@ -11,7 +11,7 @@ public sealed class FinalityTracker
     {
         var candidate = chain.Candidates.FirstOrDefault(x => x.Block.Height == height
             && x.Block.ComputeHeaderHashHex() == hash);
-        if (candidate is null || height < 1)
+        if (candidate is null || !chain.IsCanonical(candidate.Block) || height < 1)
         {
             error = "Persisted finality does not match the canonical chain.";
             return false;

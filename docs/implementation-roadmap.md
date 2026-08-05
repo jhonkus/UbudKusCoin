@@ -93,6 +93,7 @@ canonical two-node exchange/rejection tests and crash-safe snapshot rebuild test
 - [x] Implement staking module: locked stake, weighted selection, lock period, slashing for equivocation; remove
   `AutoStake` random logic from runtime.
 - [x] Transport signed votes between nodes and persist finalized heights atomically.
+- [x] Add multi-node quorum tests, conflicting-vote rejection, and below-quorum liveness checks.
 
 **Exit criteria:** multi-node tests showing finality, liveness under faults, and slashing. Protocol-level finality and slashing
 tests pass; runtime engine integration and fault/liveness tests remain.
@@ -171,5 +172,5 @@ tests pass; runtime engine integration and fault/liveness tests remain.
 - DB migrations only under Stage 8's backup/migration strategy.
 - Use the `docs/*.md` files as living documents updated as stages land.
 
-**Current position: Stage 6 in progress (protocol, proposer gating, vote transport, and finality persistence landed). Next:
-multi-node quorum/fault tests, mature engine decision, and liveness testing.**
+**Current position: Stage 6 in progress (protocol, proposer gating, vote transport, finality persistence, and quorum tests
+landed). Next: network fault/liveness testing and mature engine decision.**
