@@ -68,7 +68,12 @@ namespace UbudKusCoin.Services
 
         public string GetAddress()
         {
-            byte[] hash = SHA256.Create().ComputeHash(KeyPair.PublicKey.ToBytes());
+            return GetAddress(KeyPair.PublicKey.ToBytes());
+        }
+
+        public static string GetAddress(byte[] publicKey)
+        {
+            byte[] hash = SHA256.Create().ComputeHash(publicKey);
             return Encoders.Base58.EncodeData(hash);
         }
 

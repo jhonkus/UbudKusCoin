@@ -126,7 +126,13 @@ namespace UbudKusCoin.Facade
         {
             foreach (var transaction in transactions)
             {
-                ReduceFromBalance(transaction.Sender, transaction.Amount, transaction.PubKey);
+                if (transaction.Sender == "-")
+                {
+                    AddToBalance(transaction.Recipient, transaction.Amount);
+                    continue;
+                }
+
+                ReduceFromBalance(transaction.Sender, transaction.Amount + transaction.Fee, transaction.PubKey);
                 AddToBalance(transaction.Recipient, transaction.Amount);
             }
         }

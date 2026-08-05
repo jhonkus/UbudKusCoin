@@ -10,6 +10,7 @@ using System;
 using Grpc.Core;
 using NBitcoin;
 using UbudKusCoin.Services;
+using UbudKusCoin.Others;
 
 namespace UbudKusCoin.Grpc
 {
@@ -47,35 +48,53 @@ namespace UbudKusCoin.Grpc
 
         public static bool VerifySignature(Transaction txn)
         {
-            var pubKey = new PubKey(txn.PubKey);
-            return pubKey.VerifyMessage(txn.Hash, txn.Signature);
+            try
+            {
+                var pubKey = new PubKey(txn.PubKey);
+                return pubKey.VerifyMessage(txn.Hash, txn.Signature)
+                    && WalletService.GetAddress(pubKey.ToBytes()) == txn.Sender;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static bool IsValidTransfer(Transaction txn)
+        {
+            if (txn is null || string.IsNullOrWhiteSpace(txn.Sender) || string.IsNullOrWhiteSpace(txn.Recipient)
+                || txn.Sender == "-" || txn.Sender == txn.Recipient
+                || !double.IsFinite(txn.Amount) || !double.IsFinite(txn.Fee)
+                || txn.Amount <= 0 || txn.Fee < 0)
+            {
+                return false;
+            }
+
+            if (Others.UkcUtils.GetTransactionHash(txn) != txn.Hash || !VerifySignature(txn))
+            {
+                return false;
+            }
+
+            var balance = ServicePool.FacadeService.Transaction.GetBalance(txn.Sender);
+            return balance >= txn.Amount + txn.Fee;
         }
 
         public override Task<TransactionStatus> Receive(TransactionPost req, ServerCallContext context)
         {
             Console.WriteLine("-- Received TXH with hash: {0}, amount {1}", req.Transaction.Hash, req.Transaction.Amount);
 
-            var transactionHash = Others.UkcUtils.GetTransactionHash(req.Transaction);
-            if (!transactionHash.Equals(req.Transaction.Hash))
+            if (!IsValidTransfer(req.Transaction))
             {
                 return Task.FromResult(new TransactionStatus
                 {
                     Status = Others.Constants.TXN_STATUS_FAIL,
-                    Message = "Invalid Transaction Hash"
+                    Message = "Invalid transaction"
                 });
             }
-            
-            var isSignatureValid = VerifySignature(req.Transaction);
-            if (!isSignatureValid)
+            if (ServicePool.DbService.PoolTransactionsDb.GetByHash(req.Transaction.Hash) != null)
             {
-                return Task.FromResult(new TransactionStatus
-                {
-                    Status = Others.Constants.TXN_STATUS_FAIL,
-                    Message = "Invalid Signature"
-                });
+                return Task.FromResult(new TransactionStatus { Status = Others.Constants.TXN_STATUS_FAIL, Message = "Duplicate transaction" });
             }
-
-            //TODO add more validation here
 
             ServicePool.DbService.PoolTransactionsDb.Add(req.Transaction);
             return Task.FromResult(new TransactionStatus
@@ -89,31 +108,14 @@ namespace UbudKusCoin.Grpc
         {
             Console.WriteLine("=== Req: {0}", req);
 
-            // Validating hash
-            var calculateHash = Others.UkcUtils.GetTransactionHash(req.Transaction);
-            if (!calculateHash.Equals(req.Transaction.Hash))
+            if (!IsValidTransfer(req.Transaction))
             {
                 return Task.FromResult(new TransactionStatus
                 {
                     Status = Others.Constants.TXN_STATUS_FAIL,
-                    Message = "Invalid Transaction Hash"
+                    Message = "Invalid transaction"
                 });
             }
-
-            Console.WriteLine("=== CalculateHash: {0}", calculateHash);
-            
-            // validating signature
-            var isSignatureValid = VerifySignature(req.Transaction);
-            if (!isSignatureValid)
-            {
-                return Task.FromResult(new TransactionStatus
-                {
-                    Status = Others.Constants.TXN_STATUS_FAIL,
-                    Message = "Invalid Signature"
-                });
-            }
-
-            Console.WriteLine("=== isSignatureValid: {0}", isSignatureValid);
 
             // Check if the transaction is in the pool already
             var txinPool = ServicePool.DbService.PoolTransactionsDb.GetByHash(req.Transaction.Hash);

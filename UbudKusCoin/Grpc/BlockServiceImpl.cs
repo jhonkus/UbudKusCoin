@@ -10,6 +10,8 @@ using Grpc.Core;
 using UbudKusCoin.Services;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Linq;
+using UbudKusCoin.Others;
 
 namespace UbudKusCoin.Grpc
 {
@@ -18,6 +20,36 @@ namespace UbudKusCoin.Grpc
         public override Task<AddBlockStatus> Add(Block block, ServerCallContext context)
         {
             var lastBlock = ServicePool.DbService.BlockDb.GetLast();
+
+            if (block is null || lastBlock is null || !ServicePool.FacadeService.Block.IsValidBlock(block))
+            {
+                return Task.FromResult(new AddBlockStatus
+                {
+                    Status = Constants.TXN_STATUS_FAIL,
+                    Message = "Invalid block"
+                });
+            }
+
+            List<Transaction> transactions;
+            try
+            {
+                transactions = JsonConvert.DeserializeObject<List<Transaction>>(block.Transactions);
+            }
+            catch
+            {
+                transactions = null;
+            }
+
+            if (transactions is null || transactions.Count != block.NumOfTx
+                || UkcUtils.CreateMerkleRoot(transactions.Select(x => x.Hash).ToArray()) != block.MerkleRoot
+                || transactions.Any(x => x.Sender != "-" && !TransactionServiceImpl.IsValidTransfer(x)))
+            {
+                return Task.FromResult(new AddBlockStatus
+                {
+                    Status = Constants.TXN_STATUS_FAIL,
+                    Message = "Invalid block transactions"
+                });
+            }
 
             // validate block hash
             if (block.PrevHash != lastBlock.Hash)
@@ -43,9 +75,6 @@ namespace UbudKusCoin.Grpc
             var addStatus = ServicePool.DbService.BlockDb.Add(block);
             //Console.WriteLine("- - - - >> Block added to db.");
 
-            //extract transaction
-            var transactions = JsonConvert.DeserializeObject<List<Transaction>>(block.Transactions);
-            
             // update balances
             ServicePool.FacadeService.Account.UpdateBalance(transactions);
 
