@@ -7,6 +7,22 @@ public sealed class FinalityTracker
     public long FinalizedHeight { get; private set; }
     public string FinalizedHash { get; private set; } = string.Empty;
 
+    public bool Restore(long height, string hash, CanonicalChain chain, out string error)
+    {
+        var candidate = chain.Candidates.FirstOrDefault(x => x.Block.Height == height
+            && x.Block.ComputeHeaderHashHex() == hash);
+        if (candidate is null || height < 1)
+        {
+            error = "Persisted finality does not match the canonical chain.";
+            return false;
+        }
+
+        FinalizedHeight = height;
+        FinalizedHash = hash;
+        error = string.Empty;
+        return true;
+    }
+
     public bool TryFinalize(Block block, QuorumCertificate certificate, ValidatorSet validatorSet, out string error)
     {
         var hash = block.ComputeHeaderHashHex();

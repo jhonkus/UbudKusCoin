@@ -14,17 +14,32 @@ public sealed class CanonicalNodeService
 {
     private readonly object writeLock = new();
     private readonly CanonicalChainStore store;
+    private readonly FinalityStore finalityStore;
     private readonly ValidatorSet validatorSet;
+    private readonly Dictionary<string, DeterministicBftDriver> voteDrivers = new(StringComparer.Ordinal);
+    private readonly FinalityTracker finality = new();
     private CanonicalChain chain;
 
     public CanonicalNodeService(uint chainId, string snapshotPath, ValidatorSet validatorSet = null)
     {
         store = new CanonicalChainStore(snapshotPath);
+        finalityStore = new FinalityStore(snapshotPath + ".finality");
         this.validatorSet = validatorSet;
         chain = File.Exists(snapshotPath) ? store.Load() : new CanonicalChain(chainId);
         if (!File.Exists(snapshotPath))
         {
             store.Save(chain);
+        }
+
+        var persistedFinality = finalityStore.Load();
+        if (persistedFinality is null)
+        {
+            var genesis = chain.Candidates.Single(x => x.Block.Height == 1);
+            finality.Restore(1, genesis.Block.ComputeHeaderHashHex(), chain, out _);
+        }
+        else if (!finality.Restore(persistedFinality.Value.Height, persistedFinality.Value.Hash, chain, out var finalityError))
+        {
+            throw new InvalidDataException(finalityError);
         }
     }
 
@@ -39,8 +54,19 @@ public sealed class CanonicalNodeService
         }
     }
 
+    public FinalityTracker Finality => finality;
+
     public (bool Accepted, string Message) Add(CanonicalBlock request)
-        => Add(FromGrpc(request));
+    {
+        try
+        {
+            return Add(FromGrpc(request));
+        }
+        catch (Exception exception)
+        {
+            return (false, $"Malformed canonical block: {exception.Message}");
+        }
+    }
 
     public (bool Accepted, string Message) Add(CoreBlock block)
     {
@@ -80,6 +106,66 @@ public sealed class CanonicalNodeService
         {
             return chain.GetCanonicalBlocks(startHeight);
         }
+    }
+
+    public (bool Accepted, bool Finalized, string Message) SubmitVote(CanonicalVote request)
+    {
+        try
+        {
+            if (validatorSet is null)
+            {
+                return (false, false, "Consensus validator set is not configured");
+            }
+
+            var vote = FromGrpc(request);
+            var key = $"{vote.Height}:{vote.Round}";
+            if (!voteDrivers.TryGetValue(key, out var driver))
+            {
+                driver = new DeterministicBftDriver(chain.State, validatorSet);
+                voteDrivers[key] = driver;
+            }
+
+            if (!driver.AddVote(vote, out var certificate, out var error))
+            {
+                return (false, false, error);
+            }
+
+            if (certificate is null)
+            {
+                return (true, false, "Vote accepted; quorum pending");
+            }
+
+            var candidate = chain.Candidates.FirstOrDefault(x => x.Block.Height == vote.Height
+                && x.Block.ComputeHeaderHashHex() == vote.BlockHash);
+            if (candidate is null || !finality.TryFinalize(candidate.Block, certificate, validatorSet, out error))
+            {
+                return (false, false, error ?? "Block candidate not found");
+            }
+
+            finalityStore.Save(finality.FinalizedHeight, finality.FinalizedHash);
+            return (true, true, "Vote accepted and block finalized");
+        }
+        catch (Exception exception)
+        {
+            return (false, false, $"Malformed consensus vote: {exception.Message}");
+        }
+    }
+
+    public CanonicalVote CreateVote(CoreBlock block, WalletService wallet, uint round = 0)
+    {
+        var pubKey = wallet.GetPublicKey().PubKey.ToBytes();
+        var vote = new ConsensusVote
+        {
+            ChainId = block.ChainId,
+            Height = block.Height,
+            Round = round,
+            BlockHash = block.ComputeHeaderHashHex(),
+            Validator = Address.FromPublicKey(ChainInfo.AddressVersion(block.ChainId), pubKey),
+            PubKey = pubKey
+        };
+        vote.Signature = wallet.GetKeyPair().PrivateKey.PrivateKey
+            .Sign(new NBitcoin.uint256(vote.ComputeDigest())).ToDER();
+        return ToGrpc(vote);
     }
 
     public (bool Accepted, string Message, CoreBlock Block) CreateAndCommitBlock(WalletService wallet)
@@ -187,5 +273,29 @@ public sealed class CanonicalNodeService
             ValidUntil = transaction.ValidUntil,
             PubKey = transaction.PubKey.ToByteArray(),
             Signature = transaction.Signature.ToByteArray()
+        };
+
+    private static ConsensusVote FromGrpc(CanonicalVote vote)
+        => new()
+        {
+            ChainId = vote.ChainId,
+            Height = vote.Height,
+            Round = vote.Round,
+            BlockHash = vote.BlockHash,
+            Validator = Address.Parse(vote.Validator),
+            PubKey = vote.PubKey.ToByteArray(),
+            Signature = vote.Signature.ToByteArray()
+        };
+
+    private static CanonicalVote ToGrpc(ConsensusVote vote)
+        => new()
+        {
+            ChainId = vote.ChainId,
+            Height = vote.Height,
+            Round = vote.Round,
+            BlockHash = vote.BlockHash,
+            Validator = vote.Validator.Encoded,
+            PubKey = Google.Protobuf.ByteString.CopyFrom(vote.PubKey),
+            Signature = Google.Protobuf.ByteString.CopyFrom(vote.Signature)
         };
 }

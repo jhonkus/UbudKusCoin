@@ -6,11 +6,22 @@ service CanonicalBlockService {
   rpc Add(CanonicalBlock) returns (CanonicalBlockStatus);
   rpc GetHead(CanonicalEmpty) returns (CanonicalBlock);
   rpc GetRange(CanonicalStartingPoint) returns (CanonicalBlockList);
+  rpc SubmitVote(CanonicalVote) returns (CanonicalVoteStatus);
 }
 
 message CanonicalEmpty {}
 message CanonicalStartingPoint { int64 height = 1; }
 message CanonicalBlockList { repeated CanonicalBlock blocks = 1; }
+message CanonicalVoteStatus { bool accepted = 1; bool finalized = 2; string message = 3; }
+message CanonicalVote {
+  uint32 chain_id = 1;
+  int64 height = 2;
+  uint32 round = 3;
+  string block_hash = 4;
+  string validator = 5;
+  bytes pub_key = 6;
+  bytes signature = 7;
+}
 
 message CanonicalBlockStatus {
   bool accepted = 1;

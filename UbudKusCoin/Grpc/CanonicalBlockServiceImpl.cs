@@ -29,4 +29,15 @@ public sealed class CanonicalBlockServiceImpl : CanonicalBlockService.CanonicalB
             .Select(CanonicalNodeService.ToGrpc));
         return Task.FromResult(response);
     }
+
+    public override Task<CanonicalVoteStatus> SubmitVote(CanonicalVote request, ServerCallContext context)
+    {
+        var result = ServicePool.CanonicalNodeService.SubmitVote(request);
+        return Task.FromResult(new CanonicalVoteStatus
+        {
+            Accepted = result.Accepted,
+            Finalized = result.Finalized,
+            Message = result.Message
+        });
+    }
 }

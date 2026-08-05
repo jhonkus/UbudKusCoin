@@ -70,10 +70,14 @@ namespace UbudKusCoin.Services
 
                     Console.WriteLine("\n-- Attempting canonical proposal\n");
                     var result = ServicePool.CanonicalNodeService.CreateAndCommitBlock(ServicePool.WalletService);
-                    if (result.Accepted)
-                    {
-                        Task.Run(() => ServicePool.P2PService.BroadcastCanonicalBlock(result.Block));
-                    }
+                        if (result.Accepted)
+                        {
+                            ServicePool.P2PService.BroadcastCanonicalBlock(result.Block);
+                            var vote = ServicePool.CanonicalNodeService.CreateVote(result.Block, ServicePool.WalletService);
+                            var voteResult = ServicePool.CanonicalNodeService.SubmitVote(vote);
+                            Console.WriteLine("-- Local consensus vote: {0}", voteResult.Message);
+                            Task.Run(() => ServicePool.P2PService.BroadcastCanonicalVote(vote));
+                        }
                     else
                     {
                         Console.WriteLine("-- Proposal not accepted: {0}", result.Message);

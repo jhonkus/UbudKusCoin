@@ -92,7 +92,7 @@ canonical two-node exchange/rejection tests and crash-safe snapshot rebuild test
 - [ ] Choose and integrate a mature engine (recommended) or complete a formally specified in-process BFT driver.
 - [x] Implement staking module: locked stake, weighted selection, lock period, slashing for equivocation; remove
   `AutoStake` random logic from runtime.
-- [ ] Transport votes/QCs between nodes and persist finalized heights.
+- [x] Transport signed votes between nodes and persist finalized heights atomically.
 
 **Exit criteria:** multi-node tests showing finality, liveness under faults, and slashing. Protocol-level finality and slashing
 tests pass; runtime engine integration and fault/liveness tests remain.
@@ -171,5 +171,5 @@ tests pass; runtime engine integration and fault/liveness tests remain.
 - DB migrations only under Stage 8's backup/migration strategy.
 - Use the `docs/*.md` files as living documents updated as stages land.
 
-**Current position: Stage 6 in progress (protocol and proposer-gated runtime landed). Next: vote/QC transport, finalized-state
-persistence, mature engine decision, and fault/liveness tests.**
+**Current position: Stage 6 in progress (protocol, proposer gating, vote transport, and finality persistence landed). Next:
+multi-node quorum/fault tests, mature engine decision, and liveness testing.**

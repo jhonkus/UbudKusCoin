@@ -95,6 +95,35 @@ public sealed class CanonicalChainStoreTests
         }
     }
 
+    [Fact]
+    public void FinalityVote_IsPersistedAndRestored()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"ukc-finality-{Guid.NewGuid():N}.json");
+        try
+        {
+            var wallet = MakeWallet();
+            var pubKey = wallet.GetPublicKey().PubKey.ToBytes();
+            var address = Address.FromPublicKey(ChainInfo.AddressVersion(ChainInfo.ChainIdTestnet), pubKey);
+            var validators = new ValidatorSet(new[] { new Validator(address, pubKey, Money.FromCoins(1m)) });
+            var node = new CanonicalNodeService(ChainInfo.ChainIdTestnet, path, validators);
+            var built = node.CreateAndCommitBlock(wallet);
+            var voteResult = node.SubmitVote(node.CreateVote(built.Block, wallet));
+
+            Assert.True(built.Accepted, built.Message);
+            Assert.True(voteResult.Finalized, voteResult.Message);
+            Assert.Equal(2L, node.Finality.FinalizedHeight);
+
+            var restored = new CanonicalNodeService(ChainInfo.ChainIdTestnet, path, validators);
+            Assert.Equal(2L, restored.Finality.FinalizedHeight);
+            Assert.Equal(node.Finality.FinalizedHash, restored.Finality.FinalizedHash);
+        }
+        finally
+        {
+            if (File.Exists(path)) File.Delete(path);
+            if (File.Exists(path + ".finality")) File.Delete(path + ".finality");
+        }
+    }
+
     private static WalletService MakeWallet()
         => new()
         {

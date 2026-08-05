@@ -92,6 +92,31 @@ namespace UbudKusCoin.P2P
             });
         }
 
+        public void BroadcastCanonicalVote(CanonicalVote vote)
+        {
+            var knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();
+            var nodeAddress = ServicePool.FacadeService.Peer.NodeAddress;
+            Parallel.ForEach(knownPeers, peer =>
+            {
+                if (nodeAddress.Equals(peer.Address))
+                {
+                    return;
+                }
+
+                try
+                {
+                    using var channel = GrpcChannel.ForAddress(peer.Address);
+                    var client = new CanonicalBlockService.CanonicalBlockServiceClient(channel);
+                    var response = client.SubmitVote(vote);
+                    Console.WriteLine("-- Consensus vote {0}: {1}", peer.Address, response.Message);
+                }
+                catch (Exception exception)
+                {
+                    Console.WriteLine("-- Consensus vote failed: {0}", exception.Message);
+                }
+            });
+        }
+
 
         /// <summary>
         /// Do Broadcast a stake to all peer in known peers
