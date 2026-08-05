@@ -45,14 +45,14 @@ production-ready while critical gaps remain.
 
 ---
 
-## Stage 3 — Deterministic state transition engine
+## Stage 3 — Deterministic state transition engine (DONE)
 **Why:** atomicity + auditability; eliminates double-spend and non-deterministic genesis.
-- Implement pure `State` (accounts: balance + nonce) and `StateTransition.ApplyBlock(s, block)`.
-- Rule: `tx.nonce == account.nonce+1`; `amount+fee <= balance`; fee collection; coinbase checksum.
-- Compute `state_root` (Merkle over ordered account fields) per block.
-- Make genesis **deterministic** (fixed timestamp, fixed validator set, fixed supply) selected by `chain_id`.
+- [x] `Account` (balance + nonce) and `State` (account set, chain id, height, head, `ComputeStateRoot`).
+- [x] `Block` — canonical header hash binding chain_id, height, prev_hash, merkle_root, state_root, validator, reward.
+- [x] `StateTransition` — pure/atomic `ApplyBlock` (works on a derived copy; never mutates input; rejects invalid nonce/balance/chain/height/prev-hash/state-root). `ComputeResultingState` for block builders.
+- [x] `Genesis` — **deterministic** genesis state + block keyed by `chain_id` (fixed timestamp, fixed validator set, fixed supply); removes audit finding C1.
 
-**Exit criteria:** property tests: same input ⇒ same output; invalid cases rejected; no partial state.
+**Exit criteria:** property tests: same input ⇒ same output; invalid cases rejected; no partial state. **Achieved:** 40/40 tests pass (added `StateTransitionTests` + `GenesisTests`).
 
 ---
 
@@ -162,4 +162,4 @@ production-ready while critical gaps remain.
 - DB migrations only under Stage 8's backup/migration strategy.
 - Use the `docs/*.md` files as living documents updated as stages land.
 
-**Current position: Stage 2 complete (Core types + canonical hashing, 25/25 tests green). Next: Stage 3 — Deterministic state transition engine.**
+**Current position: Stage 3 complete (deterministic state transition + deterministic genesis, 40/40 tests green). Next: Stage 4 — Transaction validation & mempool.**
