@@ -74,10 +74,10 @@ production-ready while critical gaps remain.
 - [x] Reject invalid peer blocks during gRPC receive, minting, and `DownloadBlocks` sync.
 - [x] Apply via `UbudKusCoin.Core.StateTransition` and validate a canonical state root.
 - [x] Quarantine invalid blocks and choose the longest valid fork deterministically.
-- [ ] Persist canonical blocks/state atomically and wire all network paths to the Core protocol.
+- [x] Persist canonical blocks/state atomically and wire gRPC, P2P block sync, and minting to the Core protocol.
 
-**Exit criteria:** integration tests for valid chains, tampered/duplicate/reorg blocks, and atomic rejection. Current coverage is
-unit-level signature regression plus production-path validation; integration coverage remains before Stage 5 can close.
+**Exit criteria:** integration tests for valid chains, tampered/duplicate/reorg blocks, and atomic rejection. Runtime paths and
+single-node persistence tests are covered; multi-node integration coverage remains before Stage 5 can close.
 
 ---
 
@@ -165,5 +165,5 @@ unit-level signature regression plus production-path validation; integration cov
 - DB migrations only under Stage 8's backup/migration strategy.
 - Use the `docs/*.md` files as living documents updated as stages land.
 
-**Current position: Stage 5 in progress (canonical validation, quarantine, and fork choice landed). Next: atomic canonical
-storage, network integration, and persistence-level integration tests.**
+**Current position: Stage 5 in progress (canonical runtime and persistence landed). Next: multi-node integration tests and then
+Stage 6 consensus design.**

@@ -16,6 +16,7 @@ using static UbudKusCoin.Grpc.PeerService;
 using static UbudKusCoin.Grpc.BlockService;
 using static UbudKusCoin.Grpc.TransactionService;
 using static UbudKusCoin.Grpc.StakeService;
+using CoreBlock = UbudKusCoin.Core.Types.Block;
 
 namespace UbudKusCoin.P2P
 {
@@ -62,6 +63,31 @@ namespace UbudKusCoin.P2P
                     {
                         Console.WriteLine("--- Fail ");
                     }
+                }
+            });
+        }
+
+        public void BroadcastCanonicalBlock(CoreBlock block)
+        {
+            var knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();
+            var nodeAddress = ServicePool.FacadeService.Peer.NodeAddress;
+            Parallel.ForEach(knownPeers, peer =>
+            {
+                if (nodeAddress.Equals(peer.Address))
+                {
+                    return;
+                }
+
+                try
+                {
+                    using var channel = GrpcChannel.ForAddress(peer.Address);
+                    var client = new CanonicalBlockService.CanonicalBlockServiceClient(channel);
+                    var response = client.Add(CanonicalNodeService.ToGrpc(block));
+                    Console.WriteLine("-- Canonical block {0}: {1}", peer.Address, response.Message);
+                }
+                catch (Exception exception)
+                {
+                    Console.WriteLine("-- Canonical block broadcast failed: {0}", exception.Message);
                 }
             });
         }
@@ -175,6 +201,60 @@ namespace UbudKusCoin.P2P
             }
         }
 
+        private void DownloadCanonicalBlocks(CanonicalBlockService.CanonicalBlockServiceClient blockService, long lastBlockHeight, long peerHeight)
+        {
+            var response = blockService.GetRange(new CanonicalStartingPoint { Height = lastBlockHeight });
+            if (response.Blocks.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var block in response.Blocks)
+            {
+                var status = ServicePool.CanonicalNodeService.Add(block);
+                if (!status.Accepted)
+                {
+                    Console.WriteLine("==== Canonical sync rejected: {0}", status.Message);
+                    return;
+                }
+            }
+
+            var newHeight = ServicePool.CanonicalNodeService.Chain.State.Height;
+            if (newHeight < peerHeight)
+            {
+                DownloadCanonicalBlocks(blockService, newHeight, peerHeight);
+            }
+        }
+
+        public void SyncCanonicalState()
+        {
+            var knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();
+            var nodeAddress = ServicePool.FacadeService.Peer.NodeAddress;
+            foreach (var peer in knownPeers)
+            {
+                if (nodeAddress.Equals(peer.Address))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    using var channel = GrpcChannel.ForAddress(peer.Address);
+                    var blockService = new CanonicalBlockService.CanonicalBlockServiceClient(channel);
+                    var peerHead = blockService.GetHead(new CanonicalEmpty());
+                    var localHeight = ServicePool.CanonicalNodeService.Chain.State.Height;
+                    if (peerHead.Height > localHeight)
+                    {
+                        DownloadCanonicalBlocks(blockService, localHeight, peerHead.Height);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Console.WriteLine("-- Canonical sync failed: {0}", exception.Message);
+                }
+            }
+        }
+
         /// <summary>
         /// Checking in db if new peer already in DB
         /// </summary>
@@ -200,59 +280,7 @@ namespace UbudKusCoin.P2P
         /// </summary>
         public void SyncState()
         {
-            var knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();
-            var nodeAddress = ServicePool.FacadeService.Peer.NodeAddress;
-
-            //synchronizing peer
-            foreach (var peer in knownPeers)
-            {
-                if (!nodeAddress.Equals(peer.Address))
-                {
-                    Console.WriteLine("Sync state to {0}", peer.Address);
-                    try
-                    {
-                        GrpcChannel channel = GrpcChannel.ForAddress(peer.Address);
-                        var peerService = new PeerServiceClient(channel);
-                        var peerState = peerService.GetNodeState(new NodeParam { NodeIpAddress = nodeAddress });
-
-                        // add peer to db
-                        foreach (var newPeer in peerState.KnownPeers)
-                        {
-                            ServicePool.FacadeService.Peer.Add(newPeer);
-                        }
-                    }
-                    catch
-                    {
-                    }
-                }
-            }
-
-            // synchronizing blocks
-            knownPeers = ServicePool.FacadeService.Peer.GetKnownPeers();
-            foreach (var peer in knownPeers)
-            {
-                if (!nodeAddress.Equals(peer.Address))
-                {
-                    try
-                    {
-                        GrpcChannel channel = GrpcChannel.ForAddress(peer.Address);
-                        var peerService = new PeerServiceClient(channel);
-                        var peerState = peerService.GetNodeState(new NodeParam { NodeIpAddress = nodeAddress });
-
-                        // local block height
-                        var lastBlockHeight = ServicePool.DbService.BlockDb.GetLast().Height;
-                        var blockService = new BlockServiceClient(channel);
-                        if (lastBlockHeight < peerState.Height)
-                        {
-                            DownloadBlocks(blockService, lastBlockHeight, peerState.Height);
-                        }
-                    }
-                    catch
-                    {
-                    }
-                }
-            }
-
+            SyncCanonicalState();
             Console.WriteLine("---- Sync Done~");
         }
     }

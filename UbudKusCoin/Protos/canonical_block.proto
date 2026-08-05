@@ -5,9 +5,12 @@ option csharp_namespace = "UbudKusCoin.Grpc";
 service CanonicalBlockService {
   rpc Add(CanonicalBlock) returns (CanonicalBlockStatus);
   rpc GetHead(CanonicalEmpty) returns (CanonicalBlock);
+  rpc GetRange(CanonicalStartingPoint) returns (CanonicalBlockList);
 }
 
 message CanonicalEmpty {}
+message CanonicalStartingPoint { int64 height = 1; }
+message CanonicalBlockList { repeated CanonicalBlock blocks = 1; }
 
 message CanonicalBlockStatus {
   bool accepted = 1;

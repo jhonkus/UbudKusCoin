@@ -1,4 +1,5 @@
 using Grpc.Core;
+using System.Linq;
 using System.Threading.Tasks;
 using UbudKusCoin.Services;
 
@@ -19,5 +20,13 @@ public sealed class CanonicalBlockServiceImpl : CanonicalBlockService.CanonicalB
     public override Task<CanonicalBlock> GetHead(CanonicalEmpty request, ServerCallContext context)
     {
         return Task.FromResult(CanonicalNodeService.ToGrpc(ServicePool.CanonicalNodeService.Chain.Head.Block));
+    }
+
+    public override Task<CanonicalBlockList> GetRange(CanonicalStartingPoint request, ServerCallContext context)
+    {
+        var response = new CanonicalBlockList();
+        response.Blocks.AddRange(ServicePool.CanonicalNodeService.GetRange(request.Height)
+            .Select(CanonicalNodeService.ToGrpc));
+        return Task.FromResult(response);
     }
 }

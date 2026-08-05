@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UbudKusCoin.Core.Types;
@@ -36,10 +37,12 @@ public sealed class CanonicalNodeService
     }
 
     public (bool Accepted, string Message) Add(CanonicalBlock request)
+        => Add(FromGrpc(request));
+
+    public (bool Accepted, string Message) Add(CoreBlock block)
     {
         lock (writeLock)
         {
-            var block = FromGrpc(request);
             if (!chain.TryAccept(block, out var error))
             {
                 return (false, error);
@@ -55,6 +58,45 @@ public sealed class CanonicalNodeService
                 chain = store.Load();
                 return (false, $"Persistence failed; state restored: {exception.Message}");
             }
+        }
+    }
+
+    public IReadOnlyList<CoreBlock> GetRange(long startHeight)
+    {
+        lock (writeLock)
+        {
+            return chain.GetCanonicalBlocks(startHeight);
+        }
+    }
+
+    public (bool Accepted, string Message, CoreBlock Block) CreateAndCommitBlock(WalletService wallet)
+    {
+        lock (writeLock)
+        {
+            var key = wallet.GetKeyPair().PrivateKey.PrivateKey;
+            var validatorKey = wallet.GetKeyPair().PublicKey.PubKey.ToBytes();
+            var block = new CoreBlock
+            {
+                ChainId = chain.State.ChainId,
+                Height = chain.State.Height + 1,
+                TimeStamp = Math.Max(DateTimeOffset.UtcNow.ToUnixTimeSeconds(), chain.State.TimeStamp + 1),
+                PrevHash = chain.State.Head,
+                MerkleRoot = Merkle.ComputeRoot(Array.Empty<byte[]>()),
+                Validator = Address.FromPublicKey(ChainInfo.AddressVersion(chain.State.ChainId), validatorKey),
+                Reward = Money.Zero,
+                ValidatorPubKey = validatorKey,
+                Txs = new()
+            };
+            var resulting = StateTransition.ComputeResultingState(chain.State, block);
+            if (!resulting.Success)
+            {
+                return (false, resulting.Error ?? "Unable to build block", block);
+            }
+
+            block.StateRoot = resulting.NewState!.ComputeStateRoot();
+            block.ValidatorSignature = key.Sign(new NBitcoin.uint256(block.ComputeHeaderHash())).ToDER();
+            var result = Add(block);
+            return (result.Accepted, result.Message, block);
         }
     }
 

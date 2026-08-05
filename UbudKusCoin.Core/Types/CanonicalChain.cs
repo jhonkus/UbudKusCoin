@@ -30,6 +30,24 @@ public sealed class CanonicalChain
     public IReadOnlyList<QuarantinedBlock> Quarantine => quarantine;
     public IReadOnlyCollection<ChainNode> Candidates => nodes.Values;
 
+    public IReadOnlyList<Block> GetCanonicalBlocks(long startHeight)
+    {
+        var result = new List<Block>();
+        var current = Head;
+        while (current.Block.Height > startHeight)
+        {
+            result.Add(current.Block);
+            var parentHash = Convert.ToHexStringLower(current.Block.PrevHash);
+            if (!nodes.TryGetValue(parentHash, out current!))
+            {
+                break;
+            }
+        }
+
+        result.Reverse();
+        return result;
+    }
+
     public bool TryAccept(Block block, out string error)
     {
         var hash = block.ComputeHeaderHashHex();

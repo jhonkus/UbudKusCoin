@@ -58,8 +58,8 @@ namespace UbudKusCoin.Services
             Console.WriteLine("\n\n= = = = = = = = = = = = NODE IS RUNNING = = = = = = = = = = = =\n");
             Console.WriteLine(". Account Address: {0}", ServicePool.WalletService.GetAddress());
             Console.WriteLine(". Network Address: {0} ", ServicePool.FacadeService.Peer.NodeAddress);
-            var lastBlock = ServicePool.DbService.BlockDb.GetLast();
-            Console.WriteLine("- Last Block: {0}", lastBlock.Height);
+            var lastBlock = ServicePool.CanonicalNodeService.Chain.Head.Block;
+            Console.WriteLine("- Last Canonical Block: {0}", lastBlock.Height);
             Console.WriteLine("\n................ I am ready to validate blocks ..................\n");
 
             while (true)
@@ -76,18 +76,26 @@ namespace UbudKusCoin.Services
 
                     Console.WriteLine("\n\n= = = = TIME TO MINTING = = = =\n");
                     Console.WriteLine("- Time: {0}", timeMinting.Second);
-                    lastBlock = ServicePool.DbService.BlockDb.GetLast();
-                    Console.WriteLine("- Last Block: {0}", lastBlock.Height);
+                    lastBlock = ServicePool.CanonicalNodeService.Chain.Head.Block;
+                    Console.WriteLine("- Last Canonical Block: {0}", lastBlock.Height);
 
                     Console.WriteLine("\n---------------------------------------------\n Stakes Leaderboard:");
                     Task.Run(LeaderBoard);
 
                     var myAddress = ServicePool.WalletService.GetAddress();
                     var maxStake = ServicePool.DbService.StakeDb.GetMax();
-                    if (maxStake is not null && myAddress == maxStake.Address)
+                    if (maxStake is not null)
                     {
-                        Console.WriteLine("\n-- Horee, I am the validator of the next block \n");
-                        ServicePool.FacadeService.Block.New(maxStake);
+                        Console.WriteLine("\n-- Building canonical block\n");
+                        var result = ServicePool.CanonicalNodeService.CreateAndCommitBlock(ServicePool.WalletService);
+                        if (result.Accepted)
+                        {
+                            Task.Run(() => ServicePool.P2PService.BroadcastCanonicalBlock(result.Block));
+                        }
+                        else
+                        {
+                            Console.WriteLine("-- Canonical block rejected: {0}", result.Message);
+                        }
                     }
                     else
                     {
