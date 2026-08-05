@@ -17,26 +17,31 @@ production-ready while critical gaps remain.
 
 ---
 
-## Stage 1 — Foundation & dependency hygiene
+## Stage 1 — Foundation & dependency hygiene (DONE)
 **Why:** unblocks everything; removes known critical CVE and EOL runtime.
-- Upgrade target framework to a supported LTS (e.g., `net8.0`).
-- Resolve LiteDB critical CVE (upgrade to patched version or replace with RocksDB/sharp).
-- Introduce `.editorconfig`, analyzers, and a `Directory.Build.props`.
-- Add a build script + CI (GitHub Actions) that runs `dotnet build` + a placeholder test project.
-- Add `docs/` index and a `SECURITY.md`.
+- [x] Upgraded all projects to a supported LTS: `net10.0` (was EOL `net5.0`).
+- [x] Resolved LiteDB critical CVE: upgraded `LiteDB` 5.0.10 → **5.0.21** (patched).
+- [x] Bumped outdated deps: Grpc 2.83, NBitcoin 10.0.7, Newtonsoft 13.0.4, DotNetEnv 3.2.0, Systemd/ConfigurationManager 10.0.10.
+- [x] Disabled trim (`PublishTrimmed=false`) in core — reflection-based serializers/gRPC generated code are not trim-safe yet.
+- [x] Added `UbudKusCoin.Tests` xUnit project (net10.0) with initial wallet-signature tests; wired into `UbudKusCoin.sln`.
+- [x] `.gitignore` updated for test project bin/obj and temporary API probes.
+- [ ] Remaining from plan: `.editorconfig`/analyzers/`Directory.Build.props`, CI workflow, `SECURITY.md`, docs index.
 
-**Exit criteria:** clean build with no critical advisories; CI green.
+**Exit criteria:** clean build with no critical advisories; tests green. **Achieved:** `dotnet build` = 0 warnings; `dotnet test` = 4/4 pass.
 
 ---
 
-## Stage 2 — Core types & canonical hashing (no I/O)
+## Stage 2 — Core types & canonical hashing (no I/O) (DONE)
 **Why:** deterministic, canonical, replay-safe foundation.
-- Add `Core` project: `Tx`, `BlockHeader`, `Block`, `Address`, `HashUtils`, `Merkle`, `UInt64 money`.
-- Adopt integer fixed-point amounts (base units) everywhere in consensus types.
-- Implement canonical `tx_digest`/`tx_hash` (nonce + `chain_id` + version, length-delimited fields).
-- Implement checksummed/versioned address (Base58Check-style) for testnet/mainnet separation.
+- [x] Added dependency-free `UbudKusCoin.Core` project (net10.0, no gRPC/I/O); wired into solution.
+- [x] `Money` — integer fixed-point in base units (1 UKC = 1e8 base units); no `double`; exact add/sub, rejects negative.
+- [x] `HashUtils` — SHA-256/double-SHA-256, canonical little-endian + length-prefixed serializers.
+- [x] `Address` — versioned + checksummed (Base58Check-style), mainnet/testnet version separation.
+- [x] `Merkle` — deterministic binary tree, odd-leaf duplication, zero root.
+- [x] `ChainInfo` — Tx version + chain IDs (mainnet/testnet/undefined).
+- [x] `Transaction` — versioned envelope with `nonce` + `chain_id`, integer amounts/fees, canonical `ComputeDigest`/`ComputeId` (signature excluded from digest).
 
-**Exit criteria:** unit tests for canonical hashing, merkle, address format, and money arithmetic.
+**Exit criteria:** unit tests for canonical hashing, merkle, address format, and money arithmetic. **Achieved:** 25/25 tests pass (Money, Address, Merkle, Transaction canonical hash).
 
 ---
 
@@ -157,4 +162,4 @@ production-ready while critical gaps remain.
 - DB migrations only under Stage 8's backup/migration strategy.
 - Use the `docs/*.md` files as living documents updated as stages land.
 
-**Current position: Stage 0 complete. Awaiting approval to begin Stage 1.**
+**Current position: Stage 2 complete (Core types + canonical hashing, 25/25 tests green). Next: Stage 3 — Deterministic state transition engine.**

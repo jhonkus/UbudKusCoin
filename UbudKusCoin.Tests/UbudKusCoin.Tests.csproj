@@ -18,5 +18,6 @@
   <ItemGroup>
     <ProjectReference Include="..\UbudKusCoin\UbudKusCoin.csproj" />
     <ProjectReference Include="..\ConsoleWallet\ConsoleWallet.csproj" />
+    <ProjectReference Include="..\UbudKusCoin.Core\UbudKusCoin.Core.csproj" />
   </ItemGroup>
 </Project>

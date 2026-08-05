@@ -21,6 +21,10 @@
 /UbudKusCoin.Tests/bin/
 /UbudKusCoin.Tests/obj/
 
+# UbudKusCoin.Core build output
+/UbudKusCoin.Core/bin/
+/UbudKusCoin.Core/obj/
+
 /ConsoleWallet/bin
 /ConsoleWallet/obj
 
