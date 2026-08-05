@@ -107,6 +107,58 @@ public sealed class ConsensusMultiNodeTests
         }
     }
 
+    [Fact]
+    public void PartitionedMajority_FinalizesThenMinorityCatchesUp()
+    {
+        var paths = Enumerable.Range(0, 3).Select(_ => TempPath()).ToArray();
+        try
+        {
+            var wallets = Mnemonics.Select(MakeWallet).ToArray();
+            var validatorSet = MakeValidatorSet(wallets);
+            var nodes = paths.Select(path => new CanonicalNodeService(ChainId, path, validatorSet)).ToArray();
+            var proposer = validatorSet.SelectProposer(ChainId, 2, 0);
+            var proposerIndex = wallets.Select((wallet, index) => (wallet, index))
+                .Single(x => AddressFor(x.wallet).Encoded == proposer.Address.Encoded).index;
+            var built = nodes[proposerIndex].CreateAndCommitBlock(wallets[proposerIndex]);
+            Assert.True(built.Accepted, built.Message);
+
+            // Partition: nodes 0 and 1 receive the block; node 2 receives no new data.
+            foreach (var index in new[] { 0, 1 })
+            {
+                if (index != proposerIndex)
+                {
+                    Assert.True(nodes[index].Add(CanonicalNodeService.ToGrpc(built.Block)).Accepted);
+                }
+            }
+
+            foreach (var index in new[] { 0, 1 })
+            {
+                Assert.True(nodes[index].SubmitVote(nodes[index].CreateVote(built.Block, wallets[0])).Accepted);
+                var result = nodes[index].SubmitVote(nodes[index].CreateVote(built.Block, wallets[1]));
+                Assert.True(result.Finalized, result.Message);
+            }
+
+            Assert.Equal(1L, nodes[2].Finality.FinalizedHeight);
+
+            // Reconnect: deliver the block and quorum votes to the partitioned node.
+            if (proposerIndex != 2)
+            {
+                Assert.True(nodes[2].Add(CanonicalNodeService.ToGrpc(built.Block)).Accepted);
+            }
+            Assert.True(nodes[2].SubmitVote(nodes[2].CreateVote(built.Block, wallets[0])).Accepted);
+            var recovered = nodes[2].SubmitVote(nodes[2].CreateVote(built.Block, wallets[1]));
+            Assert.True(recovered.Finalized, recovered.Message);
+            Assert.Equal(2L, nodes[2].Finality.FinalizedHeight);
+        }
+        finally
+        {
+            foreach (var path in paths)
+            {
+                DeleteSnapshot(path);
+            }
+        }
+    }
+
     private static WalletService MakeWallet(string mnemonic)
         => new()
         {

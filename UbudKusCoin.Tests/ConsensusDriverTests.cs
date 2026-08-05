@@ -81,6 +81,28 @@ public sealed class ConsensusDriverTests
     }
 
     [Fact]
+    public void RoundChange_AllowsNextSelectedProposerToMakeProgress()
+    {
+        var validators = MakeValidators();
+        var set = new ValidatorSet(validators.Select(x => x.Validator));
+        var state = new State(ChainId);
+        var driver = new DeterministicBftDriver(state, set);
+        var initial = driver.Proposer(1, 0);
+        var round = 1u;
+        while (set.SelectProposer(ChainId, 1, round).Address.Encoded == initial.Address.Encoded && round < 100)
+        {
+            round++;
+        }
+
+        var next = driver.Proposer(1, round);
+        var nextKey = validators.Single(x => x.Address.Equals(next.Address)).Key;
+        var block = BuildEmptyBlock(state, next, nextKey);
+
+        Assert.NotEqual(initial.Address.Encoded, next.Address.Encoded);
+        Assert.True(driver.ValidateProposal(block, round, out var error), error);
+    }
+
+    [Fact]
     public void Commit_RequiresQuorumAndAdvancesFinality()
     {
         var validators = MakeValidators();
