@@ -164,8 +164,8 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
         }));
         if (commit.Item1)
         {
-            response.ValidatorUpdates.AddRange(
-                ValidatorUpdateBuilder.Build(previousState, Application.State));
+            var validatorUpdates = ValidatorUpdateBuilder.Build(previousState, Application.State);
+            response.ValidatorUpdates.AddRange(validatorUpdates);
         }
         return Task.FromResult(response);
     }

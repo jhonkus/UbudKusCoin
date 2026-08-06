@@ -16,15 +16,24 @@ var validatorPublicKey = Convert.FromHexString(validatorKeyHex);
 if (validatorPublicKey.Length != 32)
     throw new InvalidOperationException("VALIDATOR_PUBKEY_HEX must decode to exactly 32 bytes.");
 
+var kindName = Environment.GetEnvironmentVariable("TRANSACTION_KIND") ?? "Bond";
+if (!Enum.TryParse<TransactionKind>(kindName, ignoreCase: true, out var kind)
+    || kind is not (TransactionKind.Bond or TransactionKind.RotateValidatorKey))
+{
+    throw new InvalidOperationException("TRANSACTION_KIND must be Bond or RotateValidatorKey.");
+}
+
 var address = Address.FromPublicKey(Address.TestnetVersion, publicKey);
 var transaction = new CoreTransaction
 {
     ChainId = ChainInfo.ChainIdTestnet,
-    Kind = TransactionKind.Bond,
-    Nonce = 1,
+    Kind = kind,
+    Nonce = kind == TransactionKind.Bond ? 1UL : 2UL,
     From = address,
     To = address,
-    Amount = CoreMoney.FromCoins(1m),
+    // The integration drill uses one base unit so a newly rotated key keeps
+    // the three remaining genesis validators above CometBFT's quorum.
+    Amount = kind == TransactionKind.Bond ? new CoreMoney(1) : CoreMoney.Zero,
     Fee = FeePolicy.MinRelayFee,
     PubKey = publicKey,
     ValidatorPubKey = validatorPublicKey

@@ -42,6 +42,8 @@
 
 # Temporary local API probes
 /_ApiProbe/
+/rotation-debug.log
+/rotation-drill.log
 
 # CometBFT integration tool build output
 /deploy/cometbft/ValidatorUpdateIntegrationTool/bin/

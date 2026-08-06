@@ -67,6 +67,19 @@ This validates process isolation, shared genesis, validator proposer mapping,
 ABCI finalization, and peer consensus. It remains a development harness and
 does not replace a production key-management or network-failure test plan.
 
+## Validator key rotation drill
+
+Run the end-to-end Bond plus RotateValidatorKey drill with:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\deploy\cometbft\test-multinode-validator-update.ps1
+```
+
+The drill resets volumes, commits a staking transaction, rotates to a new
+Ed25519 key, waits for the CometBFT update to become effective, and verifies
+the old key has zero power while the new key is active. It uses one base unit
+of stake so the three remaining genesis validators retain quorum.
+
 ## Partition recovery drill
 
 With Docker Desktop running, execute the repeatable network fault injection:
