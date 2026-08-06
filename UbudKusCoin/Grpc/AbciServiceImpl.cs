@@ -227,7 +227,8 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
                 request.Snapshot.Height,
                 request.Snapshot.Format,
                 request.Snapshot.Chunks,
-                request.Snapshot.Hash.ToByteArray());
+                request.Snapshot.Hash.ToByteArray(),
+                request.AppHash.ToByteArray());
         }
         return Task.FromResult(new ResponseOfferSnapshot
         {
@@ -275,6 +276,9 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
             if (!StateSnapshotCodec.ComputeHash(payload).SequenceEqual(snapshotSession.Hash)
                 || !StateSnapshotCodec.TryDecode(payload, out var state, out var head, out _)
                 || head is null
+                || state!.Height != snapshotSession.Height
+                || (snapshotSession.AppHash.Length > 0
+                    && !state.ComputeStateRoot().SequenceEqual(snapshotSession.AppHash))
                 || !ServicePool.CanonicalNodeService.RestoreSnapshot(state!, head, out _))
             {
                 snapshotSession = null;
@@ -310,18 +314,21 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
 
     private sealed class SnapshotSession
     {
-        public SnapshotSession(ulong height, uint format, uint chunkCount, byte[] hash)
+        public SnapshotSession(
+            ulong height, uint format, uint chunkCount, byte[] hash, byte[] appHash)
         {
             Height = height;
             Format = format;
             ChunkCount = chunkCount;
             Hash = hash;
+            AppHash = appHash;
         }
 
         public ulong Height { get; }
         public uint Format { get; }
         public uint ChunkCount { get; }
         public byte[] Hash { get; }
+        public byte[] AppHash { get; }
         public Dictionary<uint, byte[]> Chunks { get; } = new();
 
         public byte[] Combine()
