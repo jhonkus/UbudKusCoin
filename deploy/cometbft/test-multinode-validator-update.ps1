@@ -127,9 +127,9 @@ try {
     $rotateBefore = $after
     Broadcast-Transaction (New-TransactionHex $rotationKeyBase64 "RotateValidatorKey") "RotateValidatorKey"
     Invoke-VolumeShell $dataVolume 'cp /network/rotation-key-home/config/priv_validator_key.json /network/node0/config/priv_validator_key.json && chmod 644 /network/node0/config/priv_validator_key.json'
-    docker compose -f $compose stop cometbft-0
-    docker compose -f $compose rm -f cometbft-0
-    docker compose -f $compose up -d cometbft-0
+    docker compose -f $compose stop ukc-app-0 cometbft-0
+    docker compose -f $compose rm -f ukc-app-0 cometbft-0
+    docker compose -f $compose up -d ukc-app-0 cometbft-0
     $rotationCommitHeight = [long](Get-Status 26658).result.sync_info.latest_block_height
     $rotated = Wait-Height ($rotationCommitHeight + 3) 120 26658
     $rotatedValidators = (Invoke-RestMethod "http://localhost:26658/validators").result.validators
