@@ -11,7 +11,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
+using System.Globalization;
 using System.Linq;
+using UbudKusCoin.Core.Types;
 using UbudKusCoin.Grpc;
 using UbudKusCoin.Services;
 
@@ -89,6 +91,49 @@ namespace UbudKusCoin
                         ? StatusCodes.Status200OK
                         : StatusCodes.Status503ServiceUnavailable;
                     await context.Response.WriteAsJsonAsync(snapshot, context.RequestAborted);
+                });
+                endpoints.MapGet("/api/v1/network", async context =>
+                {
+                    var application = ServicePool.ApplicationStateMachine;
+                    if (application is null)
+                    {
+                        context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+                        return;
+                    }
+
+                    var state = application.State;
+                    await context.Response.WriteAsJsonAsync(new
+                    {
+                        chainId = state.ChainId,
+                        height = state.Height.ToString(CultureInfo.InvariantCulture),
+                        minRelayFeeBaseUnits = FeePolicy.MinRelayFee.BaseUnits.ToString(CultureInfo.InvariantCulture)
+                    }, context.RequestAborted);
+                });
+                endpoints.MapGet("/api/v1/accounts/{address}", async context =>
+                {
+                    var application = ServicePool.ApplicationStateMachine;
+                    var addressText = context.Request.RouteValues["address"]?.ToString();
+                    if (application is null || !Address.TryParse(addressText ?? string.Empty, out var address)
+                        || address.Version != ChainInfo.AddressVersion(application.State.ChainId))
+                    {
+                        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                        return;
+                    }
+
+                    var account = application.State.GetAccount(address);
+                    if (account is null)
+                    {
+                        context.Response.StatusCode = StatusCodes.Status404NotFound;
+                        return;
+                    }
+
+                    await context.Response.WriteAsJsonAsync(new
+                    {
+                        address = address.Encoded,
+                        balanceBaseUnits = account.Balance.BaseUnits.ToString(CultureInfo.InvariantCulture),
+                        nonce = account.Nonce.ToString(CultureInfo.InvariantCulture),
+                        height = application.State.Height.ToString(CultureInfo.InvariantCulture)
+                    }, context.RequestAborted);
                 });
                 endpoints.MapGet("/", async context =>
                 {
