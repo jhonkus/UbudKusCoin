@@ -37,4 +37,25 @@ public sealed class ProtocolFuzzTests
             Assert.Null(exception);
         }
     }
+
+    [Fact]
+    public void AddressParser_RandomTextNeverEscapesAsExceptions()
+    {
+        const string alphabet = "0123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz-_=+/:";
+        var random = new Random(0x41444452);
+
+        for (var iteration = 0; iteration < 5_000; iteration++)
+        {
+            var length = random.Next(0, 256);
+            var chars = new char[length];
+            for (var index = 0; index < chars.Length; index++)
+            {
+                chars[index] = alphabet[random.Next(alphabet.Length)];
+            }
+
+            var exception = Record.Exception(() => Address.TryParse(new string(chars), out _));
+
+            Assert.Null(exception);
+        }
+    }
 }
