@@ -164,7 +164,8 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
         }));
         if (commit.Item1)
         {
-            response.ValidatorUpdates.AddRange(BuildValidatorUpdates(previousState, Application.State));
+            response.ValidatorUpdates.AddRange(
+                ValidatorUpdateBuilder.Build(previousState, Application.State));
         }
         return Task.FromResult(response);
     }
@@ -460,40 +461,6 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
         }
 
         return null;
-    }
-
-    private static IEnumerable<ValidatorUpdate> BuildValidatorUpdates(State previousState, State state)
-    {
-        var currentKeys = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var stake in state.Stakes.OrderBy(x => x.Address.Encoded, StringComparer.Ordinal))
-        {
-            if (stake.PubKey.Length is < 33 or > 65)
-                continue;
-
-            var key = Convert.ToHexString(stake.PubKey);
-            currentKeys.Add(key);
-            var power = stake.Jailed || stake.UnlockHeight != 0
-                ? 0
-                : Math.Max(1, Math.Min(long.MaxValue, stake.Amount.BaseUnits));
-            yield return new ValidatorUpdate
-            {
-                PubKey = new PublicKey { Secp256K1 = Google.Protobuf.ByteString.CopyFrom(stake.PubKey) },
-                Power = power
-            };
-        }
-
-        // A withdrawn position is no longer present in the new state. Emit a
-        // zero-power update for its previous key so CometBFT removes it.
-        foreach (var stake in previousState.Stakes
-            .Where(x => !currentKeys.Contains(Convert.ToHexString(x.PubKey)))
-            .OrderBy(x => x.Address.Encoded, StringComparer.Ordinal))
-        {
-            yield return new ValidatorUpdate
-            {
-                PubKey = new PublicKey { Secp256K1 = Google.Protobuf.ByteString.CopyFrom(stake.PubKey) },
-                Power = 0
-            };
-        }
     }
 
     private static byte[] ComputeSecp256k1CometAddress(byte[] publicKey)
