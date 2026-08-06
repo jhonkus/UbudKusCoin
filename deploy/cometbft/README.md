@@ -131,8 +131,12 @@ still needs an external secret manager or HSM, audited key rotation, backup,
 and recovery procedures; this repository does not implement those services.
 Set `VALIDATOR_KEY_CUSTODY_MODE=external-signer` together with a
 `COMETBFT_PRIV_VALIDATOR_LADDR=tcp://...` endpoint when CometBFT is configured
-to delegate signing. The application validates this boundary but does not
-implement the external signer protocol.
+to delegate signing. In this mode also set
+`COMETBFT_VALIDATOR_PUBKEY_HEX` to the exact 32-byte public key returned by the
+signer. The application will not read `priv_validator_key.json`, and it
+validates the configured identity against genesis. The application does not
+implement the external signer protocol; CometBFT and the signer remain the
+only components responsible for signing.
 
 Consensus key rotation is authorized by the stake owner's secp256k1
 transaction signature. The committed state removes the old Ed25519 key and

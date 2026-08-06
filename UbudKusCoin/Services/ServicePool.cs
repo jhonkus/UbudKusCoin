@@ -70,7 +70,8 @@ namespace UbudKusCoin.Services
             var consensusOptions = ConsensusEngineOptions.FromEnvironment();
             ConsensusEngine = ConsensusEngineFactory.Create(consensusOptions);
             var validatorKey = consensusOptions.Mode == ConsensusEngineMode.CometBft
-                ? CometBftValidatorKeyLoader.LoadRequiredPublicKey()
+                ? CometBftValidatorKeyLoader.LoadRequiredPublicKey(
+                    consensusOptions.KeyCustodyMode == ValidatorKeyCustodyMode.ExternalSigner)
                 : WalletService.GetPublicKey().PubKey.ToBytes();
             if (validatorKey.Length == 0)
             {

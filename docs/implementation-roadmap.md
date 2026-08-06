@@ -212,7 +212,8 @@ tests pass; runtime engine integration and fault/liveness tests remain.
 round-change tests, CometBFT ABCI integration, multi-process smoke/restart verification, deterministic on-chain staking
 transactions, Ed25519 validator updates, restart recovery, network-partition fault injection, local snapshot restore,
 verified cross-node state-sync, validator-update mapping tests, delayed-finality regression tests, decoder fuzz-style
-tests, delayed-message recovery, and validated external genesis manifest loading
-landed). Next: stronger fuzzing, managed validator key custody, and independent
-consensus/security review. See
+tests, delayed-message recovery, validated external genesis manifest loading,
+end-to-end validator key rotation, and the fail-closed external-signer identity
+boundary landed). Next: stronger fuzzing, deployment of an audited external
+signer/HSM, and independent consensus/security review. See
 `docs/consensus-security-gate.md`.**

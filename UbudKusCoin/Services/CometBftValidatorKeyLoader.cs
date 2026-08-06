@@ -10,9 +10,9 @@ namespace UbudKusCoin.Services;
 
 public static class CometBftValidatorKeyLoader
 {
-    public static byte[] LoadRequiredPublicKey()
+    public static byte[] LoadRequiredPublicKey(bool requireExplicitConfiguration = false)
     {
-        var publicKey = TryLoadPublicKey();
+        var publicKey = TryLoadPublicKey(requireExplicitConfiguration);
         ValidatePublicKey(publicKey);
 
         var genesisKeys = TryLoadGenesisPublicKeys();
@@ -33,7 +33,7 @@ public static class CometBftValidatorKeyLoader
         }
     }
 
-    public static byte[] TryLoadPublicKey()
+    public static byte[] TryLoadPublicKey(bool requireExplicitConfiguration = false)
     {
         var configured = DotNetEnv.Env.GetString("COMETBFT_VALIDATOR_PUBKEY_HEX", string.Empty);
         if (!string.IsNullOrWhiteSpace(configured))
@@ -48,6 +48,11 @@ public static class CometBftValidatorKeyLoader
             {
                 return Array.Empty<byte>();
             }
+        }
+
+        if (requireExplicitConfiguration)
+        {
+            return Array.Empty<byte>();
         }
 
         var home = DotNetEnv.Env.GetString("COMETBFT_HOME", string.Empty);
