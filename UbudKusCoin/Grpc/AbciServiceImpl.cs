@@ -106,16 +106,15 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
     public override Task<ResponseFinalizeBlock> FinalizeBlock(RequestFinalizeBlock request, ServerCallContext context)
     {
         var previousState = Application.State;
+        var transactions = DecodeTransactions(request.Txs, out var decodeError);
         var proposer = ResolveProposer(request.Height, request.ProposerAddress);
         if (proposer is null)
         {
-            return Task.FromResult(new ResponseFinalizeBlock
-            {
-                TxResults = { new ExecTxResult { Code = InvalidTransaction, Log = "Invalid CometBFT chain, height, or proposer." } }
-            });
+            return Task.FromResult(FinalizeFailure(
+                request.Txs.Count,
+                "Invalid CometBFT chain, height, or proposer."));
         }
 
-        var transactions = DecodeTransactions(request.Txs, out var decodeError);
         var evidence = DecodeEvidence(request.Misbehavior, out var evidenceError);
         if (decodeError is null && evidenceError is not null)
         {
@@ -131,11 +130,7 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
             {
                 AppHash = ByteString.CopyFrom(persistedState.ComputeStateRoot())
             };
-            replay.TxResults.AddRange(transactions.Select(_ => new ExecTxResult
-            {
-                Code = Success,
-                Log = "External commit was already accepted."
-            }));
+            AddTransactionResults(replay, request.Txs.Count, Success, "External commit was already accepted.");
             return Task.FromResult(replay);
         }
 
@@ -159,17 +154,36 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
             ? ServicePool.CanonicalNodeService.Chain.State.ComputeStateRoot()
             : Array.Empty<byte>();
         var response = new ResponseFinalizeBlock { AppHash = ByteString.CopyFrom(appHash) };
-        response.TxResults.AddRange(transactions.Select(_ => new ExecTxResult
-        {
-            Code = commit.Item1 ? Success : InvalidTransaction,
-            Log = commit.Item3
-        }));
+        AddTransactionResults(
+            response,
+            request.Txs.Count,
+            commit.Item1 ? Success : InvalidTransaction,
+            commit.Item3);
         if (commit.Item1)
         {
             var validatorUpdates = ValidatorUpdateBuilder.Build(previousState, Application.State);
             response.ValidatorUpdates.AddRange(validatorUpdates);
         }
         return Task.FromResult(response);
+    }
+
+    private static ResponseFinalizeBlock FinalizeFailure(int transactionCount, string message)
+    {
+        var response = new ResponseFinalizeBlock();
+        AddTransactionResults(response, transactionCount, InvalidTransaction, message);
+        return response;
+    }
+
+    private static void AddTransactionResults(
+        ResponseFinalizeBlock response,
+        int transactionCount,
+        uint code,
+        string log)
+    {
+        for (var index = 0; index < transactionCount; index++)
+        {
+            response.TxResults.Add(new ExecTxResult { Code = code, Log = log });
+        }
     }
 
     public override Task<ResponseCommit> Commit(RequestCommit request, ServerCallContext context)

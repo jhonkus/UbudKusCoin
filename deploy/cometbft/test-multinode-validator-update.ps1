@@ -10,6 +10,41 @@ function Get-Status([int]$port) {
     Invoke-RestMethod "http://localhost:$port/status"
 }
 
+function Get-ConsensusHealth([int]$port) {
+    Invoke-RestMethod "http://localhost:$port/health/consensus"
+}
+
+function Wait-ClusterReady([int]$timeoutSeconds = 180) {
+    $deadline = (Get-Date).AddSeconds($timeoutSeconds)
+    $rpcPorts = @(26657, 26658, 26659, 26660)
+    $applicationPorts = @(5100, 5101, 5102, 5103)
+
+    do {
+        try {
+            $statuses = @($rpcPorts | ForEach-Object { Get-Status $_ })
+            $syncInfo = @($statuses | ForEach-Object { $_.result.sync_info })
+            $heights = @($syncInfo | ForEach-Object { [long]$_.latest_block_height })
+            $hashes = @($syncInfo | ForEach-Object { $_.latest_block_hash })
+            $isSynchronized = $heights.Count -eq $rpcPorts.Count -and
+                ($heights | Select-Object -Unique).Count -eq 1 -and
+                ($hashes | Select-Object -Unique).Count -eq 1 -and
+                ($syncInfo | Where-Object { [string]$_.catching_up -ne "False" }).Count -eq 0
+            $health = @($applicationPorts | ForEach-Object { Get-ConsensusHealth $_ })
+            $applicationsHealthy = $health.Count -eq $applicationPorts.Count -and
+                ($health | Where-Object { -not [bool]$_.healthy }).Count -eq 0
+            if ($isSynchronized -and $applicationsHealthy) {
+                return $syncInfo[0]
+            }
+        }
+        catch {
+            # Services start independently; wait until both CometBFT and the ABCI apps agree.
+        }
+        Start-Sleep -Seconds 2
+    } while ((Get-Date) -lt $deadline)
+
+    throw "The four-node cluster did not become synchronized and application-healthy before the timeout."
+}
+
 function Wait-Height([long]$minimum, [int]$timeoutSeconds = 120, [int]$port = 26657) {
     $deadline = (Get-Date).AddSeconds($timeoutSeconds)
     do {
@@ -104,7 +139,7 @@ Push-Location $repo
 try {
     docker compose -f $compose down -v --remove-orphans
     docker compose -f $compose up --build -d
-    $before = Wait-Height 2
+    $before = Wait-ClusterReady
     $dataVolume = Get-VolumeName "multinode-data"
     $validatorKeyBase64 = (Get-Status 26657).result.validator_info.pub_key.value
     $rotationKey = New-RotationKey $dataVolume
