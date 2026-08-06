@@ -31,7 +31,11 @@ function Wait-Healthy([int]$timeoutSeconds = 120) {
 }
 
 function Get-VolumeName([string]$volume) {
-    $name = docker volume ls -q --filter "label=com.docker.compose.volume=$volume" | Select-Object -First 1
+    $expected = "cometbft_$volume"
+    $name = docker volume inspect $expected --format '{{.Name}}' 2>$null | Select-Object -First 1
+    if ([string]::IsNullOrWhiteSpace($name)) {
+        $name = docker volume ls -q --filter "label=com.docker.compose.volume=$volume" | Select-Object -First 1
+    }
     if ([string]::IsNullOrWhiteSpace($name)) {
         throw "Could not find Compose volume '$volume'."
     }
@@ -39,7 +43,10 @@ function Get-VolumeName([string]$volume) {
 }
 
 function Invoke-VolumeShell([string]$volume, [string]$script) {
-    docker run --rm --entrypoint /bin/sh -v "${volume}:/network" $cometImage -c $script
+    docker run --rm --entrypoint /bin/sh --user "0:0" -v "${volume}:/network" $cometImage -c $script
+    if ($LASTEXITCODE -ne 0) {
+        throw "Volume operation failed with exit code $LASTEXITCODE."
+    }
 }
 
 Push-Location $repo

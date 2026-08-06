@@ -75,8 +75,9 @@ Run the end-to-end Bond plus RotateValidatorKey drill with:
 powershell -ExecutionPolicy Bypass -File .\deploy\cometbft\test-multinode-validator-update.ps1
 ```
 
-The drill resets volumes, commits a staking transaction, rotates to a new
-Ed25519 key, waits for the CometBFT update to become effective, and verifies
+The drill resets volumes, commits a staking transaction, generates a new
+Ed25519 key, switches the test validator signer, waits for the CometBFT update
+to become effective, and verifies
 the old key has zero power while the new key is active. It uses one base unit
 of stake so the three remaining genesis validators retain quorum.
 

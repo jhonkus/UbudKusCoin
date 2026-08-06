@@ -12,7 +12,7 @@ public static class CometBftValidatorKeyLoader
 {
     public static byte[] LoadRequiredPublicKey(bool requireExplicitConfiguration = false)
     {
-        var publicKey = TryLoadPublicKey(requireExplicitConfiguration);
+        var publicKey = LoadConfiguredPublicKey(requireExplicitConfiguration);
         ValidatePublicKey(publicKey);
 
         var genesisKeys = TryLoadGenesisPublicKeys();
@@ -25,12 +25,28 @@ public static class CometBftValidatorKeyLoader
         return publicKey;
     }
 
+    public static byte[] LoadConfiguredPublicKey(bool requireExplicitConfiguration = false)
+    {
+        var publicKey = TryLoadPublicKey(requireExplicitConfiguration);
+        ValidatePublicKey(publicKey);
+        return publicKey;
+    }
+
     public static void ValidatePublicKey(byte[] publicKey)
     {
         if (publicKey is null || publicKey.Length != 32)
         {
             throw new InvalidDataException("A CometBFT validator public key must be exactly 32 Ed25519 bytes.");
         }
+    }
+
+    public static bool IsGenesisOrActiveConsensusKey(byte[] publicKey, State state)
+    {
+        ValidatePublicKey(publicKey);
+        ArgumentNullException.ThrowIfNull(state);
+
+        return TryLoadGenesisPublicKeys().Any(x => x.SequenceEqual(publicKey))
+            || state.Stakes.Any(x => x.ConsensusPubKey.SequenceEqual(publicKey));
     }
 
     public static byte[] TryLoadPublicKey(bool requireExplicitConfiguration = false)

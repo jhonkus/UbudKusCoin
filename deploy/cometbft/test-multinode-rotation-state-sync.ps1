@@ -16,20 +16,18 @@ try {
         throw "The state-sync drill failed after validator key rotation."
     }
 
-    $rotationBytes = [byte[]]::new(32)
-    for ($index = 0; $index -lt $rotationBytes.Length; $index++) {
-        $rotationBytes[$index] = 0xA5
-    }
-    $rotationKey = [Convert]::ToBase64String($rotationBytes)
+    $genesisKeys = @((Invoke-RestMethod "http://localhost:26658/genesis").result.genesis.validators | ForEach-Object {
+        $_.pub_key.value
+    })
     $validators = (Invoke-RestMethod "http://localhost:26658/validators").result.validators
     $activeRotationKey = @($validators | Where-Object {
-        $_.pub_key.value -eq $rotationKey -and [long]$_.voting_power -gt 0
+        $_.pub_key.value -notin $genesisKeys -and [long]$_.voting_power -gt 0
     })
     if ($activeRotationKey.Count -eq 0) {
         throw "The rotated validator key was not active after state sync."
     }
 
-    Write-Host "Rotation plus state-sync succeeded: rotated key remains active at power $($activeRotationKey[0].voting_power)."
+    Write-Host "Rotation plus state-sync succeeded: new key $($activeRotationKey[0].pub_key.value) remains active at power $($activeRotationKey[0].voting_power)."
 }
 finally {
     if ($null -eq $previousKeepHarness) {

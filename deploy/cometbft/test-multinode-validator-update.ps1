@@ -33,12 +33,36 @@ function Convert-BytesToHex([byte[]]$bytes) {
     ($bytes | ForEach-Object { $_.ToString("X2") }) -join ""
 }
 
-function New-RotationKeyBase64 {
-    $bytes = New-Object byte[] 32
-    for ($index = 0; $index -lt $bytes.Length; $index++) {
-        $bytes[$index] = 0xA5
+function Get-VolumeName([string]$volume) {
+    $expected = "cometbft_$volume"
+    $name = docker volume inspect $expected --format '{{.Name}}' 2>$null | Select-Object -First 1
+    if ([string]::IsNullOrWhiteSpace($name)) {
+        $name = docker volume ls -q --filter "label=com.docker.compose.volume=$volume" | Select-Object -First 1
     }
-    [Convert]::ToBase64String($bytes)
+    if ([string]::IsNullOrWhiteSpace($name)) {
+        throw "Could not find Compose volume '$volume'."
+    }
+    return $name.Trim()
+}
+
+function Invoke-VolumeShell([string]$volume, [string]$script) {
+    docker run --rm --entrypoint /bin/sh --user "0:0" -v "${volume}:/network" cometbft/cometbft:v0.38.17 -c $script
+    if ($LASTEXITCODE -ne 0) {
+        throw "Volume operation failed with exit code $LASTEXITCODE."
+    }
+}
+
+function New-RotationKey([string]$dataVolume) {
+    $keyJson = docker run --rm --entrypoint /bin/sh `
+        --user "0:0" `
+        -e "CMTHOME=/network/rotation-key-home" `
+        -v "${dataVolume}:/network" cometbft/cometbft:v0.38.17 `
+        -c 'rm -rf /network/rotation-key-home && cometbft init >/dev/null 2>&1 && cat /network/rotation-key-home/config/priv_validator_key.json'
+    $key = $keyJson | ConvertFrom-Json
+    if ([string]::IsNullOrWhiteSpace($key.pub_key.value) -or [string]::IsNullOrWhiteSpace($key.priv_key.value)) {
+        throw "CometBFT did not generate a complete rotation key."
+    }
+    return $key
 }
 
 function Broadcast-Transaction([string]$transactionHex, [string]$description) {
@@ -81,8 +105,10 @@ try {
     docker compose -f $compose down -v --remove-orphans
     docker compose -f $compose up --build -d
     $before = Wait-Height 2
+    $dataVolume = Get-VolumeName "multinode-data"
     $validatorKeyBase64 = (Get-Status 26657).result.validator_info.pub_key.value
-    $rotationKeyBase64 = New-RotationKeyBase64
+    $rotationKey = New-RotationKey $dataVolume
+    $rotationKeyBase64 = $rotationKey.pub_key.value
     if ($validatorKeyBase64 -eq $rotationKeyBase64) {
         throw "Source and rotation validator keys must be different."
     }
@@ -100,6 +126,10 @@ try {
 
     $rotateBefore = $after
     Broadcast-Transaction (New-TransactionHex $rotationKeyBase64 "RotateValidatorKey") "RotateValidatorKey"
+    Invoke-VolumeShell $dataVolume 'cp /network/rotation-key-home/config/priv_validator_key.json /network/node0/config/priv_validator_key.json && chmod 644 /network/node0/config/priv_validator_key.json'
+    docker compose -f $compose stop cometbft-0
+    docker compose -f $compose rm -f cometbft-0
+    docker compose -f $compose up -d cometbft-0
     $rotationCommitHeight = [long](Get-Status 26658).result.sync_info.latest_block_height
     $rotated = Wait-Height ($rotationCommitHeight + 3) 120 26658
     $rotatedValidators = (Invoke-RestMethod "http://localhost:26658/validators").result.validators

@@ -70,7 +70,7 @@ namespace UbudKusCoin.Services
             var consensusOptions = ConsensusEngineOptions.FromEnvironment();
             ConsensusEngine = ConsensusEngineFactory.Create(consensusOptions);
             var validatorKey = consensusOptions.Mode == ConsensusEngineMode.CometBft
-                ? CometBftValidatorKeyLoader.LoadRequiredPublicKey(
+                ? CometBftValidatorKeyLoader.LoadConfiguredPublicKey(
                     consensusOptions.KeyCustodyMode == ValidatorKeyCustodyMode.ExternalSigner)
                 : WalletService.GetPublicKey().PubKey.ToBytes();
             if (validatorKey.Length == 0)
@@ -82,6 +82,13 @@ namespace UbudKusCoin.Services
             var validatorSet = ConsensusValidatorConfig.Load((uint)chainId, WalletService, validatorKey);
             CanonicalNodeService = new CanonicalNodeService((uint)chainId, @"DbFiles/canonical-chain.json", validatorSet,
                 genesisManifest);
+            if (consensusOptions.Mode == ConsensusEngineMode.CometBft
+                && !CometBftValidatorKeyLoader.IsGenesisOrActiveConsensusKey(
+                    validatorKey, CanonicalNodeService.Chain.State))
+            {
+                throw new InvalidDataException(
+                    "The CometBFT validator key is neither a genesis identity nor active in persisted staking state.");
+            }
             var validator = Address.FromPublicKey(ChainInfo.AddressVersion((uint)chainId), validatorKey);
             ApplicationStateMachine = new ConsensusApplicationStateMachine(
                 CanonicalNodeService.Chain.State,
