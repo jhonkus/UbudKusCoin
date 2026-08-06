@@ -20,6 +20,8 @@ namespace UbudKusCoin
         public static void ConfigureServices(IServiceCollection services)
         {
             services.AddGrpc();
+            services.AddHostedService<AbciSocketServer>();
+            services.AddHostedService<ConsensusReadinessMonitor>();
             services.AddCors(o => o.AddPolicy("AllowAll", builder =>
             {
                 builder.AllowAnyOrigin()

@@ -9,6 +9,8 @@ services:
       CONSENSUS_ENGINE: "cometbft"
       COMETBFT_RPC_URL: "http://cometbft:26657"
       COMETBFT_STARTUP_TIMEOUT_SECONDS: "120"
+      ABCI_SOCKET_PORT: "26658"
+      COMETBFT_HOME: "/cometbft"
       GRPC_PORT: "5000"
       GRPC_WEB_PORT: "5001"
       NODE_ADDRESS: "ukc-app:5000"
@@ -18,11 +20,12 @@ services:
       - "5001:5001"
     volumes:
       - ukc-db:/app/DbFiles
+      - cometbft-data:/cometbft:ro
 
   cometbft:
     image: cometbft/cometbft:v0.38.17
     entrypoint: ["/bin/sh", "-c"]
-    command: ["if [ ! -f /cometbft/config/genesis.json ]; then cometbft init --home /cometbft --chain-id ukc-testnet-2; fi && cometbft node --home /cometbft --proxy_app=grpc://ukc-app:5000"]
+    command: ["if [ ! -f /cometbft/config/genesis.json ]; then cometbft init --home /cometbft && sed -i -e 's/\\\"initial_height\\\": \\\"0\\\"/\\\"initial_height\\\": \\\"1\\\"/' -e 's/\\\"app_hash\\\": \\\"\\\"/\\\"app_hash\\\": \\\"2359977350803ef775c0a6dec7aefe70225a820463de005e8184899958def4e3\\\"/' /cometbft/config/genesis.json; fi && cometbft node --home /cometbft --proxy_app=tcp://ukc-app:26658 --rpc.laddr=tcp://0.0.0.0:26657"]
     depends_on:
       - ukc-app
     ports:

@@ -26,6 +26,50 @@ service ABCI {
   rpc FinalizeBlock(RequestFinalizeBlock) returns (ResponseFinalizeBlock);
 }
 
+message Request {
+  oneof value {
+    RequestEcho echo = 1;
+    RequestFlush flush = 2;
+    RequestInfo info = 3;
+    RequestInitChain init_chain = 5;
+    RequestQuery query = 6;
+    RequestCheckTx check_tx = 8;
+    RequestCommit commit = 11;
+    RequestListSnapshots list_snapshots = 12;
+    RequestOfferSnapshot offer_snapshot = 13;
+    RequestLoadSnapshotChunk load_snapshot_chunk = 14;
+    RequestApplySnapshotChunk apply_snapshot_chunk = 15;
+    RequestPrepareProposal prepare_proposal = 16;
+    RequestProcessProposal process_proposal = 17;
+    RequestExtendVote extend_vote = 18;
+    RequestVerifyVoteExtension verify_vote_extension = 19;
+    RequestFinalizeBlock finalize_block = 20;
+  }
+}
+
+message Response {
+  oneof value {
+    ResponseException exception = 1;
+    ResponseEcho echo = 2;
+    ResponseFlush flush = 3;
+    ResponseInfo info = 4;
+    ResponseInitChain init_chain = 6;
+    ResponseQuery query = 7;
+    ResponseCheckTx check_tx = 9;
+    ResponseCommit commit = 12;
+    ResponseListSnapshots list_snapshots = 13;
+    ResponseOfferSnapshot offer_snapshot = 14;
+    ResponseLoadSnapshotChunk load_snapshot_chunk = 15;
+    ResponseApplySnapshotChunk apply_snapshot_chunk = 16;
+    ResponsePrepareProposal prepare_proposal = 17;
+    ResponseProcessProposal process_proposal = 18;
+    ResponseExtendVote extend_vote = 19;
+    ResponseVerifyVoteExtension verify_vote_extension = 20;
+    ResponseFinalizeBlock finalize_block = 21;
+  }
+}
+message ResponseException { string error = 1; }
+
 message RequestEcho { string message = 1; }
 message ResponseEcho { string message = 1; }
 message RequestFlush {}
@@ -39,7 +83,9 @@ message ResponseQuery { uint32 code = 1; string log = 3; string info = 4; int64 
 message RequestCommit {}
 message ResponseCommit { int64 retain_height = 3; }
 message RequestInitChain { google.protobuf.Timestamp time = 1; string chain_id = 2; bytes app_state_bytes = 5; int64 initial_height = 6; }
-message ResponseInitChain { bytes app_hash = 3; }
+message ResponseInitChain { repeated ValidatorUpdate validators = 2; bytes app_hash = 3; }
+message ValidatorUpdate { PublicKey pub_key = 1; int64 power = 2; }
+message PublicKey { oneof sum { bytes ed25519 = 1; bytes secp256k1 = 2; } }
 message RequestListSnapshots {}
 message ResponseListSnapshots {}
 message RequestOfferSnapshot { bytes app_hash = 2; }

@@ -37,7 +37,7 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
         return Task.FromResult(new ResponseInfo
         {
             Version = "UbudKusCoin",
-            LastBlockHeight = state.Height,
+            LastBlockHeight = AbciHeight(state.Height),
             LastBlockAppHash = ByteString.CopyFrom(state.ComputeStateRoot())
         });
     }
@@ -65,7 +65,7 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
             return Task.FromResult(new ResponseQuery
             {
                 Value = ByteString.CopyFrom(Application.State.ComputeStateRoot()),
-                Height = Application.State.Height
+                Height = AbciHeight(Application.State.Height)
             });
         }
 
@@ -129,10 +129,23 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
         => Task.FromResult(new ResponseCommit());
 
     public override Task<ResponseInitChain> InitChain(RequestInitChain request, ServerCallContext context)
-        => Task.FromResult(new ResponseInitChain
+    {
+        var response = new ResponseInitChain
         {
             AppHash = ByteString.CopyFrom(Application.State.ComputeStateRoot())
-        });
+        };
+        var publicKey = CometBftValidatorKeyLoader.TryLoadPublicKey();
+        if (publicKey.Length > 0)
+        {
+            response.Validators.Add(new ValidatorUpdate
+            {
+                PubKey = new PublicKey { Ed25519 = ByteString.CopyFrom(publicKey) },
+                Power = 10
+            });
+        }
+
+        return Task.FromResult(response);
+    }
 
     public override Task<ResponseListSnapshots> ListSnapshots(RequestListSnapshots request, ServerCallContext context)
         => Task.FromResult(new ResponseListSnapshots());
@@ -171,6 +184,11 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
         error = null;
         return result;
     }
+
+    // The application stores the genesis block at height 1; ABCI reports the
+    // pre-genesis state as height 0 so CometBFT can execute InitChain.
+    private static long AbciHeight(long applicationHeight)
+        => Math.Max(0, applicationHeight - 1);
 
     private static long TimestampSeconds(Timestamp timestamp)
         => timestamp?.Seconds ?? 0;

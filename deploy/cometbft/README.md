@@ -19,7 +19,14 @@ Invoke-RestMethod http://localhost:26657/status
 Invoke-RestMethod http://localhost:5001/health/consensus
 ```
 
-The application must expose its ABCI gRPC service before CometBFT can progress.
+The application exposes both the public gRPC surface and the CometBFT ABCI
+socket transport. CometBFT v0.38 connects to `tcp://ukc-app:26658`; the public
+HTTP/gRPC port is not used for consensus transport.
+The smoke genesis includes the deterministic UKC genesis app hash so CometBFT
+handshake replay can verify the initial state.
+The app reads only the generated CometBFT validator public key from the shared
+test volume so `InitChain` returns the validator set expected by CometBFT. Do
+not use this shared-volume key arrangement for production key management.
 The application waits up to `COMETBFT_STARTUP_TIMEOUT_SECONDS` for the engine
 RPC and never falls back to the in-process driver.
 

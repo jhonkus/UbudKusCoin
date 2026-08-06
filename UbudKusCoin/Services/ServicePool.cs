@@ -50,21 +50,6 @@ namespace UbudKusCoin.Services
             var validatorSet = ConsensusValidatorConfig.Load((uint)chainId, WalletService);
             var consensusOptions = ConsensusEngineOptions.FromEnvironment();
             ConsensusEngine = ConsensusEngineFactory.Create(consensusOptions);
-            if (consensusOptions.Mode == ConsensusEngineMode.CometBft)
-            {
-                var deadline = DateTime.UtcNow.AddSeconds(consensusOptions.StartupTimeoutSeconds);
-                var status = ConsensusEngine.GetStatusAsync().GetAwaiter().GetResult();
-                while (!status.Healthy && DateTime.UtcNow < deadline)
-                {
-                    System.Threading.Thread.Sleep(1000);
-                    status = ConsensusEngine.GetStatusAsync().GetAwaiter().GetResult();
-                }
-
-                if (!status.Healthy)
-                {
-                    throw new InvalidOperationException($"Consensus engine startup check failed: {status.Message}");
-                }
-            }
             CanonicalNodeService = new CanonicalNodeService((uint)chainId, @"DbFiles/canonical-chain.json", validatorSet);
             var validatorKey = WalletService.GetPublicKey().PubKey.ToBytes();
             var validator = Address.FromPublicKey(ChainInfo.AddressVersion((uint)chainId), validatorKey);

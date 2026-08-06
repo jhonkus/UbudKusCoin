@@ -107,6 +107,8 @@ canonical two-node exchange/rejection tests and crash-safe snapshot rebuild test
   finalize methods; unsupported snapshots/vote extensions remain explicit.
 - [x] Persist ABCI external finalization through the canonical chain store and
   resynchronize the application state machine after commit.
+- [x] Add the length-prefixed ABCI socket transport, `initial_height: 1`
+  genesis configuration, validator bootstrap, and readiness ordering.
 - [x] Add a pinned, test-only CometBFT container smoke harness.
 
 **Exit criteria:** multi-node tests showing finality, liveness under faults, and slashing. Protocol-level finality and slashing
