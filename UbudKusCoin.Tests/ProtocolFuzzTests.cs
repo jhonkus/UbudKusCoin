@@ -136,6 +136,22 @@ public sealed class ProtocolFuzzTests
         Assert.Null(exception);
     }
 
+    [Fact]
+    public void SnapshotCodec_OversizedRandomPayloadsNeverEscapeAsExceptions()
+    {
+        var random = new Random(0x53495A45);
+        for (var iteration = 0; iteration < 20; iteration++)
+        {
+            var bytes = new byte[StateSnapshotCodec.MaxEncodedBytes + random.Next(1, 128)];
+            random.NextBytes(bytes);
+
+            var exception = Record.Exception(() =>
+                StateSnapshotCodec.TryDecode(bytes, out _, out _));
+
+            Assert.Null(exception);
+        }
+    }
+
     private static Address MakeAddress(byte value)
         => new(ChainInfo.AddressVersion(ChainInfo.ChainIdTestnet), new[] { value, value, value, value });
 }

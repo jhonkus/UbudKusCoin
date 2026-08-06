@@ -12,6 +12,14 @@ namespace UbudKusCoin.Core.Types;
 public static class StateSnapshotCodec
 {
     public const uint Format = 1;
+    public const int MaxEncodedBytes = 8 * 1024 * 1024;
+
+    private const int MaxAccounts = 100_000;
+    private const int MaxStakes = 100_000;
+    private const int MaxTransactions = 10_000;
+    private const int MaxEvidence = 10_000;
+    private const int MaxHashBytes = 128;
+    private const int MaxPublicKeyBytes = 128;
 
     private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.General)
     {
@@ -74,6 +82,9 @@ public static class StateSnapshotCodec
         error = string.Empty;
         try
         {
+            if (encoded.Length > MaxEncodedBytes)
+                throw new InvalidDataException("Snapshot payload exceeds the maximum size.");
+
             var snapshot = JsonSerializer.Deserialize<Snapshot>(encoded, Options)
                 ?? throw new InvalidDataException("Snapshot payload is empty.");
             if (snapshot.Format != Format
@@ -84,6 +95,8 @@ public static class StateSnapshotCodec
                 || snapshot.Head.Length == 0
                 || snapshot.StateRoot.Length == 0)
                 throw new InvalidDataException("Unsupported or incomplete snapshot format.");
+
+            ValidateSnapshotBounds(snapshot);
 
             var restored = new State(snapshot.ChainId, snapshot.Height, snapshot.Head, snapshot.TimeStamp);
             foreach (var account in snapshot.Accounts)
@@ -131,6 +144,95 @@ public static class StateSnapshotCodec
 
     public static byte[] ComputeHash(ReadOnlySpan<byte> encoded)
         => HashUtils.Sha256(encoded);
+
+    private static void ValidateSnapshotBounds(Snapshot snapshot)
+    {
+        ValidateByteLength(snapshot.Head, MaxHashBytes, "snapshot head");
+        ValidateByteLength(snapshot.StateRoot, MaxHashBytes, "snapshot state root");
+        ValidateCollection(snapshot.Accounts, MaxAccounts, "accounts");
+        ValidateCollection(snapshot.Stakes, MaxStakes, "stakes");
+
+        var accountAddresses = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var account in snapshot.Accounts)
+        {
+            if (account is null)
+                throw new InvalidDataException("Snapshot contains a null account.");
+            ValidateAccount(account);
+            if (!accountAddresses.Add(account.Address))
+                throw new InvalidDataException("Snapshot contains duplicate account addresses.");
+        }
+
+        var stakeAddresses = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var stake in snapshot.Stakes)
+        {
+            if (stake is null)
+                throw new InvalidDataException("Snapshot contains a null stake.");
+            ValidateStake(stake);
+            if (!stakeAddresses.Add(stake.Address))
+                throw new InvalidDataException("Snapshot contains duplicate stake addresses.");
+        }
+
+        if (snapshot.HeadBlock is not null)
+            ValidateBlock(snapshot.HeadBlock);
+    }
+
+    private static void ValidateBlock(BlockRecord block)
+    {
+        ValidateByteLength(block.PrevHash, MaxHashBytes, "block previous hash");
+        ValidateByteLength(block.MerkleRoot, MaxHashBytes, "block merkle root");
+        ValidateByteLength(block.StateRoot, MaxHashBytes, "block state root");
+        ValidateCollection(block.Txs, MaxTransactions, "block transactions");
+        ValidateCollection(block.Evidence, MaxEvidence, "block evidence");
+
+        foreach (var transaction in block.Txs)
+        {
+            if (transaction is null)
+                throw new InvalidDataException("Snapshot contains a null transaction.");
+            ValidateByteLength(transaction.PubKey, MaxPublicKeyBytes, "transaction public key");
+            ValidateByteLength(transaction.ValidatorPubKey, MaxPublicKeyBytes, "transaction validator public key");
+            ValidateByteLength(transaction.Signature, MaxPublicKeyBytes, "transaction signature");
+        }
+
+        foreach (var evidence in block.Evidence)
+        {
+            if (evidence is null)
+                throw new InvalidDataException("Snapshot contains null evidence.");
+            ValidateString(evidence.Validator, "evidence validator");
+        }
+    }
+
+    private static void ValidateAccount(AccountRecord account)
+    {
+        ValidateByteLength(account.PubKey, MaxPublicKeyBytes, "account public key");
+        ValidateString(account.Address, "account address");
+    }
+
+    private static void ValidateStake(StakeRecord stake)
+    {
+        ValidateByteLength(stake.PubKey, MaxPublicKeyBytes, "stake public key");
+        ValidateByteLength(stake.ConsensusPubKey, MaxPublicKeyBytes, "stake consensus public key");
+        ValidateString(stake.Address, "stake address");
+    }
+
+    private static void ValidateCollection<T>(ICollection<T>? collection, int maximum, string field)
+    {
+        if (collection is null)
+            throw new InvalidDataException($"Snapshot {field} are missing.");
+        if (collection.Count > maximum)
+            throw new InvalidDataException($"Snapshot {field} exceed the maximum count.");
+    }
+
+    private static void ValidateByteLength(byte[]? value, int maximum, string field)
+    {
+        if (value is null || value.Length > maximum)
+            throw new InvalidDataException($"Snapshot {field} exceeds the maximum size.");
+    }
+
+    private static void ValidateString(string? value, string field)
+    {
+        if (string.IsNullOrWhiteSpace(value) || value.Length > 256)
+            throw new InvalidDataException($"Snapshot {field} is invalid.");
+    }
 
     private sealed class Snapshot
     {

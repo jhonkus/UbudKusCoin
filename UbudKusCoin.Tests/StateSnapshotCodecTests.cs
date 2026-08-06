@@ -54,4 +54,31 @@ public sealed class StateSnapshotCodecTests
         Assert.False(StateSnapshotCodec.TryDecode(encoded, out _, out var error));
         Assert.Contains("snapshot", error, StringComparison.OrdinalIgnoreCase);
     }
+
+    [Fact]
+    public void Decode_RejectsDuplicateAccounts()
+    {
+        var state = new State(ChainInfo.ChainIdTestnet, 0, new byte[] { 1 }, 0);
+        state.EnsureAccount(Address.FromPublicKey(Address.TestnetVersion, new byte[] { 1, 2, 3 }));
+        var encoded = StateSnapshotCodec.Encode(state);
+        var json = System.Text.Encoding.UTF8.GetString(encoded);
+        var accountsStart = json.IndexOf("\"accounts\":[", StringComparison.Ordinal) + "\"accounts\":[".Length;
+        var accountsEnd = json.IndexOf("],\"stakes\"", accountsStart, StringComparison.Ordinal);
+        var accountPayload = json[accountsStart..accountsEnd];
+        json = json[..accountsEnd] + "," + accountPayload + json[accountsEnd..];
+
+        Assert.False(StateSnapshotCodec.TryDecode(System.Text.Encoding.UTF8.GetBytes(json), out _, out var error));
+        Assert.Contains("duplicate", error, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Decode_RejectsOversizedPayloadWithoutThrowing()
+    {
+        var oversized = new byte[StateSnapshotCodec.MaxEncodedBytes + 1];
+
+        var exception = Record.Exception(() =>
+            Assert.False(StateSnapshotCodec.TryDecode(oversized, out _, out _)));
+
+        Assert.Null(exception);
+    }
 }

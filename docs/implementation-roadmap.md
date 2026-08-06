@@ -131,6 +131,8 @@ canonical two-node exchange/rejection tests and crash-safe snapshot rebuild test
 - [x] Add deterministic fuzz-style and mutation tests for transaction and
   snapshot boundaries; malformed random inputs and null JSON structures must
   not escape as exceptions.
+- [x] Bound snapshot payload size, collection sizes, nested byte fields, and
+  reject duplicate or null records before state reconstruction.
 - [x] Load a validated external genesis manifest in node startup and verify it
   reproduces the deterministic testnet state root.
 
