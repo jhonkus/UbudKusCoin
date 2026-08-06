@@ -35,17 +35,24 @@ public sealed class ValidatorUpdateBuilderTests
         var removed = Stake("02" + new string('1', 64), "a", 2m);
         var jailed = Stake("03" + new string('2', 64), "b", 4m);
         jailed.Jailed = true;
+        var unbonding = Stake("02" + new string('3', 64), "c", 5m);
+        unbonding.UnlockHeight = 20;
+        var malformed = Stake("02" + new string('4', 62), "d", 6m);
         var previous = new State(ChainInfo.ChainIdTestnet);
         previous.SetStake(removed);
         previous.SetStake(jailed);
 
         var current = new State(ChainInfo.ChainIdTestnet);
         current.SetStake(jailed);
+        current.SetStake(unbonding);
+        current.SetStake(malformed);
         var updates = ValidatorUpdateBuilder.Build(previous, current);
 
-        Assert.Equal(2, updates.Count);
+        Assert.Equal(3, updates.Count);
         Assert.All(updates, update => Assert.Equal(0, update.Power));
         Assert.Contains(updates, update => update.PubKey.Secp256K1.ToByteArray().SequenceEqual(removed.PubKey));
+        Assert.Contains(updates, update => update.PubKey.Secp256K1.ToByteArray().SequenceEqual(unbonding.PubKey));
+        Assert.DoesNotContain(updates, update => update.PubKey.Secp256K1.Length == malformed.PubKey.Length);
     }
 
     private static StakePositionState Stake(string publicKey, string suffix, decimal amount)
