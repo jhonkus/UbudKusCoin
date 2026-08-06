@@ -34,19 +34,24 @@ reports its internal genesis state as ABCI height `0`, allowing `InitChain` to
 run once and making the first CometBFT block height `1`.
 
 The repository also includes a two-validator, multi-process harness that checks
-shared genesis, proposer mapping, peer consensus, and restart recovery. A fresh
+  shared genesis, proposer mapping, peer consensus, and restart recovery. A fresh
 rebuild was verified with both nodes at height 9, followed by a validator
 stop/start drill that returned both nodes to height 26 with the same latest
 block hash. It is still test-only and does not provide production key custody
 or network-partition injection.
 
+The repeatable partition drill has now also been executed successfully: both
+nodes converged at height 100, validator 1 was disconnected for eight seconds,
+and both nodes converged again at height 101 with the same block hash.
+
 ## Remaining Production Evidence
 
 - Run a production-shaped multi-process CometBFT cluster with managed keys.
 - Run the reproducible test-only smoke harness under `deploy/cometbft/` first.
-- Exercise validator failure, network partition, delayed messages, and state
-  recovery while recording finalized height and hash. Restart recovery is
-  covered by the two-validator harness.
+- Exercise validator failure and delayed messages while recording finalized
+  height and hash. Restart recovery and a network partition drill are covered
+  by the two-validator harness; the repeatable partition script is available at
+  `deploy/cometbft/test-multinode-partition.ps1`.
 - Verify that finalized state cannot be reverted after restart or resynchronization.
 - Review validator onboarding, key rotation, slashing evidence, and RPC access
   controls.

@@ -196,6 +196,6 @@ tests pass; runtime engine integration and fault/liveness tests remain.
 
 **Current position: Stage 6 in progress (protocol, proposer gating, vote transport, finality persistence, quorum, partition,
 round-change tests, CometBFT ABCI integration, multi-process smoke/restart verification, deterministic on-chain staking
-transactions, CometBFT validator updates, and a documented restart-recovery drill landed). Next: validator-update
-integration tests, network-partition fault injection, and independent consensus/security review. See
+transactions, CometBFT validator updates, restart recovery, and network-partition fault injection landed). Next:
+validator-update integration tests, delayed-message testing, fuzzing, and independent consensus/security review. See
 `docs/consensus-security-gate.md`.**

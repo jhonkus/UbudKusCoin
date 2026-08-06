@@ -52,3 +52,16 @@ docker compose -f deploy/cometbft/docker-compose.multinode.yml down -v
 This validates process isolation, shared genesis, validator proposer mapping,
 ABCI finalization, and peer consensus. It remains a development harness and
 does not replace a production key-management or network-failure test plan.
+
+## Partition recovery drill
+
+With Docker Desktop running, execute the repeatable network fault injection:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\deploy\cometbft\test-multinode-partition.ps1
+```
+
+The script disconnects validator 1 from the Compose network for eight seconds,
+reconnects it, and waits for both nodes to report the same height and latest
+block hash. It is intentionally test-only and should not be run against a
+production network.
