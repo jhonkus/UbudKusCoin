@@ -56,6 +56,7 @@ namespace UbudKusCoin
             }
 
             app.UseRouting();
+            app.UseMiddleware<ApiRateLimitingMiddleware>();
             // add support grpc call from web app, Must be added between UseRouting and UseEndpoints
             app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
             app.UseCors();
