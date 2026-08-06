@@ -109,6 +109,22 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
         }
 
         var transactions = DecodeTransactions(request.Txs, out var decodeError);
+        if (decodeError is null
+            && ServicePool.CanonicalNodeService.IsExternalCommitReplay(
+                transactions, request.Height, proposer.Value))
+        {
+            var replay = new ResponseFinalizeBlock
+            {
+                AppHash = ByteString.CopyFrom(Application.State.ComputeStateRoot())
+            };
+            replay.TxResults.AddRange(transactions.Select(_ => new ExecTxResult
+            {
+                Code = Success,
+                Log = "External commit was already accepted."
+            }));
+            return Task.FromResult(replay);
+        }
+
         var validation = decodeError is null
             ? Application.ProcessProposal(transactions, TimestampSeconds(request.Time))
             : new ApplicationCheckResult(false, decodeError);
@@ -116,7 +132,8 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
             ? ServicePool.CanonicalNodeService.AcceptExternalCommit(
                 transactions,
                 TimestampSeconds(request.Time),
-                proposer.Value)
+                proposer.Value,
+                request.Height)
             : (false, new CoreBlock(), validation.Message);
         if (commit.Item1)
         {
@@ -217,7 +234,9 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
     private static Address? ResolveProposer(long requestedHeight, ByteString proposerAddress)
     {
         var state = Application.State;
-        if (requestedHeight != AbciHeight(state.Height) + 1)
+        var nextHeight = AbciHeight(state.Height) + 1;
+        var replayHeight = AbciHeight(state.Height);
+        if (requestedHeight != nextHeight && requestedHeight != replayHeight)
         {
             return null;
         }

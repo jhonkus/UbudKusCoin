@@ -110,20 +110,56 @@ public sealed class CanonicalNodeService
         }
     }
 
+    public bool IsExternalCommitReplay(IEnumerable<CoreTransaction> transactions, long externalHeight, Address validator)
+    {
+        lock (writeLock)
+        {
+            var expectedHeight = checked(externalHeight + 1);
+            var list = transactions.ToList();
+            return chain.State.Height == expectedHeight
+                && chain.Head.Block.Validator.Encoded == validator.Encoded
+                && chain.Head.Block.Txs.Select(x => x.ComputeIdHex())
+                    .SequenceEqual(list.Select(x => x.ComputeIdHex()), StringComparer.Ordinal);
+        }
+    }
+
     public (bool Accepted, CoreBlock Block, string Message) AcceptExternalCommit(
         IEnumerable<CoreTransaction> transactions,
         long timeStamp,
-        Address validator)
+        Address validator,
+        long? externalHeight = null)
     {
         lock (writeLock)
         {
             var previousFinalityHeight = finality.FinalizedHeight;
             var previousFinalityHash = finality.FinalizedHash;
             var list = transactions.ToList();
+            var expectedHeight = externalHeight is null
+                ? chain.State.Height + 1
+                : checked(externalHeight.Value + 1);
+
+            if (chain.State.Height == expectedHeight)
+            {
+                var sameTransactions = chain.Head.Block.Txs.Count == list.Count
+                    && chain.Head.Block.Txs.Select(x => x.ComputeIdHex())
+                        .SequenceEqual(list.Select(x => x.ComputeIdHex()), StringComparer.Ordinal);
+                if (sameTransactions && chain.Head.Block.Validator.Encoded == validator.Encoded)
+                {
+                    return (true, chain.Head.Block, "External commit was already accepted.");
+                }
+
+                return (false, chain.Head.Block, "External commit replay does not match the canonical block.");
+            }
+
+            if (expectedHeight != chain.State.Height + 1)
+            {
+                return (false, new CoreBlock(), "External commit height is not sequential.");
+            }
+
             var block = new CoreBlock
             {
                 ChainId = chain.State.ChainId,
-                Height = chain.State.Height + 1,
+                Height = expectedHeight,
                 TimeStamp = Math.Max(timeStamp, chain.State.TimeStamp + 1),
                 PrevHash = chain.State.Head,
                 MerkleRoot = Merkle.ComputeRoot(list.Select(x => x.ComputeId()).ToArray()),

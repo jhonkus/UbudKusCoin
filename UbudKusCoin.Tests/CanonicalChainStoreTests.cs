@@ -155,6 +155,35 @@ public sealed class CanonicalChainStoreTests
     }
 
     [Fact]
+    public void ExternalCommit_IsIdempotentForSameExternalHeightAndTransactions()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"ukc-external-replay-{Guid.NewGuid():N}.json");
+        try
+        {
+            var wallet = MakeWallet();
+            var validator = Address.FromPublicKey(
+                ChainInfo.AddressVersion(ChainInfo.ChainIdTestnet),
+                wallet.GetPublicKey().PubKey.ToBytes());
+            var node = new CanonicalNodeService(ChainInfo.ChainIdTestnet, path);
+
+            var first = node.AcceptExternalCommit(Array.Empty<Transaction>(), Genesis.GenesisTime + 1,
+                validator, externalHeight: 1);
+            var second = node.AcceptExternalCommit(Array.Empty<Transaction>(), Genesis.GenesisTime + 1,
+                validator, externalHeight: 1);
+
+            Assert.True(first.Accepted, first.Message);
+            Assert.True(second.Accepted, second.Message);
+            Assert.Equal(first.Block.ComputeHeaderHashHex(), second.Block.ComputeHeaderHashHex());
+            Assert.Equal(2L, node.Chain.State.Height);
+        }
+        finally
+        {
+            if (File.Exists(path)) File.Delete(path);
+            if (File.Exists(path + ".finality")) File.Delete(path + ".finality");
+        }
+    }
+
+    [Fact]
     public void CanonicalGrpcTransaction_PreservesStakingFields()
     {
         var transaction = new Transaction
