@@ -140,7 +140,8 @@ tests pass; runtime engine integration and fault/liveness tests remain.
 **Why:** public-safe networking and API.
 - TLS 1.2+/mTLS for node-node; node identity + signed handshake; peer scoring/caps; no auto-add.
 - Validated sync by `(height, hash)`; request/retry logic.
-- API middleware: TLS, authentication, per-IP/per-account rate limiting, max sizes, input validation.
+- API middleware: TLS, authentication, per-IP/per-account rate limiting, max sizes, input validation. The API now uses
+  an explicit `API_CORS_ORIGINS` allowlist and denies browser cross-origin access when it is unset.
 - Structured logging (no secrets) + OpenTelemetry metrics/tracing + health/readiness.
 
 **Exit criteria:** negative + load tests; no secret in logs; rate-limit enforced.

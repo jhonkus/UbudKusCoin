@@ -54,6 +54,12 @@ testing, public testnet operation, and an independent security audit. See
 Requirements: .NET 10 SDK. Docker Desktop is required for the CometBFT
 multi-validator harness.
 
+For browser clients, configure `API_CORS_ORIGINS` with a comma-separated
+allowlist such as `https://wallet.example.com`; if it is empty, cross-origin
+browser requests are rejected by default. CORS is not authentication, so
+public deployments still require TLS, authentication, rate limiting, and
+network policy.
+
 ```powershell
 dotnet restore
 dotnet test UbudKusCoin.sln --no-restore --nologo

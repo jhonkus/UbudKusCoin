@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System;
+using System.Linq;
 using UbudKusCoin.Grpc;
 using UbudKusCoin.Services;
 
@@ -22,12 +24,23 @@ namespace UbudKusCoin
             services.AddGrpc();
             services.AddHostedService<AbciSocketServer>();
             services.AddHostedService<ConsensusReadinessMonitor>();
-            services.AddCors(o => o.AddPolicy("AllowAll", builder =>
+            var corsOrigins = DotNetEnv.Env.GetString("API_CORS_ORIGINS", string.Empty)
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(origin => Uri.TryCreate(origin, UriKind.Absolute, out var uri)
+                    && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+            services.AddCors(o => o.AddPolicy("ApiCors", builder =>
             {
-                builder.AllowAnyOrigin()
-                    .AllowAnyMethod()
-                    .AllowAnyHeader()
-                    .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
+                builder.WithExposedHeaders(
+                    "Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
+                if (corsOrigins.Length > 0)
+                {
+                    builder.WithOrigins(corsOrigins)
+                        .AllowAnyMethod()
+                        .AllowAnyHeader();
+                }
             }));
         }
 
@@ -48,12 +61,12 @@ namespace UbudKusCoin
             app.UseCors();
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGrpcService<AccountServiceImpl>().RequireCors("AllowAll");
-                endpoints.MapGrpcService<BlockServiceImpl>().RequireCors("AllowAll");
-                endpoints.MapGrpcService<CanonicalBlockServiceImpl>().RequireCors("AllowAll");
-                endpoints.MapGrpcService<PeerServiceImpl>().RequireCors("AllowAll");
-                endpoints.MapGrpcService<StakeServiceImpl>().RequireCors("AllowAll");
-                endpoints.MapGrpcService<TransactionServiceImpl>().RequireCors("AllowAll");
+                endpoints.MapGrpcService<AccountServiceImpl>().RequireCors("ApiCors");
+                endpoints.MapGrpcService<BlockServiceImpl>().RequireCors("ApiCors");
+                endpoints.MapGrpcService<CanonicalBlockServiceImpl>().RequireCors("ApiCors");
+                endpoints.MapGrpcService<PeerServiceImpl>().RequireCors("ApiCors");
+                endpoints.MapGrpcService<StakeServiceImpl>().RequireCors("ApiCors");
+                endpoints.MapGrpcService<TransactionServiceImpl>().RequireCors("ApiCors");
                 endpoints.MapGrpcService<AbciServiceImpl>();
                 endpoints.MapGet("/health/consensus", async context =>
                 {
