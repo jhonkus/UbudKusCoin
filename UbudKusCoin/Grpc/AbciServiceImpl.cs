@@ -109,9 +109,14 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
         }
 
         var transactions = DecodeTransactions(request.Txs, out var decodeError);
+        var evidence = DecodeEvidence(request.Misbehavior, out var evidenceError);
+        if (decodeError is null && evidenceError is not null)
+        {
+            decodeError = evidenceError;
+        }
         if (decodeError is null
             && ServicePool.CanonicalNodeService.IsExternalCommitReplay(
-                transactions, request.Height, proposer.Value))
+                transactions, request.Height, proposer.Value, evidence))
         {
             var replay = new ResponseFinalizeBlock
             {
@@ -133,7 +138,8 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
                 transactions,
                 TimestampSeconds(request.Time),
                 proposer.Value,
-                request.Height)
+                request.Height,
+                evidence)
             : (false, new CoreBlock(), validation.Message);
         if (commit.Item1)
         {
@@ -224,6 +230,51 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
 
         error = null;
         return result;
+    }
+
+    private static List<ConsensusEvidence> DecodeEvidence(
+        IEnumerable<Misbehavior> encoded, out string? error)
+    {
+        var result = new List<ConsensusEvidence>();
+        foreach (var item in encoded)
+        {
+            if (item.Type is not (MisbehaviorType.DuplicateVote or MisbehaviorType.LightClientAttack)
+                || item.Validator?.Address is null
+                || item.Validator.Address.Length == 0)
+            {
+                error = "Unsupported or malformed consensus evidence.";
+                return result;
+            }
+
+            var validator = ResolveValidatorAddress(item.Validator.Address);
+            if (validator is null)
+            {
+                error = "Consensus evidence references an unknown validator.";
+                return result;
+            }
+
+            result.Add(new ConsensusEvidence(
+                (ConsensusEvidenceKind)(uint)item.Type,
+                validator.Value,
+                item.Height));
+        }
+
+        error = null;
+        return result;
+    }
+
+    private static Address? ResolveValidatorAddress(ByteString cometAddress)
+    {
+        var state = Application.State;
+        var resolved = CometBftValidatorKeyLoader.TryResolveApplicationAddress(
+            cometAddress.ToByteArray(), state.ChainId);
+        if (resolved is not null)
+            return resolved;
+
+        return state.Stakes
+            .Where(x => !x.Jailed)
+            .FirstOrDefault(x => ComputeSecp256k1CometAddress(x.PubKey)
+                .SequenceEqual(cometAddress.ToByteArray()))?.Address;
     }
 
     // The application stores the genesis block at height 1; ABCI reports the

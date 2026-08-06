@@ -110,16 +110,22 @@ public sealed class CanonicalNodeService
         }
     }
 
-    public bool IsExternalCommitReplay(IEnumerable<CoreTransaction> transactions, long externalHeight, Address validator)
+    public bool IsExternalCommitReplay(
+        IEnumerable<CoreTransaction> transactions,
+        long externalHeight,
+        Address validator,
+        IEnumerable<ConsensusEvidence> evidence = null)
     {
         lock (writeLock)
         {
             var expectedHeight = checked(externalHeight + 1);
             var list = transactions.ToList();
+            var evidenceList = evidence?.ToList() ?? new List<ConsensusEvidence>();
             return chain.State.Height == expectedHeight
                 && chain.Head.Block.Validator.Encoded == validator.Encoded
                 && chain.Head.Block.Txs.Select(x => x.ComputeIdHex())
-                    .SequenceEqual(list.Select(x => x.ComputeIdHex()), StringComparer.Ordinal);
+                    .SequenceEqual(list.Select(x => x.ComputeIdHex()), StringComparer.Ordinal)
+                && chain.Head.Block.Evidence.SequenceEqual(evidenceList);
         }
     }
 
@@ -127,13 +133,15 @@ public sealed class CanonicalNodeService
         IEnumerable<CoreTransaction> transactions,
         long timeStamp,
         Address validator,
-        long? externalHeight = null)
+        long? externalHeight = null,
+        IEnumerable<ConsensusEvidence> evidence = null)
     {
         lock (writeLock)
         {
             var previousFinalityHeight = finality.FinalizedHeight;
             var previousFinalityHash = finality.FinalizedHash;
             var list = transactions.ToList();
+            var evidenceList = evidence?.ToList() ?? new List<ConsensusEvidence>();
             var expectedHeight = externalHeight is null
                 ? chain.State.Height + 1
                 : checked(externalHeight.Value + 1);
@@ -165,7 +173,8 @@ public sealed class CanonicalNodeService
                 MerkleRoot = Merkle.ComputeRoot(list.Select(x => x.ComputeId()).ToArray()),
                 Validator = validator,
                 Reward = Money.Zero,
-                Txs = list
+                Txs = list,
+                Evidence = evidenceList
             };
             var resulting = StateTransition.ComputeResultingState(chain.State, block);
             if (!resulting.Success)
@@ -322,6 +331,12 @@ public sealed class CanonicalNodeService
             ValidatorSignature = Google.Protobuf.ByteString.CopyFrom(block.ValidatorSignature)
         };
         result.Transactions.AddRange(block.Txs.Select(ToGrpc));
+        result.Evidence.AddRange(block.Evidence.Select(x => new CanonicalEvidence
+        {
+            Kind = (uint)x.Kind,
+            Validator = x.Validator.Encoded,
+            Height = x.Height
+        }));
         return result;
     }
 
@@ -340,7 +355,9 @@ public sealed class CanonicalNodeService
             Reward = new Money(request.Reward),
             ValidatorPubKey = request.ValidatorPubKey.ToByteArray(),
             ValidatorSignature = request.ValidatorSignature.ToByteArray(),
-            Txs = request.Transactions.Select(FromGrpc).ToList()
+            Txs = request.Transactions.Select(FromGrpc).ToList(),
+            Evidence = request.Evidence.Select(x => new ConsensusEvidence(
+                (ConsensusEvidenceKind)x.Kind, Address.Parse(x.Validator), x.Height)).ToList()
         };
     }
 

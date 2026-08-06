@@ -22,6 +22,7 @@ public sealed class Block
     public byte[] ValidatorSignature { get; set; } = Array.Empty<byte>();
     public Money Reward { get; set; } = Money.Zero; // coinbase subsidy to validator
     public List<Transaction> Txs { get; set; } = new();
+    public List<ConsensusEvidence> Evidence { get; set; } = new();
 
     /// <summary>Compute the canonical header hash (binds all consensus fields).</summary>
     public byte[] ComputeHeaderHash()
@@ -36,6 +37,12 @@ public sealed class Block
         HashUtils.AppendLengthPrefixed(ms, StateRoot);
         HashUtils.AppendLengthPrefixed(ms, Validator.Encoded);
         HashUtils.AppendLe64(ms, (ulong)Reward.BaseUnits);
+        foreach (var evidence in Evidence.OrderBy(x => x.Height).ThenBy(x => x.Validator.Encoded, StringComparer.Ordinal).ThenBy(x => x.Kind))
+        {
+            HashUtils.AppendLe32(ms, (uint)evidence.Kind);
+            HashUtils.AppendLengthPrefixed(ms, evidence.Validator.Encoded);
+            HashUtils.AppendLe64(ms, unchecked((ulong)evidence.Height));
+        }
         return HashUtils.DoubleSha256(ms.ToArray());
     }
 

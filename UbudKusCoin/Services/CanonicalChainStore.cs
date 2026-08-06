@@ -84,7 +84,8 @@ public sealed class CanonicalChainStore
             Reward = block.Reward.BaseUnits,
             ValidatorPubKey = block.ValidatorPubKey,
             ValidatorSignature = block.ValidatorSignature,
-            Transactions = block.Txs.Select(ToRecord).ToList()
+            Transactions = block.Txs.Select(ToRecord).ToList(),
+            Evidence = block.Evidence.Select(ToRecord).ToList()
         };
     }
 
@@ -121,7 +122,8 @@ public sealed class CanonicalChainStore
             Reward = new Money(record.Reward),
             ValidatorPubKey = record.ValidatorPubKey,
             ValidatorSignature = record.ValidatorSignature,
-            Txs = record.Transactions.Select(FromRecord).ToList()
+            Txs = record.Transactions.Select(FromRecord).ToList(),
+            Evidence = record.Evidence.Select(FromRecord).ToList()
         };
         return block;
     }
@@ -144,6 +146,17 @@ public sealed class CanonicalChainStore
             Signature = record.Signature
         };
 
+    private static EvidenceRecord ToRecord(ConsensusEvidence evidence)
+        => new()
+        {
+            Kind = (uint)evidence.Kind,
+            Validator = evidence.Validator.Encoded,
+            Height = evidence.Height
+        };
+
+    private static ConsensusEvidence FromRecord(EvidenceRecord record)
+        => new((ConsensusEvidenceKind)record.Kind, Address.Parse(record.Validator), record.Height);
+
     private sealed class ChainSnapshot
     {
         public uint ChainId { get; set; }
@@ -164,6 +177,7 @@ public sealed class CanonicalChainStore
         public byte[] ValidatorPubKey { get; set; } = Array.Empty<byte>();
         public byte[] ValidatorSignature { get; set; } = Array.Empty<byte>();
         public List<TransactionRecord> Transactions { get; set; } = new();
+        public List<EvidenceRecord> Evidence { get; set; } = new();
     }
 
     private sealed class TransactionRecord
@@ -181,5 +195,12 @@ public sealed class CanonicalChainStore
         public long LockPeriod { get; set; }
         public byte[] PubKey { get; set; } = Array.Empty<byte>();
         public byte[] Signature { get; set; } = Array.Empty<byte>();
+    }
+
+    private sealed class EvidenceRecord
+    {
+        public uint Kind { get; set; }
+        public string Validator { get; set; } = string.Empty;
+        public long Height { get; set; }
     }
 }

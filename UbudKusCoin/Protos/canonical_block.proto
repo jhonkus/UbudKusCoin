@@ -41,6 +41,13 @@ message CanonicalBlock {
   bytes validator_pub_key = 10;
   bytes validator_signature = 11;
   repeated CanonicalTransaction transactions = 12;
+  repeated CanonicalEvidence evidence = 13;
+}
+
+message CanonicalEvidence {
+  uint32 kind = 1;
+  string validator = 2;
+  int64 height = 3;
 }
 
 message CanonicalTransaction {

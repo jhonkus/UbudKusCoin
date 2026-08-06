@@ -120,11 +120,25 @@ message RequestVerifyVoteExtension { bytes hash = 1; bytes validator_address = 2
 message ResponseVerifyVoteExtension { enum VerifyStatus { UNKNOWN = 0; ACCEPT = 1; REJECT = 2; } VerifyStatus status = 1; }
 message RequestFinalizeBlock {
   repeated bytes txs = 1;
+  repeated Misbehavior misbehavior = 3;
   bytes hash = 4;
   int64 height = 5;
   google.protobuf.Timestamp time = 6;
   bytes proposer_address = 8;
 }
+enum MisbehaviorType {
+  MISBEHAVIOR_UNKNOWN = 0;
+  DUPLICATE_VOTE = 1;
+  LIGHT_CLIENT_ATTACK = 2;
+}
+message Misbehavior {
+  MisbehaviorType type = 1;
+  Validator validator = 2;
+  int64 height = 3;
+  google.protobuf.Timestamp time = 4;
+  int64 total_voting_power = 5;
+}
+message Validator { bytes address = 1; int64 power = 3; }
 message ResponseFinalizeBlock {
   repeated ExecTxResult tx_results = 2;
   repeated ValidatorUpdate validator_updates = 3;

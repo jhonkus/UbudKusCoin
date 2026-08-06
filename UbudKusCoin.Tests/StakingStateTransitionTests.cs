@@ -70,6 +70,43 @@ public sealed class StakingStateTransitionTests
         Assert.NotEqual(otherKeyAddress, staker);
     }
 
+    [Fact]
+    public void DuplicateVoteEvidence_SlashesAndJailsValidatorDeterministically()
+    {
+        var (staker, key) = CreateAddress(0x41);
+        var (validator, _) = CreateAddress(0x42);
+        var state = new State(ChainId);
+        state.EnsureAccount(staker).Balance = Money.FromCoins(10m);
+        state.EnsureAccount(validator);
+        state = Apply(state, validator, MakeTransaction(TransactionKind.Bond, staker, staker, key, 1,
+            Money.FromCoins(3m), Money.FromCoins(0.1m)));
+
+        var block = new Block
+        {
+            Version = ChainInfo.TxVersion,
+            ChainId = ChainId,
+            Height = state.Height + 1,
+            TimeStamp = 1_700_000_010L,
+            PrevHash = state.Head,
+            Validator = validator,
+            Reward = Money.Zero,
+            Evidence = new List<ConsensusEvidence>
+            {
+                new(ConsensusEvidenceKind.DuplicateVote, staker, 1)
+            }
+        };
+        block.MerkleRoot = Merkle.ComputeRoot(System.Array.Empty<byte[]>());
+        var calculated = StateTransition.ComputeResultingState(state, block);
+        Assert.True(calculated.Success, calculated.Error);
+        block.StateRoot = calculated.NewState!.ComputeStateRoot();
+
+        var applied = StateTransition.ApplyCommittedBlock(state, block);
+
+        Assert.True(applied.Success, applied.Error);
+        Assert.True(applied.NewState!.GetStake(staker)!.Jailed);
+        Assert.Equal(Money.FromCoins(2m), applied.NewState.GetStake(staker)!.Amount);
+    }
+
     private static State Apply(State state, Address validator, params Transaction[] transactions)
     {
         var block = new Block

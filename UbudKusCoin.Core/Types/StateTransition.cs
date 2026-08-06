@@ -51,6 +51,13 @@ public static class StateTransition
     public static StateTransitionResult ApplyCommittedBlock(State state, Block block)
         => ApplyBlock(state, block, requireValidatorSignature: false);
 
+    public static StateTransitionResult ApplyCommittedBlock(
+        State state, Block block, IReadOnlyList<ConsensusEvidence> evidence)
+    {
+        block.Evidence = evidence.ToList();
+        return ApplyBlock(state, block, requireValidatorSignature: false);
+    }
+
     private static StateTransitionResult ApplyBlock(State state, Block block, bool requireValidatorSignature)
     {
         if (block.ChainId != state.ChainId)
@@ -127,6 +134,24 @@ var applied = ComputeResultingState(state, block);
         // Coinbase subsidy to the validator.
         var validator = next.EnsureAccount(block.Validator);
         validator.Balance += block.Reward;
+
+        foreach (var evidence in block.Evidence)
+        {
+            if (evidence.Kind is not (ConsensusEvidenceKind.DuplicateVote or ConsensusEvidenceKind.LightClientAttack))
+                return StateTransitionResult.Fail("Unsupported consensus evidence.");
+            if (evidence.Height <= 0 || evidence.Height > block.Height)
+                return StateTransitionResult.Fail("Consensus evidence height is invalid.");
+
+            var stake = next.GetStake(evidence.Validator);
+            if (stake is null || stake.Jailed)
+                continue;
+
+            // Slash one third and jail. Slashed coins are burned, never paid to
+            // the proposer, so evidence cannot become a reward mechanism.
+            stake.Amount = new Money(stake.Amount.BaseUnits - stake.Amount.BaseUnits / 3);
+            stake.Jailed = true;
+            stake.UnlockHeight = 0;
+        }
 
         foreach (var tx in block.Txs)
         {
