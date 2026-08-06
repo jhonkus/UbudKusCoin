@@ -102,7 +102,7 @@ public static class StateTransition
             return StateTransitionResult.Fail("Duplicate transaction in block.");
         }
 
-var applied = ComputeResultingState(state, block);
+        var applied = ComputeResultingState(state, block);
         if (!applied.Success)
         {
             return applied;

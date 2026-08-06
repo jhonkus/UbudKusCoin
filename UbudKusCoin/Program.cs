@@ -19,7 +19,6 @@ namespace UbudKusCoin
     {
         public static void Main(string[] args)
         {
-            DotNetEnv.Env.Load();
             DotNetEnv.Env.TraversePath().Load();
 
             ServicePool.Add(
@@ -30,7 +29,7 @@ namespace UbudKusCoin
                 new P2PService()
             );
             ServicePool.Start();
-            
+
             // grpc
             IHost host = CreateHostBuilder(args).Build();
             host.Run();
@@ -59,8 +58,8 @@ namespace UbudKusCoin
                         options.ListenAnyIP(GRPC_PORT, listenOptions => listenOptions.Protocols = HttpProtocols.Http2); //grpc
                     });
 
-            // start
-            webBuilder.UseStartup<Startup>()
+                    // start
+                    webBuilder.UseStartup<Startup>()
                         .ConfigureLogging((Action<WebHostBuilderContext, ILoggingBuilder>)((hostingContext, logging) =>
                         {
                             logging.ClearProviders();

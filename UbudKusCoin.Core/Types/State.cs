@@ -41,7 +41,7 @@ public sealed class State
         return account;
     }
 
-public void SetAccount(Account account)
+    public void SetAccount(Account account)
         => _accounts[account.Address.Encoded] = account;
 
     /// <summary>

@@ -38,16 +38,16 @@ namespace UbudKusCoin.Services
             cancelTask = new CancellationTokenSource();
 
             // run minting process
-            Task.Run(MintingBlock, cancelTask.Token);
+            _ = Task.Run(() => MintingBlock(cancelTask.Token), cancelTask.Token);
         }
 
         public void Stop()
         {
-            cancelTask.Cancel();
+            cancelTask?.Cancel();
             Console.WriteLine("Minter has been stopped");
         }
 
-        public void MintingBlock()
+        private async Task MintingBlock(CancellationToken cancellationToken)
         {
             isMakingBlock = true;
             Console.WriteLine("\n\n= = = = = = = = = = = = NODE IS RUNNING = = = = = = = = = = = =\n");
@@ -57,9 +57,9 @@ namespace UbudKusCoin.Services
             Console.WriteLine("- Last Canonical Block: {0}", lastBlock.Height);
             Console.WriteLine("\n................ I am ready to validate blocks ..................\n");
 
-            while (true)
+            while (!cancellationToken.IsCancellationRequested)
             {
-                var timeMinting = DateTime.UtcNow;
+                var timeMinting = DateTimeOffset.UtcNow;
                 if (timeMinting.Second < 3)
                 {
                     isMakingBlock = false;
@@ -76,14 +76,14 @@ namespace UbudKusCoin.Services
 
                     Console.WriteLine("\n-- Attempting canonical proposal\n");
                     var result = ServicePool.CanonicalNodeService.CreateAndCommitBlock(ServicePool.WalletService);
-                        if (result.Accepted)
-                        {
-                            ServicePool.P2PService.BroadcastCanonicalBlock(result.Block);
-                            var vote = ServicePool.CanonicalNodeService.CreateVote(result.Block, ServicePool.WalletService);
-                            var voteResult = ServicePool.CanonicalNodeService.SubmitVote(vote);
-                            Console.WriteLine("-- Local consensus vote: {0}", voteResult.Message);
-                            Task.Run(() => ServicePool.P2PService.BroadcastCanonicalVote(vote));
-                        }
+                    if (result.Accepted)
+                    {
+                        ServicePool.P2PService.BroadcastCanonicalBlock(result.Block);
+                        var vote = ServicePool.CanonicalNodeService.CreateVote(result.Block, ServicePool.WalletService);
+                        var voteResult = ServicePool.CanonicalNodeService.SubmitVote(vote);
+                        Console.WriteLine("-- Local consensus vote: {0}", voteResult.Message);
+                        _ = Task.Run(() => ServicePool.P2PService.BroadcastCanonicalVote(vote));
+                    }
                     else
                     {
                         Console.WriteLine("-- Proposal not accepted: {0}", result.Message);
@@ -92,10 +92,16 @@ namespace UbudKusCoin.Services
                     Console.WriteLine("= = = = Minting finish = = = \n\n\n");
                 }
 
-                // sleep 1 second
-                Thread.Sleep(1000);
+                // Yield for 1 second, honoring cancellation.
+                try
+                {
+                    await Task.Delay(1000, cancellationToken);
+                }
+                catch (TaskCanceledException)
+                {
+                    break;
+                }
             }
         }
-
     }
 }

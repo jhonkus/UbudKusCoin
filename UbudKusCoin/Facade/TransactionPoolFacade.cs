@@ -20,13 +20,7 @@ namespace UbudKusCoin.Facade
 
         public bool TransactionExists(Transaction txn)
         {
-            var transaction = ServicePool.DbService.PoolTransactionsDb.GetByHash(txn.Hash);
-            if (transaction is null)
-            {
-                return false;
-            }
-
-            return false;
+            return ServicePool.DbService.PoolTransactionsDb.GetByHash(txn.Hash) is not null;
         }
     }
 }

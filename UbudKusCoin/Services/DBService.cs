@@ -6,6 +6,7 @@
 // modifications are permitted.
 
 using System;
+using System.IO;
 using LiteDB;
 using UbudKusCoin.DB;
 
@@ -32,16 +33,19 @@ namespace UbudKusCoin.Services
         // size will smaller for each database
         public DbService()
         {
+            var dataDirectory = DotNetEnv.Env.GetString("DB_FILES_PATH", "DbFiles");
             //create db folder
-            if (!System.IO.Directory.Exists(@"DbFiles"))
-                System.IO.Directory.CreateDirectory(@"DbFiles");
+            if (!Directory.Exists(dataDirectory))
+            {
+                Directory.CreateDirectory(dataDirectory);
+            }
 
-            DB_BLOCK = InitializeDatabase(@"DbFiles//block.db");
-            DB_ACCOUNT = InitializeDatabase(@"DbFiles//account.db");
-            DB_TRANSACTION = InitializeDatabase(@"DbFiles//transaction.db");
-            DB_TRANSACTION_POOL = InitializeDatabase(@"DbFiles//transaction_pool.db");
-            DB_STAKE = InitializeDatabase(@"DbFiles//stake.db");
-            DB_PEER = InitializeDatabase(@"DbFiles//peer.db");
+            DB_BLOCK = InitializeDatabase(Path.Combine(dataDirectory, "block.db"));
+            DB_ACCOUNT = InitializeDatabase(Path.Combine(dataDirectory, "account.db"));
+            DB_TRANSACTION = InitializeDatabase(Path.Combine(dataDirectory, "transaction.db"));
+            DB_TRANSACTION_POOL = InitializeDatabase(Path.Combine(dataDirectory, "transaction_pool.db"));
+            DB_STAKE = InitializeDatabase(Path.Combine(dataDirectory, "stake.db"));
+            DB_PEER = InitializeDatabase(Path.Combine(dataDirectory, "peer.db"));
         }
 
         private LiteDatabase InitializeDatabase(string path)
@@ -60,7 +64,7 @@ namespace UbudKusCoin.Services
             PeerDb = new PeerDb(DB_PEER);
             Console.WriteLine("...... DB Service is ready");
         }
-        
+
         public void Stop()
         {
             Console.WriteLine("... DB Service is stopping...");

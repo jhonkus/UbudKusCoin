@@ -55,7 +55,7 @@ namespace UbudKusCoin.Facade
                     Updated = timestamp
                 },
             };
-            
+
             return list;
         }
 
@@ -76,7 +76,7 @@ namespace UbudKusCoin.Facade
                     Updated = UkcUtils.GetTime(),
                     PubKey = "-"
                 };
-                
+
                 ServicePool.DbService.AccountDb.Add(acc);
             }
             else
@@ -96,27 +96,18 @@ namespace UbudKusCoin.Facade
             var account = ServicePool.DbService.AccountDb.GetByAddress(from);
             if (account is null)
             {
-                account = new Account
-                {
-                    Address = from,
-                    Balance = -amount,
-                    TxnCount = 1,
-                    Created = UkcUtils.GetTime(),
-                    Updated = UkcUtils.GetTime(),
-                    PubKey = publicKey,
-                };
-                
-                ServicePool.DbService.AccountDb.Add(account);
+                // A sender must already exist to have funds deducted. Creating an
+                // account with a negative balance would corrupt the ledger.
+                throw new InvalidOperationException(
+                    $"Cannot deduct {amount} from unknown account {from}.");
             }
-            else
-            {
-                account.Balance -= amount;
-                account.TxnCount += 1;
-                account.PubKey = publicKey;
-                account.Updated = UkcUtils.GetTime();
 
-                ServicePool.DbService.AccountDb.Update(account);
-            }
+            account.Balance -= amount;
+            account.TxnCount += 1;
+            account.PubKey = publicKey;
+            account.Updated = UkcUtils.GetTime();
+
+            ServicePool.DbService.AccountDb.Update(account);
         }
 
         /// <summary>

@@ -159,7 +159,7 @@ public readonly struct Address
             throw new FormatException("Address contains invalid Base58 character.");
         }
 
-var decoded = new System.Collections.Generic.List<byte>();
+        var decoded = new System.Collections.Generic.List<byte>();
         var b58 = number.ToList();
         while (b58.Count > 0)
         {

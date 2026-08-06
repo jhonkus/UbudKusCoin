@@ -11,7 +11,7 @@ namespace UbudKusCoin.Others
     {
         public const int VERSION = 0;
         public const double DEFAULT_TRANSACTION_FEE = 0.001;
-        public const double COINT_REWARD = 0.001f;
+        public const double COINT_REWARD = 0.001;
         public const string TBL_BLOCKS = "tbl_blocks";
         public const string TBL_TRANSACTIONS = "tbl_txns";
         public const string TBL_TRANSACTIONS_POOL = "tbl_txns_pool";

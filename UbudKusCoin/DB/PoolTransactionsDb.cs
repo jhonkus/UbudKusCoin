@@ -36,7 +36,7 @@ namespace UbudKusCoin.DB
             }
 
             transactions.EnsureIndex(x => x.Hash);
-            
+
             return transactions.FindOne(x => x.Hash == hash);
         }
 
@@ -45,19 +45,18 @@ namespace UbudKusCoin.DB
             var transactions = GetAll();
             if (transactions is null || transactions.Count() < 1)
             {
-                return null;
+                return new List<Transaction>();
             }
 
             transactions.EnsureIndex(x => x.TimeStamp);
-            
+
             var query = transactions.Query()
                 .OrderByDescending(x => x.TimeStamp)
                 .Offset((pageNumber - 1) * resultPerPage)
                 .Limit(resultPerPage).ToList();
-            
+
             return query;
         }
-
 
         public void DeleteAll()
         {

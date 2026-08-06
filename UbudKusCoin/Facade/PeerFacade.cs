@@ -48,7 +48,7 @@ namespace UbudKusCoin.Facade
                 var tempPeers = bootstrapPeers.Length == 0
                     ? Array.Empty<string>()
                     : bootstrapPeers.Split(",", StringSplitOptions.RemoveEmptyEntries);
-                
+
                 for (int i = 0; i < tempPeers.Length; i++)
                 {
                     var newPeer = new Peer
@@ -58,7 +58,7 @@ namespace UbudKusCoin.Facade
                         IsCanreach = false,
                         LastReach = UkcUtils.GetTime()
                     };
-                    
+
                     ServicePool.DbService.PeerDb.Add(newPeer, out _);
                     InitialPeers.Add(newPeer);
                 }
@@ -77,6 +77,17 @@ namespace UbudKusCoin.Facade
         public NodeState GetNodeState()
         {
             var lastBlock = ServicePool.DbService.BlockDb.GetLast();
+            if (lastBlock is null)
+            {
+                return new NodeState
+                {
+                    Version = Constants.VERSION,
+                    Height = 0,
+                    Address = NodeAddress,
+                    Hash = string.Empty
+                };
+            }
+
             var nodeState = new NodeState
             {
                 Version = Constants.VERSION,
@@ -84,7 +95,7 @@ namespace UbudKusCoin.Facade
                 Address = NodeAddress,
                 Hash = lastBlock.Hash
             };
-            
+
             nodeState.KnownPeers.AddRange(GetKnownPeers());
             return nodeState;
         }

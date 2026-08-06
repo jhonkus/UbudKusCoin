@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
 using UbudKusCoin.Grpc;
@@ -44,7 +45,7 @@ namespace UbudKusCoin.Facade
         /// </summary>
         public void CreateGenesis()
         {
-            var startTimer = DateTime.UtcNow.Millisecond;
+            var stopwatch = Stopwatch.StartNew();
 
             //Assume Genesis will start on 2022
             var genesisTicks = new DateTime(2022, 5, 29).Ticks;
@@ -81,9 +82,9 @@ namespace UbudKusCoin.Facade
             //block size
             block.Size = JsonSerializer.Serialize(block).Length;
 
-            // get build time    
-            var endTimer = DateTime.UtcNow.Millisecond;
-            block.BuildTime = endTimer - startTimer;
+// get build time
+            stopwatch.Stop();
+            block.BuildTime = (int)stopwatch.ElapsedMilliseconds;
 
             // update accoiunt table
             ServicePool.FacadeService.Account.UpdateBalanceGenesis(genesisTransactions);
@@ -97,7 +98,7 @@ namespace UbudKusCoin.Facade
         /// </summary>
         public void New(Stake stake)
         {
-            var startTimer = DateTime.UtcNow.Millisecond;
+            var stopwatch = Stopwatch.StartNew();
 
             // get transaction from pool
             var poolTransactions = ServicePool.DbService.PoolTransactionsDb.GetAll();
@@ -140,9 +141,9 @@ namespace UbudKusCoin.Facade
             //block size
             block.Size = JsonSerializer.Serialize(block).Length;
 
-            // get build time    
-            var endTimer = DateTime.UtcNow.Millisecond;
-            block.BuildTime = (endTimer - startTimer);
+// get build time
+            stopwatch.Stop();
+            block.BuildTime = (int)stopwatch.ElapsedMilliseconds;
 
             var commit = ServicePool.BlockCommitService.ValidateAndCommit(block);
             if (!commit.Success)
@@ -151,7 +152,7 @@ namespace UbudKusCoin.Facade
                 return;
             }
 
-            // broadcast block          
+            // broadcast block
             Task.Run(() => ServicePool.P2PService.BroadcastBlock(block));
         }
 
@@ -160,7 +161,7 @@ namespace UbudKusCoin.Facade
             var strSum = block.Version + block.PrevHash + block.MerkleRoot + block.TimeStamp + block.Difficulty + block.Validator;
             return UkcUtils.GenHash(strSum);
         }
-        
+
         private string CreateMerkleRoot(List<Transaction> txns)
         {
             return UkcUtils.CreateMerkleRoot(txns.Select(tx => tx.Hash).ToArray());

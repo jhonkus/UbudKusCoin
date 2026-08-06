@@ -67,7 +67,7 @@ public sealed class Transaction
         return HashUtils.DoubleSha256(ComputeDigest());
     }
 
-public string ComputeIdHex()
+    public string ComputeIdHex()
     {
         return Convert.ToHexStringLower(ComputeId());
     }

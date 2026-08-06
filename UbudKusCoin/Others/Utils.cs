@@ -19,21 +19,20 @@ namespace UbudKusCoin.Others
         public static string GenHash(string data)
         {
             byte[] bytes = Encoding.UTF8.GetBytes(data);
-            byte[] hash = SHA256.Create().ComputeHash(bytes);
+            byte[] hash = SHA256.HashData(bytes);
             return BytesToHex(hash);
         }
 
         public static byte[] GenHashBytes(string data)
         {
             byte[] bytes = Encoding.UTF8.GetBytes(data);
-            byte[] hash = SHA256.Create().ComputeHash(bytes);
-            return hash;
+            return SHA256.HashData(bytes);
         }
 
         public static string GenHashHex(string hex)
         {
             byte[] bytes = HexToBytes(hex);
-            byte[] hash = SHA256.Create().ComputeHash(bytes);
+            byte[] hash = SHA256.HashData(bytes);
             return BytesToHex(hash);
         }
 
@@ -44,25 +43,17 @@ namespace UbudKusCoin.Others
 
         public static byte[] HexToBytes(string hex)
         {
-            return Enumerable.Range(0, hex.Length)
-                .Where(x => x % 2 == 0)
-                .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
-                .ToArray();
+            return Convert.FromHexString(hex);
         }
 
         public static DateTime ToDateTime(long unixTime)
         {
-            DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            dtDateTime = dtDateTime.AddSeconds(unixTime).ToLocalTime();
-            return dtDateTime;
+            return DateTimeOffset.FromUnixTimeSeconds(unixTime).ToLocalTime().DateTime;
         }
 
         public static long GetTime()
         {
-            long epochTicks = new DateTime(1970, 1, 1).Ticks;
-            long nowTicks = DateTime.UtcNow.Ticks;
-            long tmStamp = ((nowTicks - epochTicks) / TimeSpan.TicksPerSecond);
-            return tmStamp;
+            return DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         }
 
         public static string CreateMerkleRoot(string[] txsHash)
