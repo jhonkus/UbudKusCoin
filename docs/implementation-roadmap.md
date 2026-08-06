@@ -122,6 +122,8 @@ canonical two-node exchange/rejection tests and crash-safe snapshot rebuild test
   unbonding, and removed positions.
 - [x] Add delayed-certificate regression coverage so finalized state cannot
   be rewound by late consensus messages.
+- [x] Add a four-validator delayed-message recovery drill with quorum progress
+  during isolation and height/hash convergence after reconnect.
 - [x] Add deterministic fuzz-style decoder tests for transaction and snapshot
   boundaries; malformed random inputs must not escape as exceptions.
 - [x] Load a validated external genesis manifest in node startup and verify it
@@ -208,6 +210,7 @@ tests pass; runtime engine integration and fault/liveness tests remain.
 round-change tests, CometBFT ABCI integration, multi-process smoke/restart verification, deterministic on-chain staking
 transactions, Ed25519 validator updates, restart recovery, network-partition fault injection, local snapshot restore,
 verified cross-node state-sync, validator-update mapping tests, delayed-finality regression tests, decoder fuzz-style
-tests, and validated external genesis manifest loading landed). Next: delayed-message network testing, stronger fuzzing,
-managed validator key custody, and independent consensus/security review. See
+tests, delayed-message recovery, and validated external genesis manifest loading
+landed). Next: stronger fuzzing, managed validator key custody, and independent
+consensus/security review. See
 `docs/consensus-security-gate.md`.**

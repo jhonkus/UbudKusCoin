@@ -57,6 +57,7 @@ dotnet restore
 dotnet test UbudKusCoin.sln --no-restore --nologo
 docker compose -f deploy/cometbft/docker-compose.multinode.yml up --build -d
 powershell -ExecutionPolicy Bypass -File .\deploy\cometbft\test-multinode-partition.ps1
+powershell -ExecutionPolicy Bypass -File .\deploy\cometbft\test-multinode-delayed-message.ps1
 ```
 
 Stop the local harness and remove its test volumes with:

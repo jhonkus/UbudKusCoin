@@ -95,3 +95,24 @@ enables state sync, and verifies that the joining validator converges with the
 three-validator source quorum. Four validators are required because stopping
 one node in a two-validator network removes the 2/3 quorum needed to finalize
 the trusted light block.
+
+## Delayed-message recovery drill
+
+Run the delayed-message drill with:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\deploy\cometbft\test-multinode-delayed-message.ps1
+```
+
+It disconnects validator 1 for 20 seconds, confirms the three-node quorum
+continues finalizing, then verifies the rejoined node converges to the same
+height and block hash. This is a local fault drill, not a substitute for a
+production network chaos plan.
+
+## Validator key boundary
+
+CometBFT private validator keys remain owned by CometBFT. The application reads
+only the public key, requires exactly 32 Ed25519 bytes, and rejects a key that
+is not present in the local genesis validator set. A production deployment
+still needs an external secret manager or HSM, audited key rotation, backup,
+and recovery procedures; this repository does not implement those services.

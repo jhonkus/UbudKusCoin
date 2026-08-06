@@ -65,6 +65,9 @@ and all four nodes converged again with the same block hash.
 - Verify that finalized state cannot be reverted after restart or resynchronization.
 - Review validator onboarding, key rotation, slashing evidence, and RPC access
   controls.
+- Require an external secret manager or HSM for validator private keys; the
+  application-side public-key identity check is only a fail-closed boundary and
+  is not key custody.
 - Obtain an independent consensus and application security review before any
   public testnet or mainnet claim.
 

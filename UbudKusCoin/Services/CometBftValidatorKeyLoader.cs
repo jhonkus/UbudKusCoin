@@ -10,6 +10,29 @@ namespace UbudKusCoin.Services;
 
 public static class CometBftValidatorKeyLoader
 {
+    public static byte[] LoadRequiredPublicKey()
+    {
+        var publicKey = TryLoadPublicKey();
+        ValidatePublicKey(publicKey);
+
+        var genesisKeys = TryLoadGenesisPublicKeys();
+        if (genesisKeys.Count > 0 && !genesisKeys.Any(x => x.SequenceEqual(publicKey)))
+        {
+            throw new InvalidDataException(
+                "The local CometBFT validator key is not present in the configured genesis validator set.");
+        }
+
+        return publicKey;
+    }
+
+    public static void ValidatePublicKey(byte[] publicKey)
+    {
+        if (publicKey is null || publicKey.Length != 32)
+        {
+            throw new InvalidDataException("A CometBFT validator public key must be exactly 32 Ed25519 bytes.");
+        }
+    }
+
     public static byte[] TryLoadPublicKey()
     {
         var configured = DotNetEnv.Env.GetString("COMETBFT_VALIDATOR_PUBKEY_HEX", string.Empty);
@@ -17,9 +40,11 @@ public static class CometBftValidatorKeyLoader
         {
             try
             {
-                return Encoders.Hex.DecodeData(configured);
+                var publicKey = Encoders.Hex.DecodeData(configured);
+                ValidatePublicKey(publicKey);
+                return publicKey;
             }
-            catch (FormatException)
+            catch (Exception exception) when (exception is FormatException or InvalidDataException)
             {
                 return Array.Empty<byte>();
             }
@@ -44,9 +69,15 @@ public static class CometBftValidatorKeyLoader
                 .GetProperty("pub_key")
                 .GetProperty("value")
                 .GetString();
-            return string.IsNullOrWhiteSpace(value) ? Array.Empty<byte>() : Convert.FromBase64String(value);
+            if (string.IsNullOrWhiteSpace(value))
+                return Array.Empty<byte>();
+
+            var publicKey = Convert.FromBase64String(value);
+            ValidatePublicKey(publicKey);
+            return publicKey;
         }
-        catch (Exception exception) when (exception is IOException or JsonException or KeyNotFoundException or FormatException)
+        catch (Exception exception) when (exception is IOException or JsonException or KeyNotFoundException
+            or FormatException or InvalidDataException)
         {
             return Array.Empty<byte>();
         }
