@@ -41,6 +41,17 @@ public static class StateTransition
     /// enforced here.
     /// </summary>
     public static StateTransitionResult ApplyBlock(State state, Block block)
+        => ApplyBlock(state, block, requireValidatorSignature: true);
+
+    /// <summary>
+    /// Applies a block already committed by the external consensus engine.
+    /// Validator authentication belongs to the engine commit, while all
+    /// application state and state-root rules remain enforced here.
+    /// </summary>
+    public static StateTransitionResult ApplyCommittedBlock(State state, Block block)
+        => ApplyBlock(state, block, requireValidatorSignature: false);
+
+    private static StateTransitionResult ApplyBlock(State state, Block block, bool requireValidatorSignature)
     {
         if (block.ChainId != state.ChainId)
         {
@@ -63,7 +74,7 @@ public static class StateTransition
             return StateTransitionResult.Fail("Invalid block version or validator address.");
         }
 
-        if (block.Height != 1 && !block.VerifyValidatorSignature())
+        if (requireValidatorSignature && block.Height != 1 && !block.VerifyValidatorSignature())
         {
             return StateTransitionResult.Fail("Invalid validator signature.");
         }

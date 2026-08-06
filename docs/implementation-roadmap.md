@@ -99,6 +99,8 @@ canonical two-node exchange/rejection tests and crash-safe snapshot rebuild test
   `CONSENSUS_ENGINE`/`COMETBFT_RPC_URL` configuration.
 - [x] Disable legacy local minting whenever an external consensus engine is configured.
 - [x] Require a valid external-engine status response before production startup.
+- [x] Add a deterministic Core application boundary for `CheckTx`, proposal
+  validation, and atomic finalize/app-hash computation.
 
 **Exit criteria:** multi-node tests showing finality, liveness under faults, and slashing. Protocol-level finality and slashing
 tests pass; runtime engine integration and fault/liveness tests remain.

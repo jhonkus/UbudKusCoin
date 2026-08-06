@@ -6,6 +6,11 @@ driver and is suitable only for local tests. A production node must use
 `CONSENSUS_ENGINE=cometbft` and provide an absolute `COMETBFT_RPC_URL`.
 Production startup also requires a valid CometBFT `/status` payload.
 
+The Core now exposes a deterministic application boundary for transaction
+admission, proposal validation, and atomic finalization. The network transport
+adapter and a real multi-process CometBFT cluster are still required before
+this boundary can be called ABCI-compatible in production.
+
 ## Remaining Production Evidence
 
 - Run a real multi-process CometBFT cluster with the application state machine.
