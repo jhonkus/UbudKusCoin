@@ -9,9 +9,9 @@ using System;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using UbudKusCoin.Services;
 using UbudKusCoin.P2P;
-using Microsoft.Extensions.Logging;
 
 namespace UbudKusCoin
 {
@@ -59,16 +59,18 @@ namespace UbudKusCoin
                         options.ListenAnyIP(GRPC_PORT, listenOptions => listenOptions.Protocols = HttpProtocols.Http2); //grpc
                     });
 
-                    // start
-                    webBuilder.UseStartup<Startup>()
-                        //   .ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
+            // start
+            webBuilder.UseStartup<Startup>()
                         .ConfigureLogging((Action<WebHostBuilderContext, ILoggingBuilder>)((hostingContext, logging) =>
                         {
-                            // logging.AddConfiguration((IConfiguration)hostingContext.Configuration.GetSection("Logging"));
-                            // logging.AddConsole();
-                            // logging.AddDebug();
-                            // logging.AddEventSourceLogger();
                             logging.ClearProviders();
+                            logging.AddSimpleConsole(options =>
+                            {
+                                options.SingleLine = true;
+                                options.TimestampFormat = "yyyy-MM-dd HH:mm:ss ";
+                                options.IncludeScopes = true;
+                            });
+                            logging.SetMinimumLevel(LogLevel.Information);
                         }));
                     //===
                 });

@@ -51,12 +51,14 @@ namespace UbudKusCoin.DB
                     if (candidateScore <= worstScore)
                     {
                         message = $"Peer cap of {maxPeers} reached; candidate score {candidateScore} does not exceed current floor {worstScore}.";
+                        NodeTelemetry.RecordPeerAdmission(false, "cap");
                         return false;
                     }
                 }
 
                 GetAll().Insert(peer);
                 message = "Peer added.";
+                NodeTelemetry.RecordPeerAdmission(true, "new");
                 return true;
             }
 
@@ -66,6 +68,7 @@ namespace UbudKusCoin.DB
             existingPeer.TimeStamp = peer.TimeStamp;
             GetAll().Update(existingPeer);
             message = "Peer updated.";
+            NodeTelemetry.RecordPeerAdmission(true, "update");
             return true;
         }
 

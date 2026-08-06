@@ -147,7 +147,7 @@ tests pass; runtime engine integration and fault/liveness tests remain.
   ranks reachable bootstrap peers ahead of stale or unreachable peers.
 - API middleware: TLS, authentication, per-IP/per-account rate limiting, max sizes, input validation. The API now uses
   an explicit `API_CORS_ORIGINS` allowlist and denies browser cross-origin access when it is unset.
-- Structured logging (no secrets) + OpenTelemetry metrics/tracing + health/readiness.
+- [x] Structured logging (no secrets) + OpenTelemetry metrics/tracing + health/readiness.
 
 **Exit criteria:** negative + load tests; no secret in logs; rate-limit enforced.
 

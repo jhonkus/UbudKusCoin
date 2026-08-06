@@ -109,6 +109,7 @@ namespace UbudKusCoin.Services
             FacadeService.start();
             P2PService.Start();
             MintingService.Start();
+            NodeReadinessState.SetApplicationReady(true);
         }
 
         public static void Stop()
@@ -119,6 +120,7 @@ namespace UbudKusCoin.Services
             //FacadeService.Stop();
             //P2PService.Stop();
             MintingService.Stop();
+            NodeReadinessState.SetApplicationReady(false);
         }
     }
 }

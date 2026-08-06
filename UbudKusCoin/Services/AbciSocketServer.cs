@@ -11,6 +11,7 @@ using Google.Protobuf;
 using UbudKusCoin.CometBft.Abci;
 using UbudKusCoin.Grpc;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace UbudKusCoin.Services;
 
@@ -22,10 +23,12 @@ namespace UbudKusCoin.Services;
 public sealed class AbciSocketServer : BackgroundService
 {
     private readonly int _port;
+    private readonly ILogger<AbciSocketServer> _logger;
     private TcpListener? _listener;
 
-    public AbciSocketServer()
+    public AbciSocketServer(ILogger<AbciSocketServer> logger)
     {
+        _logger = logger;
         _port = DotNetEnv.Env.GetInt("ABCI_SOCKET_PORT");
         if (_port == 0)
         {
@@ -37,6 +40,8 @@ public sealed class AbciSocketServer : BackgroundService
     {
         _listener = new TcpListener(IPAddress.Any, _port);
         _listener.Start();
+        NodeReadinessState.SetAbciSocketReady(true);
+        _logger.LogInformation("ABCI socket server started on port {Port}.", _port);
         try
         {
             while (!stoppingToken.IsCancellationRequested)
@@ -47,6 +52,11 @@ public sealed class AbciSocketServer : BackgroundService
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
+        }
+        finally
+        {
+            NodeReadinessState.SetAbciSocketReady(false);
+            _logger.LogInformation("ABCI socket server stopped.");
         }
     }
 

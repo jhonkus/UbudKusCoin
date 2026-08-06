@@ -76,9 +76,19 @@ namespace UbudKusCoin
                 endpoints.MapGrpcService<ReadModelServiceImpl>().RequireCors("ApiCors");
                 endpoints.MapGet("/health/consensus", async context =>
                 {
+                    NodeTelemetry.RecordReadinessCheck(true, "consensus-endpoint");
                     var status = await ServicePool.ConsensusEngine.GetStatusAsync(context.RequestAborted);
                     context.Response.StatusCode = status.Healthy ? StatusCodes.Status200OK : StatusCodes.Status503ServiceUnavailable;
                     await context.Response.WriteAsJsonAsync(status, context.RequestAborted);
+                });
+                endpoints.MapGet("/health/ready", async context =>
+                {
+                    var snapshot = NodeReadinessState.Snapshot();
+                    NodeTelemetry.RecordReadinessCheck(snapshot.Ready, "ready-endpoint");
+                    context.Response.StatusCode = snapshot.Ready
+                        ? StatusCodes.Status200OK
+                        : StatusCodes.Status503ServiceUnavailable;
+                    await context.Response.WriteAsJsonAsync(snapshot, context.RequestAborted);
                 });
                 endpoints.MapGet("/", async context =>
                 {
