@@ -118,6 +118,12 @@ canonical two-node exchange/rejection tests and crash-safe snapshot rebuild test
   deterministic lock-period rules and stake positions committed into `state_root`.
 - [x] Emit CometBFT validator-set updates from committed staking state and
   resolve secp256k1 proposer addresses after validator activation.
+- [x] Add deterministic validator-update mapping tests for active, jailed,
+  unbonding, and removed positions.
+- [x] Add delayed-certificate regression coverage so finalized state cannot
+  be rewound by late consensus messages.
+- [x] Add deterministic fuzz-style decoder tests for transaction and snapshot
+  boundaries; malformed random inputs must not escape as exceptions.
 
 **Exit criteria:** multi-node tests showing finality, liveness under faults, and slashing. Protocol-level finality and slashing
 tests pass; runtime engine integration and fault/liveness tests remain.
@@ -199,6 +205,7 @@ tests pass; runtime engine integration and fault/liveness tests remain.
 **Current position: Stage 6 in progress (protocol, proposer gating, vote transport, finality persistence, quorum, partition,
 round-change tests, CometBFT ABCI integration, multi-process smoke/restart verification, deterministic on-chain staking
 transactions, CometBFT validator updates, restart recovery, network-partition fault injection, local snapshot restore,
-and a verified cross-node state-sync drill landed). Next: validator-update integration tests, delayed-message testing,
-fuzzing, and independent consensus/security review. See
+verified cross-node state-sync, validator-update mapping tests, delayed-finality regression tests, and decoder fuzz-style
+tests landed). Next: production-shaped validator-update integration, delayed-message network testing, stronger fuzzing,
+and independent consensus/security review. See
 `docs/consensus-security-gate.md`.**
