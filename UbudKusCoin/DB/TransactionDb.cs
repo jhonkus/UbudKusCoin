@@ -160,7 +160,7 @@ namespace UbudKusCoin.DB
             return transaction;
         }
 
-        private ILiteCollection<Transaction> GetAll()
+        public ILiteCollection<Transaction> GetAll()
         {
             return _db.GetCollection<Transaction>(Constants.TBL_TRANSACTIONS);
         }

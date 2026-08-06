@@ -37,6 +37,7 @@
     <Protobuf Include="Protos\peer.proto" GrpcServices="Server, Client" />
     <Protobuf Include="Protos\stake.proto" GrpcServices="Server, Client" />
     <Protobuf Include="Protos\transaction.proto" GrpcServices="Server, Client" />
+    <Protobuf Include="Protos\read_model.proto" GrpcServices="Server" />
   </ItemGroup>
   <ItemGroup>
     <None Include="**/*" />

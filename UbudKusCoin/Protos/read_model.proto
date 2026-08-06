@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+option csharp_namespace = "UbudKusCoin.Grpc";
+
+service ReadModelService {
+  rpc GetStats(StatsRequest) returns (StatsResponse);
+  rpc GetTransactionChart(ChartRequest) returns (ChartResponse);
+}
+
+message StatsRequest {}
+message StatsResponse {
+  int64 block_count = 1;
+  int64 transaction_count = 2;
+  int64 account_count = 3;
+  double transaction_amount = 4;
+  double reward_amount = 5;
+  int64 pending_count = 6;
+  double pending_amount = 7;
+  int64 latest_block_height = 8;
+}
+
+message ChartRequest { int32 limit = 1; }
+message ChartResponse { repeated ChartPoint points = 1; }
+message ChartPoint {
+  int64 timestamp = 1;
+  int64 transaction_count = 2;
+  double amount = 3;
+}
