@@ -207,6 +207,39 @@ public sealed class CanonicalChainStoreTests
         Assert.Equal(120, encoded.Transactions[0].LockPeriod);
     }
 
+    [Fact]
+    public void RestoreSnapshot_RehydratesCanonicalHeadAndFinality()
+    {
+        var sourcePath = Path.Combine(Path.GetTempPath(), $"ukc-snapshot-source-{Guid.NewGuid():N}.json");
+        var targetPath = Path.Combine(Path.GetTempPath(), $"ukc-snapshot-target-{Guid.NewGuid():N}.json");
+        try
+        {
+            var source = new CanonicalNodeService(ChainInfo.ChainIdTestnet, sourcePath);
+            var wallet = MakeWallet();
+            var validator = Address.FromPublicKey(
+                ChainInfo.AddressVersion(ChainInfo.ChainIdTestnet),
+                wallet.GetPublicKey().PubKey.ToBytes());
+            var committed = source.AcceptExternalCommit(
+                Array.Empty<Transaction>(), Genesis.GenesisTime + 1, validator, externalHeight: 1);
+            Assert.True(committed.Accepted, committed.Message);
+
+            var target = new CanonicalNodeService(ChainInfo.ChainIdTestnet, targetPath);
+            Assert.True(target.RestoreSnapshot(source.Chain.State, source.Chain.Head.Block, out var error), error);
+
+            Assert.Equal(source.Chain.State.Height, target.Chain.State.Height);
+            Assert.Equal(source.Chain.State.Head, target.Chain.State.Head);
+            Assert.Equal(source.Chain.State.ComputeStateRoot(), target.Chain.State.ComputeStateRoot());
+            Assert.Equal(source.Finality.FinalizedHeight, target.Finality.FinalizedHeight);
+        }
+        finally
+        {
+            if (File.Exists(sourcePath)) File.Delete(sourcePath);
+            if (File.Exists(targetPath)) File.Delete(targetPath);
+            if (File.Exists(sourcePath + ".finality")) File.Delete(sourcePath + ".finality");
+            if (File.Exists(targetPath + ".finality")) File.Delete(targetPath + ".finality");
+        }
+    }
+
     private static WalletService MakeWallet()
         => new()
         {
