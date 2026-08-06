@@ -27,7 +27,14 @@ unsupported responses until implemented and tested.
 
 `FinalizeBlock` now validates and persists the committed block through the
 canonical chain store before returning its app hash, then resynchronizes the
-application state machine from the persisted canonical state.
+application state machine from the persisted canonical state. External commit
+retries are idempotent when the height, validator, transactions, and evidence
+match the already accepted block.
+
+State sync now exposes a versioned, SHA-256-verified snapshot format with
+bounded chunks. Restore validates the offered app hash, state root, and
+canonical head anchor before replacing local state. A real cross-node state
+sync drill remains required.
 
 The CometBFT genesis harness starts at `initial_height: 1`. The application
 reports its internal genesis state as ABCI height `0`, allowing `InitChain` to

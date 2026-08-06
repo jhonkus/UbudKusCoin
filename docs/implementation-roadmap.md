@@ -104,7 +104,9 @@ canonical two-node exchange/rejection tests and crash-safe snapshot rebuild test
 - [x] Add a bounded, versioned binary transaction codec for the application
   boundary; no JSON/reflection serialization in consensus bytes.
 - [x] Add a CometBFT v0.38 ABCI 2.0 gRPC surface for core transaction and
-  finalize methods; unsupported snapshots/vote extensions remain explicit.
+  finalize methods; vote extensions remain explicitly unsupported.
+- [x] Add versioned, chunked, hash-verified ABCI state snapshots with canonical
+  head restore validation.
 - [x] Persist ABCI external finalization through the canonical chain store and
   resynchronize the application state machine after commit.
 - [x] Add the length-prefixed ABCI socket transport, `initial_height: 1`
@@ -196,6 +198,7 @@ tests pass; runtime engine integration and fault/liveness tests remain.
 
 **Current position: Stage 6 in progress (protocol, proposer gating, vote transport, finality persistence, quorum, partition,
 round-change tests, CometBFT ABCI integration, multi-process smoke/restart verification, deterministic on-chain staking
-transactions, CometBFT validator updates, restart recovery, and network-partition fault injection landed). Next:
-validator-update integration tests, delayed-message testing, fuzzing, and independent consensus/security review. See
+transactions, CometBFT validator updates, restart recovery, network-partition fault injection, and verified local
+snapshot restore landed). Next: cross-node state-sync drill, validator-update integration tests, delayed-message testing,
+fuzzing, and independent consensus/security review. See
 `docs/consensus-security-gate.md`.**
