@@ -11,6 +11,9 @@ admission, proposal validation, and atomic finalization. The network transport
 adapter and a real multi-process CometBFT cluster are still required before
 this boundary can be called ABCI-compatible in production.
 
+Transactions crossing that boundary use the bounded `TransactionCodec`; malformed,
+oversized, and trailing bytes are rejected before application processing.
+
 ## Remaining Production Evidence
 
 - Run a real multi-process CometBFT cluster with the application state machine.

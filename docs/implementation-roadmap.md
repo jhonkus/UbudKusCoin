@@ -101,6 +101,8 @@ canonical two-node exchange/rejection tests and crash-safe snapshot rebuild test
 - [x] Require a valid external-engine status response before production startup.
 - [x] Add a deterministic Core application boundary for `CheckTx`, proposal
   validation, and atomic finalize/app-hash computation.
+- [x] Add a bounded, versioned binary transaction codec for the application
+  boundary; no JSON/reflection serialization in consensus bytes.
 
 **Exit criteria:** multi-node tests showing finality, liveness under faults, and slashing. Protocol-level finality and slashing
 tests pass; runtime engine integration and fault/liveness tests remain.
