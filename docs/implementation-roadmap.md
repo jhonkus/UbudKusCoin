@@ -126,8 +126,9 @@ canonical two-node exchange/rejection tests and crash-safe snapshot rebuild test
   during isolation and height/hash convergence after reconnect.
 - [x] Add signed consensus-key rotation with deterministic old-key removal and
   new-key activation in the CometBFT validator update set.
-- [x] Add deterministic fuzz-style decoder tests for transaction and snapshot
-  boundaries; malformed random inputs must not escape as exceptions.
+- [x] Add deterministic fuzz-style and mutation tests for transaction and
+  snapshot boundaries; malformed random inputs and null JSON structures must
+  not escape as exceptions.
 - [x] Load a validated external genesis manifest in node startup and verify it
   reproduces the deterministic testnet state root.
 
@@ -212,7 +213,7 @@ tests pass; runtime engine integration and fault/liveness tests remain.
 **Current position: Stage 6 in progress (protocol, proposer gating, vote transport, finality persistence, quorum, partition,
 round-change tests, CometBFT ABCI integration, multi-process smoke/restart verification, deterministic on-chain staking
 transactions, Ed25519 validator updates, restart recovery, network-partition fault injection, local snapshot restore,
-verified cross-node state-sync, validator-update mapping tests, delayed-finality regression tests, decoder fuzz-style
+verified cross-node state-sync, validator-update mapping tests, delayed-finality regression tests, mutation fuzzing,
 tests, delayed-message recovery, validated external genesis manifest loading,
 end-to-end validator key rotation, and the fail-closed external-signer identity
 boundary landed). Next: stronger fuzzing, deployment of an audited external

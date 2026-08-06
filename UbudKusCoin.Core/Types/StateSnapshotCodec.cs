@@ -76,7 +76,13 @@ public static class StateSnapshotCodec
         {
             var snapshot = JsonSerializer.Deserialize<Snapshot>(encoded, Options)
                 ?? throw new InvalidDataException("Snapshot payload is empty.");
-            if (snapshot.Format != Format || snapshot.Head.Length == 0 || snapshot.StateRoot.Length == 0)
+            if (snapshot.Format != Format
+                || snapshot.Head is null
+                || snapshot.StateRoot is null
+                || snapshot.Accounts is null
+                || snapshot.Stakes is null
+                || snapshot.Head.Length == 0
+                || snapshot.StateRoot.Length == 0)
                 throw new InvalidDataException("Unsupported or incomplete snapshot format.");
 
             var restored = new State(snapshot.ChainId, snapshot.Height, snapshot.Head, snapshot.TimeStamp);
