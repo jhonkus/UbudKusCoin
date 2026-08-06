@@ -12,9 +12,9 @@ driver.
 
 The Core now exposes a deterministic application boundary for transaction
 admission, proposal validation, and atomic finalization. A length-prefixed ABCI
-socket adapter is available for the pinned test harness; a real multi-process
-CometBFT cluster and production key-management deployment are still required
-before this boundary can be called production-ready.
+socket adapter and a four-validator multi-process CometBFT harness are
+available; production key management and an independently operated network are
+still required before this boundary can be called production-ready.
 
 Transactions crossing that boundary use the bounded `TransactionCodec`; malformed,
 oversized, and trailing bytes are rejected before application processing.
@@ -34,8 +34,8 @@ match the already accepted block.
 State sync now exposes a versioned, SHA-256-verified snapshot format with
 bounded chunks. Restore validates the offered app hash, state root, and
 canonical head anchor before replacing local state. The local restore contract
-is covered by tests; a cross-node drill must still be run with a quorum-capable
-topology.
+and four-validator quorum harness are covered by tests; a completed cross-node
+state-sync drill with a trusted snapshot remains outstanding.
 
 The CometBFT genesis harness starts at `initial_height: 1`. The application
 reports its internal genesis state as ABCI height `0`, allowing `InitChain` to
@@ -47,9 +47,9 @@ validators are intentional: three can keep quorum while one is offline for
 state-sync testing. It is still test-only and does not provide production key
 custody.
 
-The repeatable partition drill has now also been executed successfully: both
-nodes converged at height 100, validator 1 was disconnected for eight seconds,
-and both nodes converged again at height 101 with the same block hash.
+The repeatable partition drill has also been executed successfully: validator 1
+was disconnected for eight seconds, validators 0, 2, and 3 retained quorum,
+and all four nodes converged again with the same block hash.
 
 ## Remaining Production Evidence
 

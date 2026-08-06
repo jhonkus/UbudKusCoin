@@ -1,11 +1,11 @@
 # UbudKusCoin — Repository Audit & Threat Model
 
-**Status:** Baseline audit (pre-hardening)
+**Status:** Historical baseline audit (pre-hardening; retained for traceability)
 **Date:** See git history
 **Auditor:** Senior Blockchain Architect / Cryptography Engineer
 **Scope:** `UbudKusCoin` (core node), `ConsoleWallet`, `BlockExplorer`, protobuf/gRPC definitions, config, deployment scripts.
 
-> **Executive summary:** This codebase is a **learning prototype**, not a production blockchain. It compiles, but the
+> **Historical executive summary:** At the time of this audit, this codebase was a **learning prototype**, not a production blockchain. It compiled, but the
 > "consensus" is not secure, the state transition is not deterministic, replay/fork protection is absent, the network
 > layer is unauthenticated and unencrypted, and it carries a **known critical CVE in its storage dependency**. It must
 > **not** be deployed to any real network until a full refactor, testnet validation, and independent security audit are

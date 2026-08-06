@@ -1,6 +1,6 @@
 # UbudKusCoin — Target Architecture Design
 
-**Status:** Design (no code changes yet)
+**Status:** Living target architecture; implementation is tracked by stage in the roadmap.
 **Principles:** Auditability · Safety of funds first · Deterministic state · Mature crypto/consensus · Supported
 dependencies · Test-net before main-net. **No claim of production-readiness is made.**
 
