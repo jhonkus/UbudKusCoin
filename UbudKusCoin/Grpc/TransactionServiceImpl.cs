@@ -57,6 +57,9 @@ namespace UbudKusCoin.Grpc
             return Task.FromResult(response);
         }
 
+        public override Task<TransactionList> GetPendingTxns(TransactionPaging req, ServerCallContext context)
+            => GetPoolRange(req, context);
+
         private static IEnumerable<(UbudKusCoin.Core.Types.Transaction transaction, long height, long timeStamp)> AllCanonicalTransactions()
             => ServicePool.CanonicalNodeService.Chain.GetCanonicalBlocks(0)
                 .SelectMany(block => block.Txs.Select(transaction => (transaction, block.Height, block.TimeStamp)));
