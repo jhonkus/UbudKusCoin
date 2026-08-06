@@ -6,9 +6,11 @@
 // modifications are permitted.
 
 using System.Collections.Generic;
+using System.Linq;
 using LiteDB;
 using UbudKusCoin.Grpc;
 using UbudKusCoin.Others;
+using UbudKusCoin.Services;
 
 namespace UbudKusCoin.DB
 {
@@ -27,13 +29,44 @@ namespace UbudKusCoin.DB
         /// <summary>
         /// Add a peer
         /// </summary>
-        public void Add(Peer peer)
+        public bool Add(Peer peer, out string message)
         {
+            message = string.Empty;
+            if (peer is null)
+            {
+                message = "Peer is required.";
+                return false;
+            }
+
             var existingPeer = GetByAddress(peer.Address);
             if (existingPeer is null)
             {
+                var currentPeers = GetAll().FindAll().ToList();
+                var maxPeers = PeerAdmissionPolicy.GetMaxKnownPeers();
+                if (currentPeers.Count >= maxPeers)
+                {
+                    var now = Others.UkcUtils.GetTime();
+                    var candidateScore = PeerAdmissionPolicy.Score(peer, now);
+                    var worstScore = currentPeers.Min(existing => PeerAdmissionPolicy.Score(existing, now));
+                    if (candidateScore <= worstScore)
+                    {
+                        message = $"Peer cap of {maxPeers} reached; candidate score {candidateScore} does not exceed current floor {worstScore}.";
+                        return false;
+                    }
+                }
+
                 GetAll().Insert(peer);
+                message = "Peer added.";
+                return true;
             }
+
+            existingPeer.IsBootstrap = peer.IsBootstrap;
+            existingPeer.IsCanreach = peer.IsCanreach;
+            existingPeer.LastReach = peer.LastReach;
+            existingPeer.TimeStamp = peer.TimeStamp;
+            GetAll().Update(existingPeer);
+            message = "Peer updated.";
+            return true;
         }
 
         /// <summary>
@@ -78,8 +111,7 @@ namespace UbudKusCoin.DB
             }
 
             peers.EnsureIndex(x => x.Address);
-            
-            return peers.FindOne(x => x.Address == address);
+            return peers.FindAll().FirstOrDefault(peer => PeerIdentityPolicy.AreSameEndpoint(peer.Address, address));
         }
     }
 }

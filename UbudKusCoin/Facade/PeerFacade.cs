@@ -34,6 +34,11 @@ namespace UbudKusCoin.Facade
         internal void Initialize()
         {
             NodeAddress = DotNetEnv.Env.GetString("NODE_ADDRESS");
+            if (!PeerIdentityPolicy.TryNormalizeEndpoint(NodeAddress, out _, out var nodeError))
+            {
+                throw new InvalidOperationException($"NODE_ADDRESS is invalid: {nodeError}");
+            }
+
             var KnowPeers = ServicePool.DbService.PeerDb.GetAll();
             if (KnowPeers.Count() < 1)
             {
@@ -54,7 +59,7 @@ namespace UbudKusCoin.Facade
                         LastReach = UkcUtils.GetTime()
                     };
                     
-                    ServicePool.DbService.PeerDb.Add(newPeer);
+                    ServicePool.DbService.PeerDb.Add(newPeer, out _);
                     InitialPeers.Add(newPeer);
                 }
             }
@@ -62,7 +67,11 @@ namespace UbudKusCoin.Facade
 
         public List<Peer> GetKnownPeers()
         {
-            return ServicePool.DbService.PeerDb.GetAll().FindAll().ToList();
+            var now = UkcUtils.GetTime();
+            var peers = ServicePool.DbService.PeerDb.GetAll().FindAll().ToList();
+            return PeerAdmissionPolicy.OrderPeers(peers, now)
+                .Take(PeerAdmissionPolicy.GetMaxKnownPeers())
+                .ToList();
         }
 
         public NodeState GetNodeState()
@@ -80,9 +89,45 @@ namespace UbudKusCoin.Facade
             return nodeState;
         }
 
-        public void Add(Peer peer)
+        public bool Add(Peer peer, out string message)
         {
-            ServicePool.DbService.PeerDb.Add(peer);
+            if (!PeerIdentityPolicy.TryNormalizeEndpoint(peer?.Address, out _, out message))
+            {
+                return false;
+            }
+
+            if (PeerIdentityPolicy.IsSelfEndpoint(peer.Address, NodeAddress))
+            {
+                message = "Refusing to add the local node as a peer.";
+                return false;
+            }
+
+            peer.LastReach = UkcUtils.GetTime();
+            peer.TimeStamp = peer.TimeStamp == 0 ? peer.LastReach : peer.TimeStamp;
+            return ServicePool.DbService.PeerDb.Add(peer, out message);
+        }
+
+        public bool TouchKnownPeer(string address, out string message)
+        {
+            message = string.Empty;
+            if (!PeerIdentityPolicy.TryNormalizeEndpoint(address, out _, out message))
+            {
+                return false;
+            }
+
+            var knownPeer = ServicePool.DbService.PeerDb.GetByAddress(address);
+            if (knownPeer is null)
+            {
+                message = "Peer is not registered.";
+                return false;
+            }
+
+            knownPeer.LastReach = UkcUtils.GetTime();
+            knownPeer.IsCanreach = true;
+            knownPeer.TimeStamp = knownPeer.TimeStamp == 0 ? knownPeer.LastReach : knownPeer.TimeStamp;
+            ServicePool.DbService.PeerDb.Add(knownPeer, out _);
+            message = "Peer reach updated.";
+            return true;
         }
     }
 }

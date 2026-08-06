@@ -6,6 +6,7 @@
 // modifications are permitted.
 using Grpc.Core;
 using UbudKusCoin.Services;
+using System;
 using System.Threading.Tasks;
 
 namespace UbudKusCoin.Grpc
@@ -15,19 +16,24 @@ namespace UbudKusCoin.Grpc
         public override Task<AddPeerReply> Add(Peer request, ServerCallContext context)
         {
             var response = new AddPeerReply();
+            if (!ServicePool.FacadeService.Peer.Add(request, out var message))
+            {
+                response.Status = Others.Constants.TXN_STATUS_FAIL;
+                response.Message = message;
+                return Task.FromResult(response);
+            }
+
+            response.Status = Others.Constants.TXN_STATUS_SUCCESS;
+            response.Message = message;
             return Task.FromResult(response);
         }
 
         public override Task<NodeState> GetNodeState(NodeParam request, ServerCallContext context)
         {
-            ServicePool.FacadeService.Peer.Add(new Peer
+            if (!ServicePool.FacadeService.Peer.TouchKnownPeer(request.NodeIpAddress, out _))
             {
-                Address = request.NodeIpAddress,
-                IsBootstrap = false,
-                IsCanreach = true,
-                LastReach = Others.UkcUtils.GetTime(),
-                TimeStamp = Others.UkcUtils.GetTime()
-            });
+                // Discovery still works even when the caller is not registered yet.
+            }
 
             var nodeState = ServicePool.FacadeService.Peer.GetNodeState();
             return Task.FromResult(nodeState);
