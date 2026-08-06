@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -98,6 +99,14 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
 
     public override Task<ResponseFinalizeBlock> FinalizeBlock(RequestFinalizeBlock request, ServerCallContext context)
     {
+        if (!IsExpectedChain(request.Height, request.ProposerAddress))
+        {
+            return Task.FromResult(new ResponseFinalizeBlock
+            {
+                TxResults = { new ExecTxResult { Code = InvalidTransaction, Log = "Invalid CometBFT chain, height, or proposer." } }
+            });
+        }
+
         var transactions = DecodeTransactions(request.Txs, out var decodeError);
         var validation = decodeError is null
             ? Application.ProcessProposal(transactions, TimestampSeconds(request.Time))
@@ -130,6 +139,16 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
 
     public override Task<ResponseInitChain> InitChain(RequestInitChain request, ServerCallContext context)
     {
+        var expectedChainId = DotNetEnv.Env.GetString(
+            "COMETBFT_CHAIN_ID",
+            $"ukc-{Application.State.ChainId}");
+        if (!string.Equals(request.ChainId, expectedChainId, StringComparison.Ordinal))
+        {
+            throw new RpcException(new Status(
+                StatusCode.InvalidArgument,
+                $"Unexpected CometBFT chain ID '{request.ChainId}'. Expected '{expectedChainId}'."));
+        }
+
         var response = new ResponseInitChain
         {
             AppHash = ByteString.CopyFrom(Application.State.ComputeStateRoot())
@@ -189,6 +208,19 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
     // pre-genesis state as height 0 so CometBFT can execute InitChain.
     private static long AbciHeight(long applicationHeight)
         => Math.Max(0, applicationHeight - 1);
+
+    private static bool IsExpectedChain(long requestedHeight, ByteString proposerAddress)
+    {
+        var state = Application.State;
+        if (requestedHeight != AbciHeight(state.Height) + 1
+            || Application.ValidatorPublicKey.Count == 0)
+        {
+            return false;
+        }
+
+        var expectedAddress = SHA256.HashData(Application.ValidatorPublicKey.ToArray())[..20];
+        return proposerAddress.Span.SequenceEqual(expectedAddress);
+    }
 
     private static long TimestampSeconds(Timestamp timestamp)
         => timestamp?.Seconds ?? 0;

@@ -32,7 +32,8 @@ public sealed class ConsensusApplicationStateMachine
         State state,
         Address validator,
         int maxProposalBytes = 1_000_000,
-        Func<long>? clock = null)
+        Func<long>? clock = null,
+        byte[]? validatorPublicKey = null)
     {
         if (maxProposalBytes <= 0)
         {
@@ -41,6 +42,7 @@ public sealed class ConsensusApplicationStateMachine
 
         _state = state ?? throw new ArgumentNullException(nameof(state));
         _validator = validator;
+        ValidatorPublicKey = validatorPublicKey?.ToArray() ?? Array.Empty<byte>();
         _maxProposalBytes = maxProposalBytes;
         _clock = clock ?? (() => DateTimeOffset.UtcNow.ToUnixTimeSeconds());
     }
@@ -66,6 +68,8 @@ public sealed class ConsensusApplicationStateMachine
     }
 
     public Address Validator => _validator;
+
+    public IReadOnlyList<byte> ValidatorPublicKey { get; }
 
     public ApplicationCheckResult CheckTx(Transaction transaction)
     {

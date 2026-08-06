@@ -44,4 +44,18 @@ public sealed class FinalityTracker
         error = string.Empty;
         return true;
     }
+
+    public bool TryFinalizeExternal(Block block, out string error)
+    {
+        if (block.Height != FinalizedHeight + 1)
+        {
+            error = "External finality must advance sequentially.";
+            return false;
+        }
+
+        FinalizedHeight = block.Height;
+        FinalizedHash = block.ComputeHeaderHashHex();
+        error = string.Empty;
+        return true;
+    }
 }
