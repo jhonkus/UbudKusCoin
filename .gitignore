@@ -42,3 +42,7 @@
 
 # Temporary local API probes
 /_ApiProbe/
+
+# CometBFT integration tool build output
+/deploy/cometbft/ValidatorUpdateIntegrationTool/bin/
+/deploy/cometbft/ValidatorUpdateIntegrationTool/obj/
