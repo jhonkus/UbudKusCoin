@@ -45,8 +45,17 @@ namespace UbudKusCoin
                     {
                         var GRPC_WEB_PORT = DotNetEnv.Env.GetInt("GRPC_WEB_PORT");
                         var GRPC_PORT = DotNetEnv.Env.GetInt("GRPC_PORT");
+                        var tlsCertificatePath = DotNetEnv.Env.GetString("API_TLS_CERT_PATH", string.Empty);
+                        var tlsCertificatePassword = DotNetEnv.Env.GetString("API_TLS_CERT_PASSWORD", string.Empty);
 
-                        options.ListenAnyIP(GRPC_WEB_PORT, listenOptions => listenOptions.Protocols = HttpProtocols.Http1AndHttp2); //webapi
+                        options.ListenAnyIP(GRPC_WEB_PORT, listenOptions =>
+                        {
+                            listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
+                            if (!string.IsNullOrWhiteSpace(tlsCertificatePath))
+                            {
+                                listenOptions.UseHttps(tlsCertificatePath, tlsCertificatePassword);
+                            }
+                        }); //webapi
                         options.ListenAnyIP(GRPC_PORT, listenOptions => listenOptions.Protocols = HttpProtocols.Http2); //grpc
                     });
 

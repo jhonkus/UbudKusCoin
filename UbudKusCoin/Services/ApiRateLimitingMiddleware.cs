@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Concurrent;
 using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
@@ -12,12 +14,14 @@ public sealed class ApiRateLimitingMiddleware
     private readonly ConcurrentDictionary<string, Window> _windows = new();
     private readonly int _limit;
     private readonly int _protectedPort;
+    private readonly string _apiToken;
 
     public ApiRateLimitingMiddleware(RequestDelegate next)
     {
         _next = next;
         _limit = Math.Max(1, DotNetEnv.Env.GetInt("API_RATE_LIMIT_PER_MINUTE", 120));
         _protectedPort = DotNetEnv.Env.GetInt("GRPC_WEB_PORT");
+        _apiToken = DotNetEnv.Env.GetString("API_AUTH_TOKEN", string.Empty);
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -26,6 +30,15 @@ public sealed class ApiRateLimitingMiddleware
             || context.Request.Path.StartsWithSegments("/health"))
         {
             await _next(context);
+            return;
+        }
+
+        if (!HttpMethods.IsOptions(context.Request.Method)
+            && !string.IsNullOrWhiteSpace(_apiToken)
+            && !HasValidToken(context.Request.Headers["X-API-Key"].ToString()))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            await context.Response.WriteAsJsonAsync(new { status = "error", message = "API authentication required." });
             return;
         }
 
@@ -49,6 +62,14 @@ public sealed class ApiRateLimitingMiddleware
         }
 
         await _next(context);
+    }
+
+    private bool HasValidToken(string supplied)
+    {
+        var expected = Encoding.UTF8.GetBytes(_apiToken);
+        var actual = Encoding.UTF8.GetBytes(supplied);
+        return expected.Length == actual.Length
+            && CryptographicOperations.FixedTimeEquals(expected, actual);
     }
 
     private sealed record Window(DateTimeOffset Start, int Count);

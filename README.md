@@ -57,8 +57,20 @@ multi-validator harness.
 For browser clients, configure `API_CORS_ORIGINS` with a comma-separated
 allowlist such as `https://wallet.example.com`; if it is empty, cross-origin
 browser requests are rejected by default. CORS is not authentication, so
-public deployments still require TLS, authentication, rate limiting, and
-network policy.
+public deployments also require network policy. Enable the API protection
+settings below for the gRPC-Web/API port:
+
+```text
+API_AUTH_TOKEN=replace-with-a-secret-from-your-secret-manager
+API_RATE_LIMIT_PER_MINUTE=120
+API_TLS_CERT_PATH=C:\secrets\node-api.pfx
+API_TLS_CERT_PASSWORD=loaded-from-secret-manager
+```
+
+`API_AUTH_TOKEN` is sent as the `X-API-Key` header. TLS and authentication
+apply to the browser-facing gRPC-Web port; the native gRPC port remains
+reserved for trusted node and server-side clients. Do not commit certificates,
+passwords, or tokens.
 
 ```powershell
 dotnet restore
