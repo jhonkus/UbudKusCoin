@@ -72,6 +72,9 @@ apply to the browser-facing gRPC-Web port; the native gRPC port remains
 reserved for trusted node and server-side clients. Do not commit certificates,
 passwords, or tokens.
 
+The node also rejects gRPC messages larger than 1 MiB on receive and 4 MiB on
+send. Keep explorer queries paginated rather than increasing these limits.
+
 ```powershell
 dotnet restore
 dotnet test UbudKusCoin.sln --no-restore --nologo

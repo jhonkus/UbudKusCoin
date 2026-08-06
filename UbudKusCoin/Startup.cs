@@ -21,7 +21,11 @@ namespace UbudKusCoin
     {
         public static void ConfigureServices(IServiceCollection services)
         {
-            services.AddGrpc();
+            services.AddGrpc(options =>
+            {
+                options.MaxReceiveMessageSize = 1 * 1024 * 1024;
+                options.MaxSendMessageSize = 4 * 1024 * 1024;
+            });
             services.AddHostedService<AbciSocketServer>();
             services.AddHostedService<ConsensusReadinessMonitor>();
             var corsOrigins = DotNetEnv.Env.GetString("API_CORS_ORIGINS", string.Empty)
