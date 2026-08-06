@@ -89,7 +89,7 @@ canonical two-node exchange/rejection tests and crash-safe snapshot rebuild test
 - [x] Add `VALIDATOR_SET` configuration and runtime proposer gating; remove random `AutoStake` minting.
 - **Option A (recommended):** integrate a mature engine (e.g., CometBFT-style) as the app/ABCI side.
 - **Option B:** implement specified PoS-BFT (e.g., Streamlet/HotStuff) — only with a formal spec + fuzz + audit.
-- [ ] Choose and integrate a mature engine (recommended) or complete a formally specified in-process BFT driver.
+- [x] Choose and integrate a mature engine (recommended) or complete a formally specified in-process BFT driver.
 - [x] Implement legacy staking module: locked stake, weighted selection, lock period, slashing for equivocation; remove
   `AutoStake` random logic from runtime.
 - [x] Transport signed votes between nodes and persist finalized heights atomically.
@@ -217,6 +217,6 @@ round-change tests, CometBFT ABCI integration, multi-process smoke/restart verif
 transactions, Ed25519 validator updates, restart recovery, network-partition fault injection, local snapshot restore,
 verified cross-node state-sync, validator-update mapping tests, delayed-finality regression tests, mutation fuzzing,
 delayed-message recovery, validated external genesis manifest loading,
-end-to-end validator key rotation, fail-closed external-signer reachability, and engine boundary hardening landed). Next:
+end-to-end validator key rotation, fail-closed external-signer reachability, and engine selection hardening landed). Next:
 stronger fuzzing, deployment of an audited external signer/HSM, and independent consensus/security review. See
 `docs/consensus-security-gate.md`.**

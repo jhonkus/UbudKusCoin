@@ -31,6 +31,18 @@ public sealed class ConsensusEngineTests
     }
 
     [Fact]
+    public void EngineFactory_SelectsTheConfiguredAdapter()
+    {
+        var development = ConsensusEngineFactory.Create(
+            ConsensusEngineOptions.Parse("development", ""));
+        var cometbft = ConsensusEngineFactory.Create(
+            ConsensusEngineOptions.Parse("cometbft", "http://localhost:26657"));
+
+        Assert.IsType<DevelopmentConsensusEngineAdapter>(development);
+        Assert.IsType<CometBftConsensusEngineAdapter>(cometbft);
+    }
+
+    [Fact]
     public void ExternalSignerRequiresTcpEndpoint()
     {
         var options = ConsensusEngineOptions.Parse(
