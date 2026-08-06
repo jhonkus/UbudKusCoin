@@ -125,9 +125,11 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
             && ServicePool.CanonicalNodeService.IsExternalCommitReplay(
                 transactions, request.Height, proposer.Value, evidence))
         {
+            var persistedState = ServicePool.CanonicalNodeService.Chain.State;
+            Application.Synchronize(persistedState);
             var replay = new ResponseFinalizeBlock
             {
-                AppHash = ByteString.CopyFrom(Application.State.ComputeStateRoot())
+                AppHash = ByteString.CopyFrom(persistedState.ComputeStateRoot())
             };
             replay.TxResults.AddRange(transactions.Select(_ => new ExecTxResult
             {
