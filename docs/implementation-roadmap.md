@@ -114,7 +114,8 @@ canonical two-node exchange/rejection tests and crash-safe snapshot rebuild test
   and restart recovery verification.
 - [x] Add signed KTX2 staking transactions (`Bond`, `Unbond`, `Withdraw`) with
   deterministic lock-period rules and stake positions committed into `state_root`.
-- [ ] Emit and verify CometBFT validator-set updates from committed staking state.
+- [x] Emit CometBFT validator-set updates from committed staking state and
+  resolve secp256k1 proposer addresses after validator activation.
 
 **Exit criteria:** multi-node tests showing finality, liveness under faults, and slashing. Protocol-level finality and slashing
 tests pass; runtime engine integration and fault/liveness tests remain.
@@ -194,6 +195,6 @@ tests pass; runtime engine integration and fault/liveness tests remain.
 - Use the `docs/*.md` files as living documents updated as stages land.
 
 **Current position: Stage 6 in progress (protocol, proposer gating, vote transport, finality persistence, quorum, partition,
-round-change tests, CometBFT ABCI integration, multi-process smoke/restart verification, and deterministic on-chain staking
-transactions landed). Next: CometBFT validator-set updates, fault injection, and independent consensus/security review. See
-`docs/consensus-security-gate.md`.**
+round-change tests, CometBFT ABCI integration, multi-process smoke/restart verification, deterministic on-chain staking
+transactions, and CometBFT validator updates landed). Next: validator-update integration tests, fault injection, and
+independent consensus/security review. See `docs/consensus-security-gate.md`.**
