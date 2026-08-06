@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Google.Protobuf;
@@ -20,6 +21,10 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
 {
     private const uint Success = 0;
     private const uint InvalidTransaction = 1;
+    private const uint SnapshotFormat = StateSnapshotCodec.Format;
+    private const int SnapshotChunkBytes = 512 * 1024;
+    private readonly object snapshotGate = new();
+    private SnapshotSession? snapshotSession;
 
     private static ConsensusApplicationStateMachine Application
         => ServicePool.ApplicationStateMachine
@@ -195,16 +200,138 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
     }
 
     public override Task<ResponseListSnapshots> ListSnapshots(RequestListSnapshots request, ServerCallContext context)
-        => Task.FromResult(new ResponseListSnapshots());
+    {
+        var payload = BuildSnapshotPayload();
+        var snapshot = DescribeSnapshot(payload);
+        var response = new ResponseListSnapshots();
+        response.Snapshots.Add(snapshot);
+        return Task.FromResult(response);
+    }
 
     public override Task<ResponseOfferSnapshot> OfferSnapshot(RequestOfferSnapshot request, ServerCallContext context)
-        => Task.FromResult(new ResponseOfferSnapshot { Result = 3 });
+    {
+        if (request.Snapshot is null
+            || request.Snapshot.Format != SnapshotFormat
+            || request.Snapshot.Chunks == 0
+            || request.Snapshot.Chunks > 4096)
+        {
+            return Task.FromResult(new ResponseOfferSnapshot
+            {
+                Result = ResponseOfferSnapshot.Types.Result.RejectFormat
+            });
+        }
+
+        lock (snapshotGate)
+        {
+            snapshotSession = new SnapshotSession(
+                request.Snapshot.Height,
+                request.Snapshot.Format,
+                request.Snapshot.Chunks,
+                request.Snapshot.Hash.ToByteArray());
+        }
+        return Task.FromResult(new ResponseOfferSnapshot
+        {
+            Result = ResponseOfferSnapshot.Types.Result.Accept
+        });
+    }
 
     public override Task<ResponseLoadSnapshotChunk> LoadSnapshotChunk(RequestLoadSnapshotChunk request, ServerCallContext context)
-        => Task.FromResult(new ResponseLoadSnapshotChunk());
+    {
+        if (request.Format != SnapshotFormat)
+            return Task.FromResult(new ResponseLoadSnapshotChunk());
+
+        var payload = BuildSnapshotPayload();
+        var snapshot = DescribeSnapshot(payload);
+        if (request.Height != snapshot.Height || request.Chunk >= snapshot.Chunks)
+            return Task.FromResult(new ResponseLoadSnapshotChunk());
+
+        var offset = checked((int)request.Chunk * SnapshotChunkBytes);
+        var length = Math.Min(SnapshotChunkBytes, payload.Length - offset);
+        return Task.FromResult(new ResponseLoadSnapshotChunk
+        {
+            Chunk = ByteString.CopyFrom(payload, offset, length)
+        });
+    }
 
     public override Task<ResponseApplySnapshotChunk> ApplySnapshotChunk(RequestApplySnapshotChunk request, ServerCallContext context)
-        => Task.FromResult(new ResponseApplySnapshotChunk { Result = 2 });
+    {
+        lock (snapshotGate)
+        {
+            if (snapshotSession is null || request.Index >= snapshotSession.ChunkCount)
+            {
+                return Task.FromResult(new ResponseApplySnapshotChunk
+                {
+                    Result = 2
+                });
+            }
+
+            snapshotSession.Chunks[request.Index] = request.Chunk.ToByteArray();
+            if (snapshotSession.Chunks.Values.Count != snapshotSession.ChunkCount)
+            {
+                return Task.FromResult(new ResponseApplySnapshotChunk { Result = 1 });
+            }
+
+            var payload = snapshotSession.Combine();
+            if (!StateSnapshotCodec.ComputeHash(payload).SequenceEqual(snapshotSession.Hash)
+                || !StateSnapshotCodec.TryDecode(payload, out var state, out var head, out _)
+                || head is null
+                || !ServicePool.CanonicalNodeService.RestoreSnapshot(state!, head, out _))
+            {
+                snapshotSession = null;
+                return Task.FromResult(new ResponseApplySnapshotChunk { Result = 2 });
+            }
+
+            ServicePool.ApplicationStateMachine.Synchronize(
+                ServicePool.CanonicalNodeService.Chain.State);
+            snapshotSession = null;
+            return Task.FromResult(new ResponseApplySnapshotChunk { Result = 1 });
+        }
+    }
+
+    private static byte[] BuildSnapshotPayload()
+        => StateSnapshotCodec.Encode(
+            Application.State,
+            ServicePool.CanonicalNodeService.Chain.Head.Block);
+
+    private static Snapshot DescribeSnapshot(byte[] payload)
+    {
+        var state = Application.State;
+        var chunks = checked((uint)Math.Max(1,
+            (payload.Length + SnapshotChunkBytes - 1) / SnapshotChunkBytes));
+        return new Snapshot
+        {
+            Height = (ulong)state.Height,
+            Format = SnapshotFormat,
+            Chunks = chunks,
+            Hash = ByteString.CopyFrom(StateSnapshotCodec.ComputeHash(payload)),
+            Metadata = ByteString.CopyFrom(state.ComputeStateRoot())
+        };
+    }
+
+    private sealed class SnapshotSession
+    {
+        public SnapshotSession(ulong height, uint format, uint chunkCount, byte[] hash)
+        {
+            Height = height;
+            Format = format;
+            ChunkCount = chunkCount;
+            Hash = hash;
+        }
+
+        public ulong Height { get; }
+        public uint Format { get; }
+        public uint ChunkCount { get; }
+        public byte[] Hash { get; }
+        public Dictionary<uint, byte[]> Chunks { get; } = new();
+
+        public byte[] Combine()
+        {
+            using var stream = new MemoryStream();
+            for (uint index = 0; index < ChunkCount; index++)
+                stream.Write(Chunks[index]);
+            return stream.ToArray();
+        }
+    }
 
     public override Task<ResponseExtendVote> ExtendVote(RequestExtendVote request, ServerCallContext context)
         => Task.FromResult(new ResponseExtendVote());

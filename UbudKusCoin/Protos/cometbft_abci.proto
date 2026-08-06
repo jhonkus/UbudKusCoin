@@ -88,13 +88,30 @@ message ResponseInitChain { repeated ValidatorUpdate validators = 2; bytes app_h
 message ValidatorUpdate { PublicKey pub_key = 1; int64 power = 2; }
 message PublicKey { oneof sum { bytes ed25519 = 1; bytes secp256k1 = 2; } }
 message RequestListSnapshots {}
-message ResponseListSnapshots {}
-message RequestOfferSnapshot { bytes app_hash = 2; }
-message ResponseOfferSnapshot { int32 result = 1; }
+message ResponseListSnapshots { repeated Snapshot snapshots = 1; }
+message RequestOfferSnapshot { Snapshot snapshot = 1; bytes app_hash = 2; }
+message ResponseOfferSnapshot {
+  Result result = 1;
+  enum Result {
+    UNKNOWN = 0;
+    ACCEPT = 1;
+    ABORT = 2;
+    REJECT = 3;
+    REJECT_FORMAT = 4;
+    REJECT_SENDER = 5;
+  }
+}
 message RequestLoadSnapshotChunk { uint64 height = 1; uint32 format = 2; uint32 chunk = 3; }
 message ResponseLoadSnapshotChunk { bytes chunk = 1; }
 message RequestApplySnapshotChunk { uint32 index = 1; bytes chunk = 2; string sender = 3; }
 message ResponseApplySnapshotChunk { int32 result = 1; repeated uint32 refetch_chunks = 2; repeated string reject_senders = 3; }
+message Snapshot {
+  uint64 height = 1;
+  uint32 format = 2;
+  uint32 chunks = 3;
+  bytes hash = 4;
+  bytes metadata = 5;
+}
 
 message RequestPrepareProposal {
   int64 max_tx_bytes = 1;
