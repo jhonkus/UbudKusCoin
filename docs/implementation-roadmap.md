@@ -95,6 +95,8 @@ canonical two-node exchange/rejection tests and crash-safe snapshot rebuild test
 - [x] Transport signed votes between nodes and persist finalized heights atomically.
 - [x] Add multi-node quorum tests, conflicting-vote rejection, and below-quorum liveness checks.
 - [x] Add partition/reconnect and round-change progress tests.
+- [x] Add an explicit consensus-engine adapter boundary and fail-closed
+  `CONSENSUS_ENGINE`/`COMETBFT_RPC_URL` configuration.
 
 **Exit criteria:** multi-node tests showing finality, liveness under faults, and slashing. Protocol-level finality and slashing
 tests pass; runtime engine integration and fault/liveness tests remain.
@@ -174,4 +176,5 @@ tests pass; runtime engine integration and fault/liveness tests remain.
 - Use the `docs/*.md` files as living documents updated as stages land.
 
 **Current position: Stage 6 in progress (protocol, proposer gating, vote transport, finality persistence, quorum, partition,
-and round-change tests landed). Next: production engine adapter and independent consensus/security review.**
+round-change tests, and adapter boundary landed). Next: real multi-process CometBFT/ABCI integration and independent
+consensus/security review. See `docs/consensus-security-gate.md`.**

@@ -18,6 +18,7 @@ namespace UbudKusCoin.Services
         public static WalletService WalletService { set; get; }
         public static P2PService P2PService { set; get; }
         public static CanonicalNodeService CanonicalNodeService { get; private set; }
+        public static IConsensusEngineAdapter ConsensusEngine { get; private set; }
         public static BlockCommitService BlockCommitService { get; } = new();
 
         public static void Add(
@@ -44,6 +45,8 @@ namespace UbudKusCoin.Services
             }
 
             var validatorSet = ConsensusValidatorConfig.Load((uint)chainId, WalletService);
+            var consensusOptions = ConsensusEngineOptions.FromEnvironment();
+            ConsensusEngine = ConsensusEngineFactory.Create(consensusOptions);
             CanonicalNodeService = new CanonicalNodeService((uint)chainId, @"DbFiles/canonical-chain.json", validatorSet);
             DbService.Start();
             FacadeService.start();
