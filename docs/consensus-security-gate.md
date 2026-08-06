@@ -4,6 +4,7 @@ Stage 6 now has an explicit consensus-engine boundary and fail-closed
 configuration. `CONSENSUS_ENGINE=development` uses the deterministic in-process
 driver and is suitable only for local tests. A production node must use
 `CONSENSUS_ENGINE=cometbft` and provide an absolute `COMETBFT_RPC_URL`.
+Production startup also requires a valid CometBFT `/status` payload.
 
 ## Remaining Production Evidence
 

@@ -5,6 +5,7 @@
 // Redistribution and use in source and binary forms with or without
 // modifications are permitted.
 
+using System;
 using UbudKusCoin.P2P;
 using UbudKusCoin.Core.Types;
 
@@ -47,6 +48,14 @@ namespace UbudKusCoin.Services
             var validatorSet = ConsensusValidatorConfig.Load((uint)chainId, WalletService);
             var consensusOptions = ConsensusEngineOptions.FromEnvironment();
             ConsensusEngine = ConsensusEngineFactory.Create(consensusOptions);
+            if (consensusOptions.Mode == ConsensusEngineMode.CometBft)
+            {
+                var status = ConsensusEngine.GetStatusAsync().GetAwaiter().GetResult();
+                if (!status.Healthy)
+                {
+                    throw new InvalidOperationException($"Consensus engine startup check failed: {status.Message}");
+                }
+            }
             CanonicalNodeService = new CanonicalNodeService((uint)chainId, @"DbFiles/canonical-chain.json", validatorSet);
             DbService.Start();
             FacadeService.start();

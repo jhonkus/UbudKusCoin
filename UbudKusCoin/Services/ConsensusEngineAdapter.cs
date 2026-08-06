@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -48,9 +49,23 @@ public sealed class CometBftConsensusEngineAdapter : IConsensusEngineAdapter
                 return new ConsensusEngineStatus(false, "cometbft", $"RPC returned {(int)response.StatusCode}.");
             }
 
-            return new ConsensusEngineStatus(true, "cometbft", "CometBFT RPC is reachable.");
+            await using var content = await response.Content.ReadAsStreamAsync(cancellationToken);
+            using var document = await JsonDocument.ParseAsync(content, cancellationToken: cancellationToken);
+            if (!document.RootElement.TryGetProperty("result", out var result)
+                || !result.TryGetProperty("node_info", out _)
+                || !result.TryGetProperty("sync_info", out var syncInfo)
+                || !syncInfo.TryGetProperty("latest_block_height", out var height)
+                || string.IsNullOrWhiteSpace(height.GetString()))
+            {
+                return new ConsensusEngineStatus(false, "cometbft", "CometBFT returned an invalid status payload.");
+            }
+
+            return new ConsensusEngineStatus(
+                true,
+                "cometbft",
+                $"CometBFT RPC is healthy at block {height.GetString()}.");
         }
-        catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
+        catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException or JsonException)
         {
             return new ConsensusEngineStatus(false, "cometbft", $"CometBFT RPC is unavailable: {exception.Message}");
         }

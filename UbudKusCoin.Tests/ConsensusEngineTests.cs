@@ -26,7 +26,9 @@ public sealed class ConsensusEngineTests
     [Fact]
     public async Task CometBftAdapter_ReportsRpcHealth()
     {
-        var handler = new StubHandler(HttpStatusCode.OK);
+        var handler = new StubHandler(
+            HttpStatusCode.OK,
+            "{\"result\":{\"node_info\":{},\"sync_info\":{\"latest_block_height\":\"42\"}}}");
         var adapter = new CometBftConsensusEngineAdapter(
             new Uri("http://localhost:26657"),
             new HttpClient(handler));
@@ -35,20 +37,41 @@ public sealed class ConsensusEngineTests
 
         Assert.True(status.Healthy);
         Assert.Equal("cometbft", status.Engine);
+        Assert.Contains("block 42", status.Message);
         Assert.Equal("/status", handler.RequestedPath);
+    }
+
+    [Fact]
+    public async Task CometBftAdapter_RejectsInvalidStatusPayload()
+    {
+        var adapter = new CometBftConsensusEngineAdapter(
+            new Uri("http://localhost:26657"),
+            new HttpClient(new StubHandler(HttpStatusCode.OK, "{}")));
+
+        var status = await adapter.GetStatusAsync();
+
+        Assert.False(status.Healthy);
     }
 
     private sealed class StubHandler : HttpMessageHandler
     {
         private readonly HttpStatusCode _statusCode;
+        private readonly string _body;
         public string? RequestedPath { get; private set; }
 
-        public StubHandler(HttpStatusCode statusCode) => _statusCode = statusCode;
+        public StubHandler(HttpStatusCode statusCode, string body = "")
+        {
+            _statusCode = statusCode;
+            _body = body;
+        }
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             RequestedPath = request.RequestUri!.AbsolutePath;
-            return Task.FromResult(new HttpResponseMessage(_statusCode));
+            return Task.FromResult(new HttpResponseMessage(_statusCode)
+            {
+                Content = new StringContent(_body)
+            });
         }
     }
 }
