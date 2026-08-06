@@ -56,6 +56,27 @@ public sealed class ValidatorUpdateBuilderTests
         Assert.DoesNotContain(updates, update => update.PubKey.Ed25519.Length == malformed.ConsensusPubKey.Length);
     }
 
+    [Fact]
+    public void Build_EmitsRemovalAndActivationForConsensusKeyRotation()
+    {
+        var previousStake = Stake("02" + new string('1', 64), "a", 2m);
+        var rotatedStake = Stake("02" + new string('1', 64), "a", 2m);
+        rotatedStake.ConsensusPubKey = Enumerable.Repeat((byte)0xA5, 32).ToArray();
+
+        var previous = new State(ChainInfo.ChainIdTestnet);
+        previous.SetStake(previousStake);
+        var current = new State(ChainInfo.ChainIdTestnet);
+        current.SetStake(rotatedStake);
+
+        var updates = ValidatorUpdateBuilder.Build(previous, current);
+
+        Assert.Equal(2, updates.Count);
+        Assert.Contains(updates, x => x.Power == 0
+            && x.PubKey.Ed25519.ToByteArray().SequenceEqual(previousStake.ConsensusPubKey));
+        Assert.Contains(updates, x => x.Power == rotatedStake.Amount.BaseUnits
+            && x.PubKey.Ed25519.ToByteArray().SequenceEqual(rotatedStake.ConsensusPubKey));
+    }
+
     private static StakePositionState Stake(string publicKey, string suffix, decimal amount)
     {
         var bytes = Convert.FromHexString(publicKey);

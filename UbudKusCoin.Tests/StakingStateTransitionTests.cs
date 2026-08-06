@@ -71,6 +71,32 @@ public sealed class StakingStateTransitionTests
     }
 
     [Fact]
+    public void RotateValidatorKey_ReplacesConsensusKeyAndRejectsUnauthorizedSigner()
+    {
+        var (staker, key) = CreateAddress(0x51);
+        var (otherAddress, otherKey) = CreateAddress(0x52);
+        var (validator, _) = CreateAddress(0x53);
+        var state = new State(ChainId);
+        state.EnsureAccount(staker).Balance = Money.FromCoins(10m);
+        state.EnsureAccount(otherAddress).Balance = Money.FromCoins(10m);
+        state.EnsureAccount(validator);
+        state = Apply(state, validator, MakeTransaction(TransactionKind.Bond, staker, staker, key, 1,
+            Money.FromCoins(2m), Money.FromCoins(0.1m)));
+
+        var rotatedKey = Enumerable.Repeat((byte)0xA5, 32).ToArray();
+        state = Apply(state, validator, MakeTransaction(TransactionKind.RotateValidatorKey,
+            staker, staker, key, 2, Money.Zero, Money.FromCoins(0.1m), validatorPublicKey: rotatedKey));
+        Assert.Equal(rotatedKey, state.GetStake(staker)!.ConsensusPubKey);
+
+        var unauthorized = MakeTransaction(TransactionKind.RotateValidatorKey,
+            staker, staker, otherKey, 3, Money.Zero, Money.FromCoins(0.1m),
+            validatorPublicKey: Enumerable.Repeat((byte)0xB6, 32).ToArray());
+        var rejected = TryApply(state, validator, unauthorized);
+        Assert.False(rejected.Success);
+        Assert.Contains("envelope or signature", rejected.Error, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void DuplicateVoteEvidence_SlashesAndJailsValidatorDeterministically()
     {
         var (staker, key) = CreateAddress(0x41);
@@ -147,7 +173,8 @@ public sealed class StakingStateTransitionTests
     }
 
     private static Transaction MakeTransaction(TransactionKind kind, Address from, Address to,
-        Key key, ulong nonce, Money amount, Money fee, long lockPeriod = 0)
+        Key key, ulong nonce, Money amount, Money fee, long lockPeriod = 0,
+        byte[]? validatorPublicKey = null)
     {
         var transaction = new Transaction
         {
@@ -161,8 +188,9 @@ public sealed class StakingStateTransitionTests
             LockPeriod = lockPeriod,
             PubKey = key.PubKey.ToBytes()
         };
-        if (kind == TransactionKind.Bond)
-            transaction.ValidatorPubKey = System.Security.Cryptography.SHA256.HashData(transaction.PubKey);
+        if (kind is TransactionKind.Bond or TransactionKind.RotateValidatorKey)
+            transaction.ValidatorPubKey = validatorPublicKey
+                ?? System.Security.Cryptography.SHA256.HashData(transaction.PubKey);
         transaction.Signature = TransactionSigner.Sign(transaction, key.ToBytes());
         return transaction;
     }

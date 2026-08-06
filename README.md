@@ -36,6 +36,7 @@ feature count.
 - Validated external genesis manifest support for reproducible chain bootstrap;
   production manifests must be reviewed, hash-pinned, and distributed out of band.
 - Explicit validator key custody policy with fail-closed local-file or external-signer modes.
+- Signed validator consensus-key rotation with deterministic old-key removal and new-key activation.
 - Console wallet, explorer integration, gRPC APIs, and deployment harnesses.
 
 ## Status and Production Gate

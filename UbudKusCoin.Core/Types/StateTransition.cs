@@ -223,6 +223,21 @@ var applied = ComputeResultingState(state, block);
                     }
                     break;
                 }
+                case TransactionKind.RotateValidatorKey:
+                {
+                    var stake = next.GetStake(tx.From);
+                    if (stake is null || stake.Jailed || stake.UnlockHeight != 0)
+                        return StateTransitionResult.Fail("Stake position cannot rotate its validator key.");
+                    if (!stake.PubKey.SequenceEqual(tx.PubKey))
+                        return StateTransitionResult.Fail("Stake public key mismatch.");
+                    if (stake.ConsensusPubKey.SequenceEqual(tx.ValidatorPubKey))
+                        return StateTransitionResult.Fail("Validator key is unchanged.");
+                    if (next.Stakes.Any(x => x.Address.Encoded != tx.From.Encoded
+                        && x.ConsensusPubKey.SequenceEqual(tx.ValidatorPubKey)))
+                        return StateTransitionResult.Fail("Validator key is already assigned.");
+                    stake.ConsensusPubKey = tx.ValidatorPubKey.ToArray();
+                    break;
+                }
                 case TransactionKind.Unbond:
                 {
                     var stake = next.GetStake(tx.From);

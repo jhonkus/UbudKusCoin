@@ -10,7 +10,8 @@ public enum TransactionKind : uint
     Transfer = 0,
     Bond = 1,
     Unbond = 2,
-    Withdraw = 3
+    Withdraw = 3,
+    RotateValidatorKey = 4
 }
 
 /// <summary>
@@ -33,7 +34,7 @@ public sealed class Transaction
     public long ValidUntil { get; set; }  // unix seconds (0 = no expiry)
     public long LockPeriod { get; set; }  // blocks for unbond requests
     public byte[] PubKey { get; set; } = Array.Empty<byte>(); // compressed ECDSA pubkey
-    public byte[] ValidatorPubKey { get; set; } = Array.Empty<byte>(); // CometBFT Ed25519 key for Bond
+    public byte[] ValidatorPubKey { get; set; } = Array.Empty<byte>(); // Ed25519 key for Bond/RotateValidatorKey
     public byte[] Signature { get; set; } = Array.Empty<byte>(); // DER ECDSA over digest
 
     /// <summary>
@@ -135,6 +136,8 @@ public string ComputeIdHex()
                 return false;
             case TransactionKind.Withdraw when !isSelf || Amount.BaseUnits != 0 || LockPeriod != 0:
                 return false;
+            case TransactionKind.RotateValidatorKey when !isSelf || Amount.BaseUnits != 0 || LockPeriod != 0:
+                return false;
         }
 
         if (Fee < FeePolicy.MinRelayFee)
@@ -152,12 +155,14 @@ public string ComputeIdHex()
             return false;
         }
 
-        if (Kind == TransactionKind.Bond && ValidatorPubKey.Length != 32)
+        if (Kind is TransactionKind.Bond or TransactionKind.RotateValidatorKey
+            && ValidatorPubKey.Length != 32)
         {
             return false;
         }
 
-        if (Kind != TransactionKind.Bond && ValidatorPubKey.Length != 0)
+        if (Kind is not (TransactionKind.Bond or TransactionKind.RotateValidatorKey)
+            && ValidatorPubKey.Length != 0)
         {
             return false;
         }

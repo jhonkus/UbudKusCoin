@@ -393,6 +393,7 @@ public sealed class CanonicalNodeService
             Kind = (uint)transaction.Kind,
             LockPeriod = transaction.LockPeriod,
             PubKey = Google.Protobuf.ByteString.CopyFrom(transaction.PubKey),
+            ValidatorPubKey = Google.Protobuf.ByteString.CopyFrom(transaction.ValidatorPubKey),
             Signature = Google.Protobuf.ByteString.CopyFrom(transaction.Signature)
         };
 
@@ -411,6 +412,7 @@ public sealed class CanonicalNodeService
             Kind = (TransactionKind)transaction.Kind,
             LockPeriod = transaction.LockPeriod,
             PubKey = transaction.PubKey.ToByteArray(),
+            ValidatorPubKey = transaction.ValidatorPubKey.ToByteArray(),
             Signature = transaction.Signature.ToByteArray()
         };
 

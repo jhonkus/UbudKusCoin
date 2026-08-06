@@ -124,6 +124,8 @@ canonical two-node exchange/rejection tests and crash-safe snapshot rebuild test
   be rewound by late consensus messages.
 - [x] Add a four-validator delayed-message recovery drill with quorum progress
   during isolation and height/hash convergence after reconnect.
+- [x] Add signed consensus-key rotation with deterministic old-key removal and
+  new-key activation in the CometBFT validator update set.
 - [x] Add deterministic fuzz-style decoder tests for transaction and snapshot
   boundaries; malformed random inputs must not escape as exceptions.
 - [x] Load a validated external genesis manifest in node startup and verify it

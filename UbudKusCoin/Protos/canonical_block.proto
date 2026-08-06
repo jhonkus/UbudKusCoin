@@ -64,4 +64,5 @@ message CanonicalTransaction {
   bytes signature = 11;
   uint32 kind = 12;
   int64 lock_period = 13;
+  bytes validator_pub_key = 14;
 }
