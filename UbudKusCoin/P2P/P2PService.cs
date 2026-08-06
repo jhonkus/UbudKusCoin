@@ -9,6 +9,8 @@ using System.Linq;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Net.Http;
+using System.Security.Cryptography.X509Certificates;
 using UbudKusCoin.Grpc;
 using UbudKusCoin.Services;
 using Grpc.Net.Client;
@@ -52,7 +54,7 @@ namespace UbudKusCoin.P2P
                 if (!nodeAddress.Equals(peer.Address))
                 {
                     Console.WriteLine("-- BroadcastBlock to {0}", peer.Address);
-                    GrpcChannel channel = GrpcChannel.ForAddress(peer.Address);
+                    GrpcChannel channel = CreateChannel(peer.Address);
                     var blockService = new BlockServiceClient(channel);
                     try
                     {
@@ -80,7 +82,7 @@ namespace UbudKusCoin.P2P
 
                 try
                 {
-                    using var channel = GrpcChannel.ForAddress(peer.Address);
+                    using var channel = CreateChannel(peer.Address);
                     var client = new CanonicalBlockService.CanonicalBlockServiceClient(channel);
                     var response = client.Add(CanonicalNodeService.ToGrpc(block));
                     Console.WriteLine("-- Canonical block {0}: {1}", peer.Address, response.Message);
@@ -105,7 +107,7 @@ namespace UbudKusCoin.P2P
 
                 try
                 {
-                    using var channel = GrpcChannel.ForAddress(peer.Address);
+                    using var channel = CreateChannel(peer.Address);
                     var client = new CanonicalBlockService.CanonicalBlockServiceClient(channel);
                     var response = client.SubmitVote(vote);
                     Console.WriteLine("-- Consensus vote {0}: {1}", peer.Address, response.Message);
@@ -131,7 +133,7 @@ namespace UbudKusCoin.P2P
                 if (!nodeAddress.Equals(peer.Address))
                 {
                     Console.WriteLine("-- BroadcastStake to {0}", peer.Address);
-                    GrpcChannel channel = GrpcChannel.ForAddress(peer.Address);
+                    GrpcChannel channel = CreateChannel(peer.Address);
                     var stakeService = new StakeServiceClient(channel);
                     try
                     {
@@ -159,7 +161,7 @@ namespace UbudKusCoin.P2P
                 if (!nodeAddress.Equals(peer.Address))
                 {
                     Console.WriteLine("-- BroadcastTransaction to {0}", peer.Address);
-                    GrpcChannel channel = GrpcChannel.ForAddress(peer.Address);
+                    GrpcChannel channel = CreateChannel(peer.Address);
                     var txnService = new TransactionServiceClient(channel);
                     try
                     {
@@ -264,7 +266,7 @@ namespace UbudKusCoin.P2P
 
                 try
                 {
-                    using var channel = GrpcChannel.ForAddress(peer.Address);
+                    using var channel = CreateChannel(peer.Address);
                     var blockService = new CanonicalBlockService.CanonicalBlockServiceClient(channel);
                     var peerHead = blockService.GetHead(new CanonicalEmpty());
                     var localHeight = ServicePool.CanonicalNodeService.Chain.State.Height;
@@ -303,6 +305,33 @@ namespace UbudKusCoin.P2P
         /// <summary>
         /// Sincronize blockchain states, make block height same with other peer
         /// </summary>
+        private static GrpcChannel CreateChannel(string address)
+        {
+            if (!Uri.TryCreate(address, UriKind.Absolute, out var uri))
+            {
+                throw new InvalidOperationException($"Peer address is not an absolute URI: {address}");
+            }
+
+            var handler = new HttpClientHandler();
+            var clientCertificatePath = DotNetEnv.Env.GetString(
+                "P2P_TLS_CLIENT_CERT_PATH",
+                DotNetEnv.Env.GetString("P2P_TLS_CERT_PATH", string.Empty));
+            var clientCertificatePassword = DotNetEnv.Env.GetString(
+                "P2P_TLS_CLIENT_CERT_PASSWORD",
+                DotNetEnv.Env.GetString("P2P_TLS_CERT_PASSWORD", string.Empty));
+
+            if (uri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)
+                && !string.IsNullOrWhiteSpace(clientCertificatePath))
+            {
+                handler.ClientCertificates.Add(new X509Certificate2(clientCertificatePath, clientCertificatePassword));
+            }
+
+            return GrpcChannel.ForAddress(uri, new GrpcChannelOptions
+            {
+                HttpHandler = handler
+            });
+        }
+
         public void SyncState()
         {
             SyncCanonicalState();

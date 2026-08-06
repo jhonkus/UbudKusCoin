@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 
 $compose = Join-Path $PSScriptRoot "docker-compose.multinode.yml"
-$network = "cometbft_default"
+$network = "ukc-multinode_default"
 
 function Get-Status([int]$port) {
     return Invoke-RestMethod "http://localhost:$port/status"

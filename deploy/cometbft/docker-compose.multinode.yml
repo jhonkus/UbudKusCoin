@@ -1,3 +1,5 @@
+name: ukc-multinode
+
 services:
   cometbft-init:
     image: cometbft/cometbft:v0.38.17
