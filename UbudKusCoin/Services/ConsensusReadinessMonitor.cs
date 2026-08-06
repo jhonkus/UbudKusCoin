@@ -27,6 +27,7 @@ public sealed class ConsensusReadinessMonitor : BackgroundService
         NodeReadinessState.SetConsensusMode(ConsensusEngineMode.CometBft);
         var options = ConsensusEngineOptions.FromEnvironment();
         var deadline = DateTime.UtcNow.AddSeconds(options.StartupTimeoutSeconds);
+        var retryCount = 0;
         while (!stoppingToken.IsCancellationRequested)
         {
             using var activity = NodeTelemetry.ActivitySource.StartActivity("consensus.readiness.poll");
@@ -41,11 +42,14 @@ public sealed class ConsensusReadinessMonitor : BackgroundService
 
             if (DateTime.UtcNow >= deadline)
             {
-                _logger.LogWarning("External consensus engine timed out during startup: {Message}", status.Message);
-                return;
+                retryCount++;
+                _logger.LogWarning(
+                    "External consensus engine is still unavailable after startup timeout; retrying ({RetryCount}): {Message}",
+                    retryCount,
+                    status.Message);
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
+            await Task.Delay(TimeSpan.FromSeconds(Math.Min(5, 1 + retryCount)), stoppingToken);
         }
     }
 }
