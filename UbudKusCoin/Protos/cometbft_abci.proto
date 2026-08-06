@@ -5,7 +5,8 @@ option csharp_namespace = "UbudKusCoin.CometBft.Abci";
 
 import "google/protobuf/timestamp.proto";
 
-// Wire-compatible v0.38 ABCI surface. Unused nested CometBFT types are
+// Application-owned adaptation of CometBFT v0.38.17 ABCI types. The upstream
+// schema is Apache-2.0 licensed; see /THIRD-PARTY-NOTICES.md. Unused nested types are
 // intentionally omitted until the corresponding application feature exists.
 service ABCI {
   rpc Echo(RequestEcho) returns (ResponseEcho);
