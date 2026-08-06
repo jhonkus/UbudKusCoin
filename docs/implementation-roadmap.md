@@ -155,8 +155,10 @@ tests pass; runtime engine integration and fault/liveness tests remain.
 
 ## Stage 8 — Wallet, storage, observability, recovery
 **Why:** fund safety + ops safety.
-- Wallet: BIP-39/44, checksummed address, **encrypted key storage at rest** (AES-GCM/DPAPI), never print mnemonic to
-  logs/console, backup/recovery UX, sign-only (never send private key).
+- [x] Wallet now loads or creates an encrypted vault for mnemonic seed storage
+  at rest (AES-GCM/DPAPI), and the node keeps the mnemonic out of logs/console.
+- Wallet: BIP-39/44, checksummed address, backup/recovery UX, sign-only (never
+  send private key).
 - Storage: upgrade vulnerable LiteDB (or swap), add snapshot + restore + migration with backup strategy.
 - Indexer for explorer/query; reorg-safe.
 - Full observability: metrics, dashboards, alerts (state_root divergence).

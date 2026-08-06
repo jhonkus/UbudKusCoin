@@ -34,8 +34,12 @@ namespace UbudKusCoin.Services
         public void Start()
         {
             Console.WriteLine("... Wallet service is starting");
-            Mnemonic = new Mnemonic(Passphrase);
-            KeyPair = GenerateKeyPair(Mnemonic, 0);
+            var walletPath = DotNetEnv.Env.GetString("WALLET_STORE_PATH", @"DbFiles/wallet.vault");
+            var seedWords = DotNetEnv.Env.GetString("NODE_PASSPHRASE", string.Empty).Trim();
+            var snapshot = WalletVault.LoadOrCreate(walletPath, seedWords, 0);
+            Mnemonic = new Mnemonic(snapshot.MnemonicWords);
+            Passphrase = Mnemonic.ToString();
+            KeyPair = GenerateKeyPair(Mnemonic, snapshot.DerivationPath);
             Console.WriteLine("...... Wallet service is ready");
         }
 
