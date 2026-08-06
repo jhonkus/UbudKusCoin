@@ -116,14 +116,16 @@ canonical two-node exchange/rejection tests and crash-safe snapshot rebuild test
   and restart recovery verification, sized for quorum-preserving state-sync drills.
 - [x] Add signed KTX2 staking transactions (`Bond`, `Unbond`, `Withdraw`) with
   deterministic lock-period rules and stake positions committed into `state_root`.
-- [x] Emit CometBFT validator-set updates from committed staking state and
-  resolve secp256k1 proposer addresses after validator activation.
+- [x] Emit CometBFT Ed25519 validator-set updates from committed staking state
+  while keeping secp256k1 transaction signing keys separate.
 - [x] Add deterministic validator-update mapping tests for active, jailed,
   unbonding, and removed positions.
 - [x] Add delayed-certificate regression coverage so finalized state cannot
   be rewound by late consensus messages.
 - [x] Add deterministic fuzz-style decoder tests for transaction and snapshot
   boundaries; malformed random inputs must not escape as exceptions.
+- [x] Load a validated external genesis manifest in node startup and verify it
+  reproduces the deterministic testnet state root.
 
 **Exit criteria:** multi-node tests showing finality, liveness under faults, and slashing. Protocol-level finality and slashing
 tests pass; runtime engine integration and fault/liveness tests remain.
@@ -204,8 +206,8 @@ tests pass; runtime engine integration and fault/liveness tests remain.
 
 **Current position: Stage 6 in progress (protocol, proposer gating, vote transport, finality persistence, quorum, partition,
 round-change tests, CometBFT ABCI integration, multi-process smoke/restart verification, deterministic on-chain staking
-transactions, CometBFT validator updates, restart recovery, network-partition fault injection, local snapshot restore,
-verified cross-node state-sync, validator-update mapping tests, delayed-finality regression tests, and decoder fuzz-style
-tests landed). Next: production-shaped validator-update integration, delayed-message network testing, stronger fuzzing,
-and independent consensus/security review. See
+transactions, Ed25519 validator updates, restart recovery, network-partition fault injection, local snapshot restore,
+verified cross-node state-sync, validator-update mapping tests, delayed-finality regression tests, decoder fuzz-style
+tests, and validated external genesis manifest loading landed). Next: delayed-message network testing, stronger fuzzing,
+managed validator key custody, and independent consensus/security review. See
 `docs/consensus-security-gate.md`.**

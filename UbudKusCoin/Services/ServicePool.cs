@@ -6,6 +6,8 @@
 // modifications are permitted.
 
 using System;
+using System.IO;
+using System.Security.Cryptography;
 using UbudKusCoin.P2P;
 using UbudKusCoin.Core.Consensus;
 using UbudKusCoin.Core.Types;
@@ -47,6 +49,24 @@ namespace UbudKusCoin.Services
                 chainId = (int)ChainInfo.ChainIdTestnet;
             }
 
+            var genesisPath = DotNetEnv.Env.GetString("GENESIS_MANIFEST_PATH", string.Empty);
+            GenesisManifest genesisManifest = null;
+            if (!string.IsNullOrWhiteSpace(genesisPath))
+            {
+                var expectedManifestHash = DotNetEnv.Env.GetString("GENESIS_MANIFEST_SHA256", string.Empty);
+                if (!string.IsNullOrWhiteSpace(expectedManifestHash))
+                {
+                    var actualManifestHash = Convert.ToHexString(
+                        SHA256.HashData(File.ReadAllBytes(genesisPath)));
+                    if (!actualManifestHash.Equals(expectedManifestHash.Trim(), StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new InvalidDataException("Genesis manifest SHA-256 does not match the configured pin.");
+                    }
+                }
+
+                genesisManifest = GenesisManifest.Load(genesisPath, (uint)chainId);
+            }
+
             var consensusOptions = ConsensusEngineOptions.FromEnvironment();
             ConsensusEngine = ConsensusEngineFactory.Create(consensusOptions);
             var validatorKey = consensusOptions.Mode == ConsensusEngineMode.CometBft
@@ -59,7 +79,8 @@ namespace UbudKusCoin.Services
             }
 
             var validatorSet = ConsensusValidatorConfig.Load((uint)chainId, WalletService, validatorKey);
-            CanonicalNodeService = new CanonicalNodeService((uint)chainId, @"DbFiles/canonical-chain.json", validatorSet);
+            CanonicalNodeService = new CanonicalNodeService((uint)chainId, @"DbFiles/canonical-chain.json", validatorSet,
+                genesisManifest);
             var validator = Address.FromPublicKey(ChainInfo.AddressVersion((uint)chainId), validatorKey);
             ApplicationStateMachine = new ConsensusApplicationStateMachine(
                 CanonicalNodeService.Chain.State,

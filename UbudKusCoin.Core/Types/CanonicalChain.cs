@@ -10,10 +10,12 @@ public sealed class CanonicalChain
     private readonly Dictionary<string, ChainNode> nodes = new(StringComparer.Ordinal);
     private readonly List<QuarantinedBlock> quarantine = new();
 
-    public CanonicalChain(uint chainId)
+    public CanonicalChain(uint chainId, GenesisManifest? genesisManifest = null)
     {
-        var genesis = Genesis.CreateBlock(chainId);
-        var state = Genesis.CreateState(chainId);
+        genesisManifest ??= Genesis.CreateDefaultManifest(chainId);
+        genesisManifest.Validate(chainId);
+        var genesis = Genesis.CreateBlock(genesisManifest);
+        var state = Genesis.CreateState(genesisManifest);
         var result = StateTransition.ApplyBlock(state, genesis);
         if (!result.Success)
         {

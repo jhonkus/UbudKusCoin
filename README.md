@@ -33,6 +33,8 @@ feature count.
   updates, slashing evidence, and sequential finality tracking.
 - CometBFT v0.38 ABCI integration with four-validator local quorum, restart,
   partition/recovery, and snapshot-restore tests.
+- Validated external genesis manifest support for reproducible chain bootstrap;
+  production manifests must be reviewed, hash-pinned, and distributed out of band.
 - Console wallet, explorer integration, gRPC APIs, and deployment harnesses.
 
 ## Status and Production Gate

@@ -20,12 +20,13 @@ public sealed class CanonicalNodeService
     private readonly FinalityTracker finality = new();
     private CanonicalChain chain;
 
-    public CanonicalNodeService(uint chainId, string snapshotPath, ValidatorSet validatorSet = null)
+    public CanonicalNodeService(uint chainId, string snapshotPath, ValidatorSet validatorSet = null,
+        GenesisManifest genesisManifest = null)
     {
-        store = new CanonicalChainStore(snapshotPath);
+        store = new CanonicalChainStore(snapshotPath, genesisManifest);
         finalityStore = new FinalityStore(snapshotPath + ".finality");
         this.validatorSet = validatorSet;
-        chain = File.Exists(snapshotPath) ? store.Load() : new CanonicalChain(chainId);
+        chain = File.Exists(snapshotPath) ? store.Load() : new CanonicalChain(chainId, genesisManifest);
         if (!File.Exists(snapshotPath))
         {
             store.Save(chain);

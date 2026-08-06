@@ -14,11 +14,13 @@ namespace UbudKusCoin.Services;
 public sealed class CanonicalChainStore
 {
     private readonly string path;
+    private readonly GenesisManifest genesisManifest;
     private readonly JsonSerializerOptions jsonOptions = new(JsonSerializerDefaults.Web);
 
-    public CanonicalChainStore(string path)
+    public CanonicalChainStore(string path, GenesisManifest genesisManifest = null)
     {
         this.path = path;
+        this.genesisManifest = genesisManifest;
     }
 
     public void Save(CanonicalChain chain)
@@ -49,7 +51,7 @@ public sealed class CanonicalChainStore
 
         var snapshot = JsonSerializer.Deserialize<ChainSnapshot>(File.ReadAllText(path), jsonOptions)
             ?? throw new InvalidDataException("Canonical chain snapshot is empty.");
-        var chain = new CanonicalChain(snapshot.ChainId);
+        var chain = new CanonicalChain(snapshot.ChainId, genesisManifest);
         foreach (var record in snapshot.Blocks
                      .Where(x => x.Height > 1)
                      .OrderBy(x => x.Height)

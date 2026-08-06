@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using NBitcoin;
 using UbudKusCoin.Core.Signing;
@@ -70,6 +71,25 @@ public class GenesisTests
     {
         var state = Genesis.CreateState(ChainInfo.ChainIdTestnet);
         Assert.True(state.Accounts.All(a => a.Balance.BaseUnits > 0));
+    }
+
+    [Fact]
+    public void DefaultManifest_ReproducesGenesisStateRoot()
+    {
+        var manifest = Genesis.CreateDefaultManifest(ChainInfo.ChainIdTestnet);
+        manifest.Validate(ChainInfo.ChainIdTestnet);
+
+        Assert.Equal(
+            Genesis.CreateState(ChainInfo.ChainIdTestnet).ComputeStateRoot(),
+            Genesis.CreateState(manifest).ComputeStateRoot());
+    }
+
+    [Fact]
+    public void Manifest_RejectsUnexpectedChainId()
+    {
+        var manifest = Genesis.CreateDefaultManifest(ChainInfo.ChainIdTestnet);
+
+        Assert.Throws<InvalidDataException>(() => manifest.Validate(ChainInfo.ChainIdMainnet));
     }
 
     [Fact]

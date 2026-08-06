@@ -30,6 +30,16 @@ not use this shared-volume key arrangement for production key management.
 The application waits up to `COMETBFT_STARTUP_TIMEOUT_SECONDS` for the engine
 RPC and never falls back to the in-process driver.
 
+## Genesis manifest
+
+The Compose testnet mounts `genesis-manifest.testnet.json` into each application
+container and sets `GENESIS_MANIFEST_PATH`. The application validates the chain
+ID, timestamp, validator key, account keys, duplicate accounts, and balances
+before constructing the canonical chain. `GENESIS_MANIFEST_SHA256` can pin the
+exact bytes before parsing. Production deployments must replace this fixture
+with a reviewed, hash-pinned manifest distributed out of band; do not put
+validator private keys in the manifest.
+
 ## Limitations
 
 - This validates process wiring and ABCI reachability only.
