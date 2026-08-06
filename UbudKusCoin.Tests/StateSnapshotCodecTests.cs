@@ -31,6 +31,19 @@ public sealed class StateSnapshotCodecTests
     }
 
     [Fact]
+    public void EncodeDecode_PreservesCanonicalHeadAnchor()
+    {
+        var block = Genesis.CreateBlock(ChainInfo.ChainIdTestnet);
+        var state = StateTransition.ApplyBlock(
+            Genesis.CreateState(ChainInfo.ChainIdTestnet), block).NewState!;
+        var encoded = StateSnapshotCodec.Encode(state, block);
+
+        Assert.True(StateSnapshotCodec.TryDecode(encoded, out var restored, out var head, out var error), error);
+        Assert.Equal(block.ComputeHeaderHash(), head!.ComputeHeaderHash());
+        Assert.Equal(restored!.ComputeStateRoot(), head.StateRoot);
+    }
+
+    [Fact]
     public void Decode_RejectsTamperedPayload()
     {
         var state = Genesis.CreateState(ChainInfo.ChainIdTestnet);

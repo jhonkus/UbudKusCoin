@@ -30,6 +30,28 @@ public sealed class CanonicalChain
     public IReadOnlyList<QuarantinedBlock> Quarantine => quarantine;
     public IReadOnlyCollection<ChainNode> Candidates => nodes.Values;
 
+    public static bool TryRestoreSnapshot(Block head, State state, out CanonicalChain? chain, out string error)
+    {
+        chain = null;
+        error = string.Empty;
+        if (head.ChainId != state.ChainId
+            || head.Height != state.Height
+            || !head.StateRoot.SequenceEqual(state.ComputeStateRoot())
+            || !head.ComputeHeaderHash().SequenceEqual(state.Head))
+        {
+            error = "Snapshot anchor does not match the application state.";
+            return false;
+        }
+
+        var restored = new CanonicalChain(state.ChainId);
+        restored.nodes.Clear();
+        var node = new ChainNode(head, state);
+        restored.nodes[head.ComputeHeaderHashHex()] = node;
+        restored.Head = node;
+        chain = restored;
+        return true;
+    }
+
     public void AddQuarantine(Block block, string reason)
         => quarantine.Add(new QuarantinedBlock(block, reason));
 

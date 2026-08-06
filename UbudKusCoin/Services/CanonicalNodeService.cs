@@ -58,6 +58,22 @@ public sealed class CanonicalNodeService
 
     public FinalityTracker Finality => finality;
 
+    public bool RestoreSnapshot(State state, CoreBlock head, out string error)
+    {
+        lock (writeLock)
+        {
+            if (!CanonicalChain.TryRestoreSnapshot(head, state, out var restored, out error))
+                return false;
+
+            chain = restored!;
+            store.Save(chain);
+            if (!finality.Restore(head.Height, head.ComputeHeaderHashHex(), chain, out error))
+                return false;
+            finalityStore.Save(finality.FinalizedHeight, finality.FinalizedHash);
+            return true;
+        }
+    }
+
     public (bool Accepted, string Message) Add(CanonicalBlock request)
     {
         try
