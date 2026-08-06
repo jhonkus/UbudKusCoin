@@ -125,5 +125,9 @@ message RequestFinalizeBlock {
   google.protobuf.Timestamp time = 6;
   bytes proposer_address = 8;
 }
-message ResponseFinalizeBlock { repeated ExecTxResult tx_results = 2; bytes app_hash = 5; }
+message ResponseFinalizeBlock {
+  repeated ExecTxResult tx_results = 2;
+  repeated ValidatorUpdate validator_updates = 3;
+  bytes app_hash = 5;
+}
 message ExecTxResult { uint32 code = 1; bytes data = 2; string log = 3; string info = 4; int64 gas_wanted = 5; int64 gas_used = 6; string codespace = 8; }

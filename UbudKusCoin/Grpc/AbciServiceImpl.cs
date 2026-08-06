@@ -131,6 +131,10 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
             Code = commit.Item1 ? Success : InvalidTransaction,
             Log = commit.Item3
         }));
+        if (commit.Item1)
+        {
+            response.ValidatorUpdates.AddRange(BuildValidatorUpdates(Application.State));
+        }
         return Task.FromResult(response);
     }
 
@@ -217,10 +221,44 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
             return null;
         }
 
-        return CometBftValidatorKeyLoader.TryResolveApplicationAddress(
+        var resolved = CometBftValidatorKeyLoader.TryResolveApplicationAddress(
             proposerAddress.ToByteArray(),
             state.ChainId);
+        if (resolved is not null)
+            return resolved;
+
+        foreach (var stake in state.Stakes)
+        {
+            if (!stake.Jailed && stake.UnlockHeight == 0
+                && ComputeSecp256k1CometAddress(stake.PubKey).SequenceEqual(proposerAddress.ToByteArray()))
+            {
+                return stake.Address;
+            }
+        }
+
+        return null;
     }
+
+    private static IEnumerable<ValidatorUpdate> BuildValidatorUpdates(State state)
+    {
+        foreach (var stake in state.Stakes.OrderBy(x => x.Address.Encoded, StringComparer.Ordinal))
+        {
+            if (stake.PubKey.Length is < 33 or > 65)
+                continue;
+
+            var power = stake.Jailed || stake.UnlockHeight != 0
+                ? 0
+                : Math.Max(1, Math.Min(long.MaxValue, stake.Amount.BaseUnits));
+            yield return new ValidatorUpdate
+            {
+                PubKey = new PublicKey { Secp256K1 = Google.Protobuf.ByteString.CopyFrom(stake.PubKey) },
+                Power = power
+            };
+        }
+    }
+
+    private static byte[] ComputeSecp256k1CometAddress(byte[] publicKey)
+        => new NBitcoin.PubKey(publicKey).Hash.ToBytes();
 
     private static long TimestampSeconds(Timestamp timestamp)
         => timestamp?.Seconds ?? 0;
