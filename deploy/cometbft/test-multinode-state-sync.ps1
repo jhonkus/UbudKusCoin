@@ -51,7 +51,14 @@ function Invoke-VolumeShell([string]$volume, [string]$script) {
 
 Push-Location $repo
 try {
-    docker compose -f $compose up --build -d
+    if ($env:KEEP_HARNESS -eq "1") {
+        # The combined drill has already bootstrapped and rotated the source cluster.
+        # Do not recreate those applications while validating recovery of node 1.
+        docker compose -f $compose up -d --no-build
+    }
+    else {
+        docker compose -f $compose up --build -d
+    }
     $before = Wait-Healthy
     # Keep enough finalized history when a recently rotated validator has not
     # yet been operationally switched to its new external signing key.

@@ -309,7 +309,7 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
                 && state is not null
                 && head is not null
                 && state.Height >= 0
-                && (ulong)state.Height == snapshotSession.Height
+                && (ulong)AbciHeight(state.Height) == snapshotSession.Height
                 && (snapshotSession.AppHash.Length == 0
                     || state.ComputeStateRoot().SequenceEqual(snapshotSession.AppHash));
             var restored = snapshotMatches
@@ -339,7 +339,7 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
             (payload.Length + SnapshotChunkBytes - 1) / SnapshotChunkBytes));
         return new Snapshot
         {
-            Height = (ulong)state.Height,
+            Height = (ulong)AbciHeight(state.Height),
             Format = SnapshotFormat,
             Chunks = chunks,
             Hash = ByteString.CopyFrom(StateSnapshotCodec.ComputeHash(payload)),
