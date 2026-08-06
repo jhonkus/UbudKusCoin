@@ -80,6 +80,15 @@ Ed25519 key, waits for the CometBFT update to become effective, and verifies
 the old key has zero power while the new key is active. It uses one base unit
 of stake so the three remaining genesis validators retain quorum.
 
+To verify that the rotated identity survives a fresh state-sync restore, run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\deploy\cometbft\test-multinode-rotation-state-sync.ps1
+```
+
+This combined drill performs rotation first, restores validator 1 through
+state-sync, and verifies the rotated key remains active afterward.
+
 ## Partition recovery drill
 
 With Docker Desktop running, execute the repeatable network fault injection:

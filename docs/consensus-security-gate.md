@@ -60,8 +60,9 @@ and all four nodes converged again with the same block hash.
   height and hash. Restart recovery and a network partition drill are covered
   by the multi-validator harness; the repeatable partition script is available at
   `deploy/cometbft/test-multinode-partition.ps1`.
-- Repeat the state-sync drill with rotated validator keys and a production-shaped
-  snapshot retention policy before public testnet launch.
+- Repeat `deploy/cometbft/test-multinode-rotation-state-sync.ps1` and retain its
+  output as evidence; production launch still requires a production-shaped
+  snapshot retention policy.
 - Verify that finalized state cannot be reverted after restart or resynchronization.
 - Review validator onboarding, key rotation, slashing evidence, and RPC access
   controls.

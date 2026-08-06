@@ -42,15 +42,28 @@ function New-RotationKeyBase64 {
 }
 
 function Broadcast-Transaction([string]$transactionHex, [string]$description) {
-    $response = Invoke-RestMethod "http://localhost:26657/broadcast_tx_commit?tx=0x$transactionHex"
-    $txResult = $response.result.tx_result
-    if ($null -eq $txResult) {
-        $txResult = $response.result.deliver_tx
-    }
-    if ([int]$response.result.check_tx.code -ne 0 -or [int]$txResult.code -ne 0) {
-        throw "CometBFT rejected $description transaction: $($response | ConvertTo-Json -Compress)"
-    }
-    Write-Host "$description accepted at check_tx/deliver_tx: $($txResult.log)"
+    $deadline = (Get-Date).AddSeconds(30)
+    $lastError = "RPC did not return a response."
+    do {
+        try {
+            $response = Invoke-RestMethod "http://localhost:26657/broadcast_tx_commit?tx=0x$transactionHex"
+            $txResult = $response.result.tx_result
+            if ($null -eq $txResult) {
+                $txResult = $response.result.deliver_tx
+            }
+            if ([int]$response.result.check_tx.code -ne 0 -or [int]$txResult.code -ne 0) {
+                throw "CometBFT rejected $description transaction: $($response | ConvertTo-Json -Compress)"
+            }
+            Write-Host "$description accepted at check_tx/deliver_tx: $($txResult.log)"
+            return
+        }
+        catch {
+            $lastError = $_.Exception.Message
+            Start-Sleep -Seconds 2
+        }
+    } while ((Get-Date) -lt $deadline)
+
+    throw "Could not broadcast $description transaction before the timeout: $lastError"
 }
 
 function New-TransactionHex([string]$validatorKeyBase64, [string]$kind) {

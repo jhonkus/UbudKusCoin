@@ -46,7 +46,9 @@ Push-Location $repo
 try {
     docker compose -f $compose up --build -d
     $before = Wait-Healthy
-    $trustHeight = [Math]::Max(1, $before.Height - 2)
+    # Keep enough finalized history when a recently rotated validator has not
+    # yet been operationally switched to its new external signing key.
+    $trustHeight = [Math]::Max(1, $before.Height - 5)
     $trustedBlock = Invoke-RestMethod "http://localhost:26657/block?height=$trustHeight"
     $trustHash = [string]$trustedBlock.result.block_id.hash
     if ([string]::IsNullOrWhiteSpace($trustHash)) {
@@ -61,7 +63,8 @@ try {
     $dbVolume = Get-VolumeName "ukc-db-1"
     $dataVolume = Get-VolumeName "multinode-data"
     docker volume rm $dbVolume | Out-Null
-    Invoke-VolumeShell $dataVolume 'rm -rf /network/node1/data/* && mkdir -p /network/node1/data && printf ''{"height":"0","round":-1,"step":0}'' > /network/node1/data/priv_validator_state.json'
+    $emptyValidatorState = "eyJoZWlnaHQiOiIwIiwicm91bmQiOi0xLCJzdGVwIjowfQ=="
+    Invoke-VolumeShell $dataVolume "rm -rf /network/node1/data/* && mkdir -p /network/node1/data && echo $emptyValidatorState | base64 -d > /network/node1/data/priv_validator_state.json"
 
     $configure = Join-Path $repo "deploy/cometbft/configure-state-sync.sh"
     docker run --rm --entrypoint /bin/sh `
