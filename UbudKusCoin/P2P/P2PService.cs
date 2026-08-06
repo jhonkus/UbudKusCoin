@@ -228,12 +228,29 @@ namespace UbudKusCoin.P2P
             }
         }
 
-        private void DownloadCanonicalBlocks(CanonicalBlockService.CanonicalBlockServiceClient blockService, long lastBlockHeight, long peerHeight)
+        private bool DownloadCanonicalBlocks(
+            CanonicalBlockService.CanonicalBlockServiceClient blockService,
+            long lastBlockHeight,
+            long peerHeight,
+            string expectedHeadHash,
+            out string error)
         {
+            error = string.Empty;
             var response = blockService.GetRange(new CanonicalStartingPoint { Height = lastBlockHeight });
             if (response.Blocks.Count == 0)
             {
-                return;
+                error = "Peer returned no canonical blocks.";
+                return false;
+            }
+
+            if (!CanonicalSyncVerifier.TryValidateCanonicalRange(
+                    response.Blocks.ToList(),
+                    lastBlockHeight,
+                    ServicePool.CanonicalNodeService.Chain.Head.Block.ComputeHeaderHashHex(),
+                    expectedHeadHash,
+                    out error))
+            {
+                return false;
             }
 
             foreach (var block in response.Blocks)
@@ -241,16 +258,27 @@ namespace UbudKusCoin.P2P
                 var status = ServicePool.CanonicalNodeService.Add(block);
                 if (!status.Accepted)
                 {
-                    Console.WriteLine("==== Canonical sync rejected: {0}", status.Message);
-                    return;
+                    error = status.Message;
+                    return false;
                 }
             }
 
             var newHeight = ServicePool.CanonicalNodeService.Chain.State.Height;
             if (newHeight < peerHeight)
             {
-                DownloadCanonicalBlocks(blockService, newHeight, peerHeight);
+                return DownloadCanonicalBlocks(blockService, newHeight, peerHeight, expectedHeadHash, out error);
             }
+
+            if (!string.Equals(
+                    ServicePool.CanonicalNodeService.Chain.Head.Block.ComputeHeaderHashHex(),
+                    expectedHeadHash,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                error = "Canonical sync did not converge to the expected peer head hash.";
+                return false;
+            }
+
+            return true;
         }
 
         public void SyncCanonicalState()
@@ -264,20 +292,58 @@ namespace UbudKusCoin.P2P
                     continue;
                 }
 
-                try
+                for (var attempt = 1; attempt <= 3; attempt++)
                 {
-                    using var channel = CreateChannel(peer.Address);
-                    var blockService = new CanonicalBlockService.CanonicalBlockServiceClient(channel);
-                    var peerHead = blockService.GetHead(new CanonicalEmpty());
-                    var localHeight = ServicePool.CanonicalNodeService.Chain.State.Height;
-                    if (peerHead.Height > localHeight)
+                    try
                     {
-                        DownloadCanonicalBlocks(blockService, localHeight, peerHead.Height);
+                        using var channel = CreateChannel(peer.Address);
+                        var blockService = new CanonicalBlockService.CanonicalBlockServiceClient(channel);
+                        var peerHead = blockService.GetHead(new CanonicalEmpty());
+                        var localHeight = ServicePool.CanonicalNodeService.Chain.State.Height;
+                        var localHeadHash = ServicePool.CanonicalNodeService.Chain.Head.Block.ComputeHeaderHashHex();
+                        var peerHeadHash = CanonicalSyncVerifier.ComputeBlockHash(peerHead);
+                        if (!CanonicalSyncVerifier.TryValidatePeerHead(
+                                peerHead, localHeight, localHeadHash, peerHeadHash, out var headError))
+                        {
+                            Console.WriteLine("-- Canonical sync rejected head from {0}: {1}", peer.Address, headError);
+                            continue;
+                        }
+
+                        if (peerHead.Height == localHeight)
+                        {
+                            return;
+                        }
+
+                        if (!DownloadCanonicalBlocks(
+                                blockService,
+                                localHeight,
+                                peerHead.Height,
+                                peerHeadHash,
+                                out var syncError))
+                        {
+                            Console.WriteLine("-- Canonical sync failed from {0}: {1}", peer.Address, syncError);
+                            continue;
+                        }
+
+                        var syncedHead = ServicePool.CanonicalNodeService.Chain.Head.Block;
+                        if (syncedHead.Height == peerHead.Height
+                            && string.Equals(
+                                syncedHead.ComputeHeaderHashHex(),
+                                peerHeadHash,
+                                StringComparison.OrdinalIgnoreCase))
+                        {
+                            return;
+                        }
+
+                        Console.WriteLine(
+                            "-- Canonical sync retry {0} from {1}: head changed during fetch.",
+                            attempt,
+                            peer.Address);
                     }
-                }
-                catch (Exception exception)
-                {
-                    Console.WriteLine("-- Canonical sync failed: {0}", exception.Message);
+                    catch (Exception exception)
+                    {
+                        Console.WriteLine("-- Canonical sync attempt {0} failed from {1}: {2}", attempt, peer.Address, exception.Message);
+                    }
                 }
             }
         }

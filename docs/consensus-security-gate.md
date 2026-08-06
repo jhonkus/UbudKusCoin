@@ -48,6 +48,9 @@ validators are intentional: three can keep quorum while one is offline for
 state-sync testing. It is still test-only and does not provide production key
 custody.
 
+The canonical P2P sync path now validates `(height, hash)` before applying a
+peer range and retries if the remote head changes during fetch.
+
 The repeatable partition drill has also been executed successfully: validator 1
 was disconnected for eight seconds, validators 0, 2, and 3 retained quorum,
 and all four nodes converged again with the same block hash.
