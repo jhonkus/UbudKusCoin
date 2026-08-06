@@ -75,7 +75,7 @@ namespace UbudKusCoin.DB
             var transactions = GetAll();
             if (transactions is null || transactions.Count() < 1)
             {
-                return null;
+                return new List<Transaction>();
             }
 
             transactions.EnsureIndex(x => x.Sender);
@@ -114,7 +114,7 @@ namespace UbudKusCoin.DB
             var transactions = GetAll();
             if (transactions is null || transactions.Count() < 1)
             {
-                return null;
+                return new List<Transaction>();
             }
 
             transactions.EnsureIndex(x => x.TimeStamp);
@@ -132,7 +132,7 @@ namespace UbudKusCoin.DB
             var transactions = GetAll();
             if (transactions is null || transactions.Count() < 1)
             {
-                return null;
+                return new List<Transaction>();
             }
 
             transactions.EnsureIndex(x => x.TimeStamp);
