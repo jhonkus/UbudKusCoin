@@ -14,6 +14,12 @@ this boundary can be called ABCI-compatible in production.
 Transactions crossing that boundary use the bounded `TransactionCodec`; malformed,
 oversized, and trailing bytes are rejected before application processing.
 
+The repository now exposes the `tendermint.abci.ABCI` gRPC service using the
+CometBFT v0.38 wire contract. `Info`, `CheckTx`, `PrepareProposal`,
+`ProcessProposal`, `FinalizeBlock`, `Query`, and `Commit` are wired to the Core
+state machine. Snapshot restore and vote extensions deliberately return
+unsupported responses until implemented and tested.
+
 ## Remaining Production Evidence
 
 - Run a real multi-process CometBFT cluster with the application state machine.

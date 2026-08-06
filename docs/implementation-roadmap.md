@@ -103,6 +103,8 @@ canonical two-node exchange/rejection tests and crash-safe snapshot rebuild test
   validation, and atomic finalize/app-hash computation.
 - [x] Add a bounded, versioned binary transaction codec for the application
   boundary; no JSON/reflection serialization in consensus bytes.
+- [x] Add a CometBFT v0.38 ABCI 2.0 gRPC surface for core transaction and
+  finalize methods; unsupported snapshots/vote extensions remain explicit.
 
 **Exit criteria:** multi-node tests showing finality, liveness under faults, and slashing. Protocol-level finality and slashing
 tests pass; runtime engine integration and fault/liveness tests remain.

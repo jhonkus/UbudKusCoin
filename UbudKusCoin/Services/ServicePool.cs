@@ -7,6 +7,7 @@
 
 using System;
 using UbudKusCoin.P2P;
+using UbudKusCoin.Core.Consensus;
 using UbudKusCoin.Core.Types;
 
 namespace UbudKusCoin.Services
@@ -20,6 +21,7 @@ namespace UbudKusCoin.Services
         public static P2PService P2PService { set; get; }
         public static CanonicalNodeService CanonicalNodeService { get; private set; }
         public static IConsensusEngineAdapter ConsensusEngine { get; private set; }
+        public static ConsensusApplicationStateMachine ApplicationStateMachine { get; private set; }
         public static BlockCommitService BlockCommitService { get; } = new();
 
         public static void Add(
@@ -57,6 +59,9 @@ namespace UbudKusCoin.Services
                 }
             }
             CanonicalNodeService = new CanonicalNodeService((uint)chainId, @"DbFiles/canonical-chain.json", validatorSet);
+            var validatorKey = WalletService.GetPublicKey().PubKey.ToBytes();
+            var validator = Address.FromPublicKey(ChainInfo.AddressVersion((uint)chainId), validatorKey);
+            ApplicationStateMachine = new ConsensusApplicationStateMachine(CanonicalNodeService.Chain.State, validator);
             DbService.Start();
             FacadeService.start();
             P2PService.Start();

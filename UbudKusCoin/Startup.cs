@@ -52,6 +52,7 @@ namespace UbudKusCoin
                 endpoints.MapGrpcService<PeerServiceImpl>().RequireCors("AllowAll");
                 endpoints.MapGrpcService<StakeServiceImpl>().RequireCors("AllowAll");
                 endpoints.MapGrpcService<TransactionServiceImpl>().RequireCors("AllowAll");
+                endpoints.MapGrpcService<AbciServiceImpl>();
                 endpoints.MapGet("/health/consensus", async context =>
                 {
                     var status = await ServicePool.ConsensusEngine.GetStatusAsync(context.RequestAborted);

@@ -24,3 +24,7 @@ production consensus implementation and must not be presented as audited.
 Before testnet, the engine adapter needs a real multi-process test cluster,
 partition and restart drills, evidence that finalized blocks cannot be
 reverted, and an independent consensus/security review.
+
+The current ABCI transport targets CometBFT v0.38 / ABCI 2.0. Its protobuf
+contract must be upgraded deliberately when changing CometBFT minor versions;
+CometBFT documents minor-version API changes as potentially breaking.

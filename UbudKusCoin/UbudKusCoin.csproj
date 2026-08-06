@@ -33,6 +33,7 @@
     <Protobuf Include="Protos\account.proto" GrpcServices="Server, Client" />
     <Protobuf Include="Protos\block.proto" GrpcServices="Server, Client" />
     <Protobuf Include="Protos\canonical_block.proto" GrpcServices="Server, Client" />
+    <Protobuf Include="Protos\cometbft_abci.proto" GrpcServices="Server" />
     <Protobuf Include="Protos\peer.proto" GrpcServices="Server, Client" />
     <Protobuf Include="Protos\stake.proto" GrpcServices="Server, Client" />
     <Protobuf Include="Protos\transaction.proto" GrpcServices="Server, Client" />
