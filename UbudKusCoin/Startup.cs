@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using UbudKusCoin.Grpc;
+using UbudKusCoin.Services;
 
 namespace UbudKusCoin
 {
@@ -51,6 +52,12 @@ namespace UbudKusCoin
                 endpoints.MapGrpcService<PeerServiceImpl>().RequireCors("AllowAll");
                 endpoints.MapGrpcService<StakeServiceImpl>().RequireCors("AllowAll");
                 endpoints.MapGrpcService<TransactionServiceImpl>().RequireCors("AllowAll");
+                endpoints.MapGet("/health/consensus", async context =>
+                {
+                    var status = await ServicePool.ConsensusEngine.GetStatusAsync(context.RequestAborted);
+                    context.Response.StatusCode = status.Healthy ? StatusCodes.Status200OK : StatusCodes.Status503ServiceUnavailable;
+                    await context.Response.WriteAsJsonAsync(status, context.RequestAborted);
+                });
                 endpoints.MapGet("/", async context =>
                 {
                     await context.Response.WriteAsync(

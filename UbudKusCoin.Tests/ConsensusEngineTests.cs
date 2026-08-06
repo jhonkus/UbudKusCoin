@@ -41,13 +41,13 @@ public sealed class ConsensusEngineTests
     private sealed class StubHandler : HttpMessageHandler
     {
         private readonly HttpStatusCode _statusCode;
-        public string RequestedPath { get; private set; }
+        public string? RequestedPath { get; private set; }
 
         public StubHandler(HttpStatusCode statusCode) => _statusCode = statusCode;
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            RequestedPath = request.RequestUri.AbsolutePath;
+            RequestedPath = request.RequestUri!.AbsolutePath;
             return Task.FromResult(new HttpResponseMessage(_statusCode));
         }
     }

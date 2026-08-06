@@ -19,3 +19,7 @@ driver and is suitable only for local tests. A production node must use
 The adapter health check only proves that the configured CometBFT RPC endpoint
 is reachable. It does not claim that block proposal, vote transport, commit
 publication, or ABCI integration is complete.
+
+When `CONSENSUS_ENGINE=cometbft`, the node also refuses to start the legacy
+in-process minting loop. This is a safety stop, not a replacement for the
+required ABCI application integration.

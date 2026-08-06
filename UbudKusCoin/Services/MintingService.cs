@@ -23,6 +23,12 @@ namespace UbudKusCoin.Services
 
         public void Start()
         {
+            if (ServicePool.ConsensusEngine?.Mode != ConsensusEngineMode.Development)
+            {
+                Console.WriteLine(".... Local minting disabled: an external consensus engine is configured.");
+                return;
+            }
+
             // sync state with others
             Console.WriteLine(".... Synchronizing state other peer(s) ");
             ServicePool.P2PService.SyncState();
