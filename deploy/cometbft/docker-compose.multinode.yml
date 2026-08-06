@@ -38,6 +38,7 @@ services:
       - ./genesis-manifest.testnet.json:/app/genesis-manifest.json:ro
       - multinode-data:/cometbft:ro
     ports:
+      - "5000:5000"
       - "5100:5001"
 
   ukc-app-1:
@@ -64,6 +65,7 @@ services:
       - ./genesis-manifest.testnet.json:/app/genesis-manifest.json:ro
       - multinode-data:/cometbft:ro
     ports:
+      - "5001:5000"
       - "5101:5001"
 
   ukc-app-2:
@@ -90,6 +92,7 @@ services:
       - ./genesis-manifest.testnet.json:/app/genesis-manifest.json:ro
       - multinode-data:/cometbft:ro
     ports:
+      - "5002:5000"
       - "5102:5001"
 
   ukc-app-3:
@@ -116,6 +119,7 @@ services:
       - ./genesis-manifest.testnet.json:/app/genesis-manifest.json:ro
       - multinode-data:/cometbft:ro
     ports:
+      - "5003:5000"
       - "5103:5001"
 
   cometbft-0: &cometbft
