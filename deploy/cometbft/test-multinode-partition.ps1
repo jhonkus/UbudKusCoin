@@ -30,6 +30,7 @@ function Wait-Synchronized([int]$timeoutSeconds = 60) {
 
 Push-Location (Split-Path $PSScriptRoot -Parent | Split-Path -Parent)
 try {
+    docker compose -f $compose down --remove-orphans
     docker compose -f $compose up --build -d
     $before = Wait-Synchronized
     Write-Host "Before partition: height $($before.Height), hash $($before.Hash)"
