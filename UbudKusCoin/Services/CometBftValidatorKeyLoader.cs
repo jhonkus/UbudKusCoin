@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using NBitcoin.DataEncoders;
 
 namespace UbudKusCoin.Services;
 
@@ -9,6 +10,19 @@ public static class CometBftValidatorKeyLoader
 {
     public static byte[] TryLoadPublicKey()
     {
+        var configured = DotNetEnv.Env.GetString("COMETBFT_VALIDATOR_PUBKEY_HEX", string.Empty);
+        if (!string.IsNullOrWhiteSpace(configured))
+        {
+            try
+            {
+                return Encoders.Hex.DecodeData(configured);
+            }
+            catch (FormatException)
+            {
+                return Array.Empty<byte>();
+            }
+        }
+
         var home = DotNetEnv.Env.GetString("COMETBFT_HOME", string.Empty);
         if (string.IsNullOrWhiteSpace(home))
         {

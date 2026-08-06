@@ -35,7 +35,9 @@ public sealed class CanonicalNodeService
         if (persistedFinality is null)
         {
             var genesis = chain.Candidates.Single(x => x.Block.Height == 1);
-            finality.Restore(1, genesis.Block.ComputeHeaderHashHex(), chain, out _);
+            var genesisHash = genesis.Block.ComputeHeaderHashHex();
+            finality.Restore(1, genesisHash, chain, out _);
+            finalityStore.Save(1, genesisHash);
         }
         else if (!finality.Restore(persistedFinality.Value.Height, persistedFinality.Value.Hash, chain, out var finalityError))
         {
@@ -115,6 +117,8 @@ public sealed class CanonicalNodeService
     {
         lock (writeLock)
         {
+            var previousFinalityHeight = finality.FinalizedHeight;
+            var previousFinalityHash = finality.FinalizedHash;
             var list = transactions.ToList();
             var block = new CoreBlock
             {
@@ -142,11 +146,27 @@ public sealed class CanonicalNodeService
             try
             {
                 store.Save(chain);
+                if (!finality.TryFinalizeExternal(block, out var finalityError))
+                {
+                    chain = store.Load();
+                    return (false, block, finalityError);
+                }
+
+                finalityStore.Save(finality.FinalizedHeight, finality.FinalizedHash);
                 return (true, block, "External commit accepted and persisted.");
             }
             catch (Exception exception)
             {
                 chain = store.Load();
+                var persistedFinality = finalityStore.Load();
+                if (persistedFinality is not null)
+                {
+                    finality.Restore(persistedFinality.Value.Height, persistedFinality.Value.Hash, chain, out _);
+                }
+                else
+                {
+                    finality.Restore(previousFinalityHeight, previousFinalityHash, chain, out _);
+                }
                 return (false, block, $"Persistence failed; state restored: {exception.Message}");
             }
         }

@@ -56,7 +56,10 @@ public sealed class CanonicalChainStore
                      .ThenBy(x => Convert.ToHexString(x.PrevHash), StringComparer.Ordinal))
         {
             var block = FromRecord(record);
-            if (!chain.TryAccept(block, out var error))
+            var accepted = block.ValidatorSignature.Length == 0
+                ? chain.TryAcceptCommitted(block, out var error)
+                : chain.TryAccept(block, out error);
+            if (!accepted)
             {
                 throw new InvalidDataException($"Canonical snapshot contains an invalid block: {error}");
             }

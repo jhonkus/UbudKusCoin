@@ -124,6 +124,36 @@ public sealed class CanonicalChainStoreTests
         }
     }
 
+    [Fact]
+    public void ExternalCommit_PersistsFinalityAndRestoresIt()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"ukc-external-finality-{Guid.NewGuid():N}.json");
+        try
+        {
+            var wallet = MakeWallet();
+            var pubKey = wallet.GetPublicKey().PubKey.ToBytes();
+            var address = Address.FromPublicKey(ChainInfo.AddressVersion(ChainInfo.ChainIdTestnet), pubKey);
+            var node = new CanonicalNodeService(ChainInfo.ChainIdTestnet, path);
+
+            var committed = node.AcceptExternalCommit(
+                Array.Empty<Transaction>(),
+                Genesis.GenesisTime + 1,
+                address);
+
+            Assert.True(committed.Accepted, committed.Message);
+            Assert.Equal(2L, node.Finality.FinalizedHeight);
+
+            var restored = new CanonicalNodeService(ChainInfo.ChainIdTestnet, path);
+            Assert.Equal(2L, restored.Finality.FinalizedHeight);
+            Assert.Equal(node.Finality.FinalizedHash, restored.Finality.FinalizedHash);
+        }
+        finally
+        {
+            if (File.Exists(path)) File.Delete(path);
+            if (File.Exists(path + ".finality")) File.Delete(path + ".finality");
+        }
+    }
+
     private static WalletService MakeWallet()
         => new()
         {

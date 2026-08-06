@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Globalization;
 using System.Linq;
@@ -13,12 +15,14 @@ public static class ConsensusValidatorConfig
     /// Parses VALIDATOR_SET as address:compressed_pubkey_hex:stake_coins entries.
     /// A blank value is a deliberate single-validator development mode.
     /// </summary>
-    public static ValidatorSet Load(uint chainId, WalletService wallet)
+    public static ValidatorSet Load(uint chainId, WalletService wallet, byte[]? defaultPublicKey = null)
     {
         var raw = DotNetEnv.Env.GetString("VALIDATOR_SET", string.Empty);
         if (string.IsNullOrWhiteSpace(raw))
         {
-            var pubKey = wallet.GetPublicKey().PubKey.ToBytes();
+            var pubKey = defaultPublicKey is { Length: > 0 }
+                ? defaultPublicKey
+                : wallet.GetPublicKey().PubKey.ToBytes();
             var address = Address.FromPublicKey(ChainInfo.AddressVersion(chainId), pubKey);
             return new ValidatorSet(new[] { new Validator(address, pubKey, Money.FromCoins(1m)) });
         }

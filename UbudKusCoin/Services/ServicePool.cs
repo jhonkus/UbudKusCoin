@@ -47,13 +47,24 @@ namespace UbudKusCoin.Services
                 chainId = (int)ChainInfo.ChainIdTestnet;
             }
 
-            var validatorSet = ConsensusValidatorConfig.Load((uint)chainId, WalletService);
             var consensusOptions = ConsensusEngineOptions.FromEnvironment();
             ConsensusEngine = ConsensusEngineFactory.Create(consensusOptions);
+            var validatorKey = consensusOptions.Mode == ConsensusEngineMode.CometBft
+                ? CometBftValidatorKeyLoader.TryLoadPublicKey()
+                : WalletService.GetPublicKey().PubKey.ToBytes();
+            if (validatorKey.Length == 0)
+            {
+                throw new InvalidOperationException(
+                    "A CometBFT validator public key is required when CONSENSUS_ENGINE=cometbft.");
+            }
+
+            var validatorSet = ConsensusValidatorConfig.Load((uint)chainId, WalletService, validatorKey);
             CanonicalNodeService = new CanonicalNodeService((uint)chainId, @"DbFiles/canonical-chain.json", validatorSet);
-            var validatorKey = WalletService.GetPublicKey().PubKey.ToBytes();
             var validator = Address.FromPublicKey(ChainInfo.AddressVersion((uint)chainId), validatorKey);
-            ApplicationStateMachine = new ConsensusApplicationStateMachine(CanonicalNodeService.Chain.State, validator);
+            ApplicationStateMachine = new ConsensusApplicationStateMachine(
+                CanonicalNodeService.Chain.State,
+                validator,
+                validatorPublicKey: validatorKey);
             DbService.Start();
             FacadeService.start();
             P2PService.Start();
