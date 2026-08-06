@@ -159,6 +159,8 @@ tests pass; runtime engine integration and fault/liveness tests remain.
   at rest (AES-GCM/DPAPI), and the node keeps the mnemonic out of logs/console.
 - Wallet: BIP-39/44, checksummed address, backup/recovery UX, sign-only (never
   send private key).
+- [x] Storage backup/restore helpers now capture `DbFiles`, canonical state,
+  finality, and wallet vault files with path validation.
 - Storage: upgrade vulnerable LiteDB (or swap), add snapshot + restore + migration with backup strategy.
 - Indexer for explorer/query; reorg-safe.
 - Full observability: metrics, dashboards, alerts (state_root divergence).
