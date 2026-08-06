@@ -273,13 +273,20 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
             }
 
             var payload = snapshotSession.Combine();
-            if (!StateSnapshotCodec.ComputeHash(payload).SequenceEqual(snapshotSession.Hash)
-                || !StateSnapshotCodec.TryDecode(payload, out var state, out var head, out _)
-                || head is null
-                || state!.Height != snapshotSession.Height
-                || (snapshotSession.AppHash.Length > 0
-                    && !state.ComputeStateRoot().SequenceEqual(snapshotSession.AppHash))
-                || !ServicePool.CanonicalNodeService.RestoreSnapshot(state!, head, out _))
+            var hashMatches = StateSnapshotCodec.ComputeHash(payload)
+                .SequenceEqual(snapshotSession.Hash);
+            var decoded = StateSnapshotCodec.TryDecode(
+                payload, out var state, out var head, out _);
+            var snapshotMatches = decoded
+                && state is not null
+                && head is not null
+                && state.Height >= 0
+                && (ulong)state.Height == snapshotSession.Height
+                && (snapshotSession.AppHash.Length == 0
+                    || state.ComputeStateRoot().SequenceEqual(snapshotSession.AppHash));
+            var restored = snapshotMatches
+                && ServicePool.CanonicalNodeService.RestoreSnapshot(state!, head!, out _);
+            if (!hashMatches || !snapshotMatches || !restored)
             {
                 snapshotSession = null;
                 return Task.FromResult(new ResponseApplySnapshotChunk { Result = 2 });
