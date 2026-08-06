@@ -38,8 +38,11 @@ namespace UbudKusCoin.Facade
             if (KnowPeers.Count() < 1)
             {
                 InitialPeers = new List<Peer>();
-                var bootstrapPeers = DotNetEnv.Env.GetString("BOOTSRTAP_PEERS").Replace(" ", "");
-                var tempPeers = bootstrapPeers.Split(",");
+                var bootstrapPeers = DotNetEnv.Env.GetString("BOOTSRTAP_PEERS", string.Empty)
+                    .Replace(" ", "", StringComparison.Ordinal);
+                var tempPeers = bootstrapPeers.Length == 0
+                    ? Array.Empty<string>()
+                    : bootstrapPeers.Split(",", StringSplitOptions.RemoveEmptyEntries);
                 
                 for (int i = 0; i < tempPeers.Length; i++)
                 {

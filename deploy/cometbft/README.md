@@ -1,7 +1,7 @@
 # CometBFT Smoke Harness
 
-This directory is a test-only, single-node smoke harness. It is not a testnet
-or production deployment: it uses a development mnemonic, one validator, and
+This directory contains test-only CometBFT harnesses. They are not production
+deployments: they use a development mnemonic, generated validator keys, and
 anonymous local ports.
 
 ## Run
@@ -39,13 +39,17 @@ RPC and never falls back to the in-process driver.
 
 ## Multi-process smoke test
 
-The two-validator harness uses CometBFT's generated testnet topology and two
-independent application processes:
+The four-validator harness uses CometBFT's generated testnet topology and four
+independent application processes. Four validators provide a realistic local
+quorum: one validator can be unavailable while the remaining three continue
+committing blocks.
 
 ```powershell
 docker compose -f deploy/cometbft/docker-compose.multinode.yml up --build -d
 Invoke-RestMethod http://localhost:26657/status
 Invoke-RestMethod http://localhost:26658/status
+Invoke-RestMethod http://localhost:26659/status
+Invoke-RestMethod http://localhost:26660/status
 docker compose -f deploy/cometbft/docker-compose.multinode.yml down -v
 ```
 
@@ -62,6 +66,16 @@ powershell -ExecutionPolicy Bypass -File .\deploy\cometbft\test-multinode-partit
 ```
 
 The script disconnects validator 1 from the Compose network for eight seconds,
-reconnects it, and waits for both nodes to report the same height and latest
-block hash. It is intentionally test-only and should not be run against a
-production network.
+while validators 0, 2, and 3 retain quorum. It reconnects validator 1 and waits
+for all four nodes to report the same height and latest block hash. It is
+intentionally test-only and should not be run against a production network.
+
+## State-sync drill boundary
+
+The application implements deterministic snapshot listing, chunk transfer,
+hash verification, and canonical restore. A cross-node state-sync drill must
+run with at least four validators so the source chain continues producing
+blocks while the joining node is offline. The two-validator setup cannot prove
+this: stopping one validator removes the 2/3 quorum needed to finalize the
+trusted light block. Use `configure-state-sync.sh` to configure a fresh node
+with a trusted height and hash before starting that drill.

@@ -112,8 +112,8 @@ canonical two-node exchange/rejection tests and crash-safe snapshot rebuild test
 - [x] Add the length-prefixed ABCI socket transport, `initial_height: 1`
   genesis configuration, validator bootstrap, and readiness ordering.
 - [x] Add a pinned, test-only CometBFT container smoke harness.
-- [x] Add a two-validator, multi-process CometBFT harness with proposer mapping
-  and restart recovery verification.
+- [x] Add a four-validator, multi-process CometBFT harness with proposer mapping
+  and restart recovery verification, sized for quorum-preserving state-sync drills.
 - [x] Add signed KTX2 staking transactions (`Bond`, `Unbond`, `Withdraw`) with
   deterministic lock-period rules and stake positions committed into `state_root`.
 - [x] Emit CometBFT validator-set updates from committed staking state and
@@ -199,6 +199,6 @@ tests pass; runtime engine integration and fault/liveness tests remain.
 **Current position: Stage 6 in progress (protocol, proposer gating, vote transport, finality persistence, quorum, partition,
 round-change tests, CometBFT ABCI integration, multi-process smoke/restart verification, deterministic on-chain staking
 transactions, CometBFT validator updates, restart recovery, network-partition fault injection, and verified local
-snapshot restore landed). Next: cross-node state-sync drill, validator-update integration tests, delayed-message testing,
+snapshot restore landed). Next: cross-node state-sync drill on the four-validator harness, validator-update integration tests, delayed-message testing,
 fuzzing, and independent consensus/security review. See
 `docs/consensus-security-gate.md`.**

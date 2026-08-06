@@ -33,19 +33,19 @@ match the already accepted block.
 
 State sync now exposes a versioned, SHA-256-verified snapshot format with
 bounded chunks. Restore validates the offered app hash, state root, and
-canonical head anchor before replacing local state. A real cross-node state
-sync drill remains required.
+canonical head anchor before replacing local state. The local restore contract
+is covered by tests; a cross-node drill must still be run with a quorum-capable
+topology.
 
 The CometBFT genesis harness starts at `initial_height: 1`. The application
 reports its internal genesis state as ABCI height `0`, allowing `InitChain` to
 run once and making the first CometBFT block height `1`.
 
-The repository also includes a two-validator, multi-process harness that checks
-  shared genesis, proposer mapping, peer consensus, and restart recovery. A fresh
-rebuild was verified with both nodes at height 9, followed by a validator
-stop/start drill that returned both nodes to height 26 with the same latest
-block hash. It is still test-only and does not provide production key custody
-or network-partition injection.
+The repository includes a four-validator, multi-process harness that checks
+shared genesis, proposer mapping, peer consensus, and restart recovery. Four
+validators are intentional: three can keep quorum while one is offline for
+state-sync testing. It is still test-only and does not provide production key
+custody.
 
 The repeatable partition drill has now also been executed successfully: both
 nodes converged at height 100, validator 1 was disconnected for eight seconds,
@@ -57,7 +57,7 @@ and both nodes converged again at height 101 with the same block hash.
 - Run the reproducible test-only smoke harness under `deploy/cometbft/` first.
 - Exercise validator failure and delayed messages while recording finalized
   height and hash. Restart recovery and a network partition drill are covered
-  by the two-validator harness; the repeatable partition script is available at
+  by the multi-validator harness; the repeatable partition script is available at
   `deploy/cometbft/test-multinode-partition.ps1`.
 - Verify that finalized state cannot be reverted after restart or resynchronization.
 - Review validator onboarding, key rotation, slashing evidence, and RPC access

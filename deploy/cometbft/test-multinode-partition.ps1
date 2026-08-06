@@ -11,14 +11,12 @@ function Wait-Synchronized([int]$timeoutSeconds = 60) {
     $deadline = (Get-Date).AddSeconds($timeoutSeconds)
     do {
         try {
-            $node0 = Get-Status 26657
-            $node1 = Get-Status 26658
-            $height0 = [long]$node0.result.sync_info.latest_block_height
-            $height1 = [long]$node1.result.sync_info.latest_block_height
-            $hash0 = [string]$node0.result.sync_info.latest_block_hash
-            $hash1 = [string]$node1.result.sync_info.latest_block_hash
-            if ($height0 -gt 0 -and $height0 -eq $height1 -and $hash0 -eq $hash1) {
-                return [pscustomobject]@{ Height = $height0; Hash = $hash0 }
+            $ports = @(26657, 26658, 26659, 26660)
+            $statuses = @($ports | ForEach-Object { Get-Status $_ })
+            $heights = @($statuses | ForEach-Object { [long]$_.result.sync_info.latest_block_height })
+            $hashes = @($statuses | ForEach-Object { [string]$_.result.sync_info.latest_block_hash })
+            if ($heights[0] -gt 0 -and ($heights | Sort-Object -Unique).Count -eq 1 -and ($hashes | Sort-Object -Unique).Count -eq 1) {
+                return [pscustomobject]@{ Height = $heights[0]; Hash = $hashes[0] }
             }
         }
         catch {
@@ -38,7 +36,7 @@ try {
 
     $validator1 = docker compose -f $compose ps -q cometbft-1
     if ([string]::IsNullOrWhiteSpace($validator1)) {
-        throw "Could not resolve the second CometBFT container."
+        throw "Could not resolve validator 1."
     }
 
     docker network disconnect $network $validator1
