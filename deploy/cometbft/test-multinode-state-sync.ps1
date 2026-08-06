@@ -2,7 +2,7 @@ $ErrorActionPreference = "Stop"
 
 $compose = Join-Path $PSScriptRoot "docker-compose.multinode.yml"
 $repo = (Split-Path $PSScriptRoot -Parent | Split-Path -Parent)
-$network = "cometbft_default"
+$network = "ukc-multinode_default"
 $cometImage = "cometbft/cometbft:v0.38.17"
 
 function Get-Status([int]$port) {
@@ -31,7 +31,7 @@ function Wait-Healthy([int]$timeoutSeconds = 120) {
 }
 
 function Get-VolumeName([string]$volume) {
-    $expected = "cometbft_$volume"
+    $expected = "ukc-multinode_$volume"
     $name = docker volume inspect $expected --format '{{.Name}}' 2>$null | Select-Object -First 1
     if ([string]::IsNullOrWhiteSpace($name)) {
         $name = docker volume ls -q --filter "label=com.docker.compose.volume=$volume" | Select-Object -First 1
@@ -57,6 +57,7 @@ try {
         docker compose -f $compose up -d --no-build
     }
     else {
+        docker compose -f $compose down -v --remove-orphans
         docker compose -f $compose up --build -d
     }
     $before = Wait-Healthy
@@ -71,8 +72,8 @@ try {
 
     Write-Host "Source chain: height $($before.Height), trust height $trustHeight, hash $trustHash"
 
-    docker compose -f $compose stop ukc-app-1 cometbft-1
-    docker compose -f $compose rm -f ukc-app-1 cometbft-1
+    docker stop ukc-multinode-cometbft-1-1 ukc-multinode-ukc-app-1-1 | Out-Null
+    docker rm ukc-multinode-cometbft-1-1 ukc-multinode-ukc-app-1-1 | Out-Null
 
     $dbVolume = Get-VolumeName "ukc-db-1"
     $dataVolume = Get-VolumeName "multinode-data"
@@ -91,7 +92,8 @@ try {
         $cometImage `
         -c "sh /workspace/deploy/cometbft/configure-state-sync.sh"
 
-    docker compose -f $compose up -d ukc-app-1 cometbft-1
+    docker compose -f $compose up -d --no-deps ukc-app-1
+    docker compose -f $compose up -d --no-deps cometbft-1
     $deadline = (Get-Date).AddSeconds(180)
     do {
         try {
@@ -101,8 +103,9 @@ try {
             $joiningHeight = [long]$joining.result.sync_info.latest_block_height
             $sourceHash = [string]$source.result.sync_info.latest_block_hash
             $joiningHash = [string]$joining.result.sync_info.latest_block_hash
-            if (($joiningHeight -gt $trustHeight) -and ($joiningHeight -eq $sourceHeight) -and ($joiningHash -eq $sourceHash) -and (-not [bool]$joining.result.sync_info.catching_up)) {
-                Write-Host "State sync succeeded: all source and joining heights converge at $joiningHeight with hash $joiningHash"
+            $earliestHeight = [long]$joining.result.sync_info.earliest_block_height
+            if (($earliestHeight -gt $trustHeight) -and ($joiningHeight -gt $trustHeight) -and ($joiningHeight -eq $sourceHeight) -and ($joiningHash -eq $sourceHash) -and (-not [bool]$joining.result.sync_info.catching_up)) {
+                Write-Host "State sync succeeded: snapshot starts at $earliestHeight; all nodes converge at $joiningHeight with hash $joiningHash"
                 return
             }
         }
