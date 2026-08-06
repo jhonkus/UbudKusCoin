@@ -11,6 +11,7 @@ using UbudKusCoin.CometBft.Abci;
 using UbudKusCoin.Core.Consensus;
 using UbudKusCoin.Core.Types;
 using UbudKusCoin.Services;
+using CoreBlock = UbudKusCoin.Core.Types.Block;
 using CoreTransaction = UbudKusCoin.Core.Types.Transaction;
 
 namespace UbudKusCoin.Grpc;
@@ -98,14 +99,28 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
     public override Task<ResponseFinalizeBlock> FinalizeBlock(RequestFinalizeBlock request, ServerCallContext context)
     {
         var transactions = DecodeTransactions(request.Txs, out var decodeError);
-        var result = decodeError is null
-            ? Application.FinalizeBlock(transactions, TimestampSeconds(request.Time))
-            : new ApplicationFinalizeResult(false, null, Array.Empty<byte>(), decodeError);
-        var response = new ResponseFinalizeBlock { AppHash = ByteString.CopyFrom(result.AppHash) };
+        var validation = decodeError is null
+            ? Application.ProcessProposal(transactions, TimestampSeconds(request.Time))
+            : new ApplicationCheckResult(false, decodeError);
+        var commit = validation.Accepted
+            ? ServicePool.CanonicalNodeService.AcceptExternalCommit(
+                transactions,
+                TimestampSeconds(request.Time),
+                Application.Validator)
+            : (false, new CoreBlock(), validation.Message);
+        if (commit.Item1)
+        {
+            Application.Synchronize(ServicePool.CanonicalNodeService.Chain.State);
+        }
+
+        var appHash = commit.Item1
+            ? ServicePool.CanonicalNodeService.Chain.State.ComputeStateRoot()
+            : Array.Empty<byte>();
+        var response = new ResponseFinalizeBlock { AppHash = ByteString.CopyFrom(appHash) };
         response.TxResults.AddRange(transactions.Select(_ => new ExecTxResult
         {
-            Code = result.Accepted ? Success : InvalidTransaction,
-            Log = result.Message
+            Code = commit.Item1 ? Success : InvalidTransaction,
+            Log = commit.Item3
         }));
         return Task.FromResult(response);
     }

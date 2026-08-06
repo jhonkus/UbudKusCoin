@@ -92,6 +92,43 @@ public sealed class CanonicalChain
         return true;
     }
 
+    public bool TryAcceptCommitted(Block block, out string error)
+    {
+        var hash = block.ComputeHeaderHashHex();
+        if (nodes.ContainsKey(hash))
+        {
+            error = "Duplicate block.";
+            AddQuarantine(block, error);
+            return false;
+        }
+
+        var parentHash = Convert.ToHexStringLower(block.PrevHash);
+        if (!nodes.TryGetValue(parentHash, out var parent))
+        {
+            error = "Unknown parent block.";
+            AddQuarantine(block, error);
+            return false;
+        }
+
+        var result = StateTransition.ApplyCommittedBlock(parent.State, block);
+        if (!result.Success)
+        {
+            error = result.Error ?? "Committed block rejected.";
+            AddQuarantine(block, error);
+            return false;
+        }
+
+        var candidate = new ChainNode(block, result.NewState!);
+        nodes[hash] = candidate;
+        if (IsPreferred(candidate, Head))
+        {
+            Head = candidate;
+        }
+
+        error = string.Empty;
+        return true;
+    }
+
     private static bool IsPreferred(ChainNode candidate, ChainNode current)
     {
         if (candidate.Block.Height != current.Block.Height)

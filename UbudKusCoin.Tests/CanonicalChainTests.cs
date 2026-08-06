@@ -49,6 +49,17 @@ public sealed class CanonicalChainTests
         Assert.Equal(thirdB.ComputeHeaderHashHex(), chain.Head.Block.ComputeHeaderHashHex());
     }
 
+    [Fact]
+    public void ExternalCommit_UsesStateValidationWithoutLocalSignature()
+    {
+        var chain = new CanonicalChain(ChainId);
+        var block = BuildBlock(chain.State, new Key(Enumerable.Repeat((byte)10, 32).ToArray()), 1);
+        block.ValidatorSignature = System.Array.Empty<byte>();
+
+        Assert.True(chain.TryAcceptCommitted(block, out var error), error);
+        Assert.Equal(block.ComputeHeaderHashHex(), chain.Head.Block.ComputeHeaderHashHex());
+    }
+
     private static CoreBlock BuildBlock(State state, Key validatorKey, byte timestampOffset)
     {
         var validator = Address.FromPublicKey(ChainInfo.AddressVersion(ChainId), validatorKey.PubKey.ToBytes());

@@ -56,6 +56,17 @@ public sealed class ConsensusApplicationStateMachine
         }
     }
 
+    public void Synchronize(State state)
+    {
+        ArgumentNullException.ThrowIfNull(state);
+        lock (_gate)
+        {
+            _state = state;
+        }
+    }
+
+    public Address Validator => _validator;
+
     public ApplicationCheckResult CheckTx(Transaction transaction)
     {
         lock (_gate)

@@ -108,6 +108,50 @@ public sealed class CanonicalNodeService
         }
     }
 
+    public (bool Accepted, CoreBlock Block, string Message) AcceptExternalCommit(
+        IEnumerable<CoreTransaction> transactions,
+        long timeStamp,
+        Address validator)
+    {
+        lock (writeLock)
+        {
+            var list = transactions.ToList();
+            var block = new CoreBlock
+            {
+                ChainId = chain.State.ChainId,
+                Height = chain.State.Height + 1,
+                TimeStamp = Math.Max(timeStamp, chain.State.TimeStamp + 1),
+                PrevHash = chain.State.Head,
+                MerkleRoot = Merkle.ComputeRoot(list.Select(x => x.ComputeId()).ToArray()),
+                Validator = validator,
+                Reward = Money.Zero,
+                Txs = list
+            };
+            var resulting = StateTransition.ComputeResultingState(chain.State, block);
+            if (!resulting.Success)
+            {
+                return (false, block, resulting.Error ?? "External commit rejected.");
+            }
+
+            block.StateRoot = resulting.NewState!.ComputeStateRoot();
+            if (!chain.TryAcceptCommitted(block, out var error))
+            {
+                return (false, block, error);
+            }
+
+            try
+            {
+                store.Save(chain);
+                return (true, block, "External commit accepted and persisted.");
+            }
+            catch (Exception exception)
+            {
+                chain = store.Load();
+                return (false, block, $"Persistence failed; state restored: {exception.Message}");
+            }
+        }
+    }
+
     public (bool Accepted, bool Finalized, string Message) SubmitVote(CanonicalVote request)
     {
         try

@@ -20,6 +20,10 @@ CometBFT v0.38 wire contract. `Info`, `CheckTx`, `PrepareProposal`,
 state machine. Snapshot restore and vote extensions deliberately return
 unsupported responses until implemented and tested.
 
+`FinalizeBlock` now validates and persists the committed block through the
+canonical chain store before returning its app hash, then resynchronizes the
+application state machine from the persisted canonical state.
+
 ## Remaining Production Evidence
 
 - Run a real multi-process CometBFT cluster with the application state machine.

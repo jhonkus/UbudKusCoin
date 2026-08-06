@@ -105,6 +105,8 @@ canonical two-node exchange/rejection tests and crash-safe snapshot rebuild test
   boundary; no JSON/reflection serialization in consensus bytes.
 - [x] Add a CometBFT v0.38 ABCI 2.0 gRPC surface for core transaction and
   finalize methods; unsupported snapshots/vote extensions remain explicit.
+- [x] Persist ABCI external finalization through the canonical chain store and
+  resynchronize the application state machine after commit.
 
 **Exit criteria:** multi-node tests showing finality, liveness under faults, and slashing. Protocol-level finality and slashing
 tests pass; runtime engine integration and fault/liveness tests remain.
