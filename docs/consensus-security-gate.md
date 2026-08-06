@@ -34,8 +34,9 @@ match the already accepted block.
 State sync now exposes a versioned, SHA-256-verified snapshot format with
 bounded chunks. Restore validates the offered app hash, state root, and
 canonical head anchor before replacing local state. The local restore contract
-and four-validator quorum harness are covered by tests; a completed cross-node
-state-sync drill with a trusted snapshot remains outstanding.
+and four-validator quorum harness are covered by tests. The reproducible
+cross-node state-sync drill now resets validator 1, restores it from a trusted
+snapshot, and verifies convergence with the source quorum.
 
 The CometBFT genesis harness starts at `initial_height: 1`. The application
 reports its internal genesis state as ABCI height `0`, allowing `InitChain` to
@@ -59,6 +60,8 @@ and all four nodes converged again with the same block hash.
   height and hash. Restart recovery and a network partition drill are covered
   by the multi-validator harness; the repeatable partition script is available at
   `deploy/cometbft/test-multinode-partition.ps1`.
+- Repeat the state-sync drill with rotated validator keys and a production-shaped
+  snapshot retention policy before public testnet launch.
 - Verify that finalized state cannot be reverted after restart or resynchronization.
 - Review validator onboarding, key rotation, slashing evidence, and RPC access
   controls.

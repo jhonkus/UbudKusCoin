@@ -72,10 +72,16 @@ intentionally test-only and should not be run against a production network.
 
 ## State-sync drill boundary
 
-The application implements deterministic snapshot listing, chunk transfer,
-hash verification, and canonical restore. A cross-node state-sync drill must
-run with at least four validators so the source chain continues producing
-blocks while the joining node is offline. The two-validator setup cannot prove
-this: stopping one validator removes the 2/3 quorum needed to finalize the
-trusted light block. Use `configure-state-sync.sh` to configure a fresh node
-with a trusted height and hash before starting that drill.
+The application implements deterministic snapshot listing, stable chunk
+transfer, hash verification, and canonical restore. Run the reproducible
+cross-node drill with:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\deploy\cometbft\test-multinode-state-sync.ps1
+```
+
+The drill resets validator 1, obtains a trusted height/hash from validator 0,
+enables state sync, and verifies that the joining validator converges with the
+three-validator source quorum. Four validators are required because stopping
+one node in a two-validator network removes the 2/3 quorum needed to finalize
+the trusted light block.
