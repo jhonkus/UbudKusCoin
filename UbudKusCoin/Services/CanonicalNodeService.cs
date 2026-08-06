@@ -135,14 +135,15 @@ public sealed class CanonicalNodeService
     {
         lock (writeLock)
         {
-            var expectedHeight = checked(externalHeight + 1);
             var list = transactions.ToList();
             var evidenceList = evidence?.ToList() ?? new List<ConsensusEvidence>();
-            return chain.State.Height == expectedHeight
-                && chain.Head.Block.Validator.Encoded == validator.Encoded
+            var sameHead = chain.Head.Block.Validator.Encoded == validator.Encoded
                 && chain.Head.Block.Txs.Select(x => x.ComputeIdHex())
                     .SequenceEqual(list.Select(x => x.ComputeIdHex()), StringComparer.Ordinal)
                 && chain.Head.Block.Evidence.SequenceEqual(evidenceList);
+            return sameHead
+                && (chain.State.Height == checked(externalHeight + 1)
+                    || chain.State.Height == externalHeight);
         }
     }
 
@@ -163,7 +164,11 @@ public sealed class CanonicalNodeService
                 ? chain.State.Height + 1
                 : checked(externalHeight.Value + 1);
 
-            if (chain.State.Height == expectedHeight)
+            if (chain.State.Height == expectedHeight
+                || (chain.State.Height == externalHeight
+                    && chain.Head.Block.Validator.Encoded == validator.Encoded
+                    && chain.Head.Block.Txs.Select(x => x.ComputeIdHex())
+                        .SequenceEqual(list.Select(x => x.ComputeIdHex()), StringComparer.Ordinal)))
             {
                 var sameTransactions = chain.Head.Block.Txs.Count == list.Count
                     && chain.Head.Block.Txs.Select(x => x.ComputeIdHex())

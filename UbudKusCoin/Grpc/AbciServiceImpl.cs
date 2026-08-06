@@ -442,7 +442,10 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
         var state = Application.State;
         var nextHeight = AbciHeight(state.Height) + 1;
         var replayHeight = AbciHeight(state.Height);
-        if (requestedHeight != nextHeight && requestedHeight != replayHeight)
+        if (requestedHeight != nextHeight
+            && requestedHeight != replayHeight
+            && requestedHeight != state.Height
+            && requestedHeight != checked(state.Height + 1))
         {
             return null;
         }
