@@ -135,6 +135,49 @@ namespace UbudKusCoin
                         height = application.State.Height.ToString(CultureInfo.InvariantCulture)
                     }, context.RequestAborted);
                 });
+                endpoints.MapGet("/api/v1/accounts/{address}/transactions", async context =>
+                {
+                    var application = ServicePool.ApplicationStateMachine;
+                    var addressText = context.Request.RouteValues["address"]?.ToString();
+                    if (application is null || !Address.TryParse(addressText ?? string.Empty, out var address)
+                        || address.Version != ChainInfo.AddressVersion(application.State.ChainId))
+                    {
+                        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                        return;
+                    }
+
+                    var limit = Math.Clamp(
+                        int.TryParse(context.Request.Query["limit"], out var requestedLimit) ? requestedLimit : 50,
+                        1,
+                        100);
+                    var transactions = ServicePool.CanonicalNodeService.Chain
+                        .GetCanonicalBlocks(0)
+                        .SelectMany(block => block.Txs.Select(transaction => new
+                        {
+                            transaction,
+                            block.Height,
+                            block.TimeStamp
+                        }))
+                        .Where(item => item.transaction.From.Encoded == address.Encoded
+                            || item.transaction.To.Encoded == address.Encoded)
+                        .OrderByDescending(item => item.Height)
+                        .ThenByDescending(item => item.transaction.Nonce)
+                        .Take(limit)
+                        .Select(item => new
+                        {
+                            txId = item.transaction.ComputeIdHex(),
+                            height = item.Height.ToString(CultureInfo.InvariantCulture),
+                            timeStamp = item.TimeStamp.ToString(CultureInfo.InvariantCulture),
+                            from = item.transaction.From.Encoded,
+                            to = item.transaction.To.Encoded,
+                            amountBaseUnits = item.transaction.Amount.BaseUnits.ToString(CultureInfo.InvariantCulture),
+                            feeBaseUnits = item.transaction.Fee.BaseUnits.ToString(CultureInfo.InvariantCulture),
+                            nonce = item.transaction.Nonce.ToString(CultureInfo.InvariantCulture)
+                        })
+                        .ToArray();
+
+                    await context.Response.WriteAsJsonAsync(transactions, context.RequestAborted);
+                });
                 endpoints.MapGet("/", async context =>
                 {
                     await context.Response.WriteAsync(
