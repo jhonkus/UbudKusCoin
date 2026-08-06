@@ -52,7 +52,14 @@ namespace UbudKusCoin.Services
             ConsensusEngine = ConsensusEngineFactory.Create(consensusOptions);
             if (consensusOptions.Mode == ConsensusEngineMode.CometBft)
             {
+                var deadline = DateTime.UtcNow.AddSeconds(consensusOptions.StartupTimeoutSeconds);
                 var status = ConsensusEngine.GetStatusAsync().GetAwaiter().GetResult();
+                while (!status.Healthy && DateTime.UtcNow < deadline)
+                {
+                    System.Threading.Thread.Sleep(1000);
+                    status = ConsensusEngine.GetStatusAsync().GetAwaiter().GetResult();
+                }
+
                 if (!status.Healthy)
                 {
                     throw new InvalidOperationException($"Consensus engine startup check failed: {status.Message}");

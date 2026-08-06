@@ -1,0 +1,35 @@
+services:
+  ukc-app:
+    build:
+      context: ../..
+      dockerfile: deploy/cometbft/Dockerfile
+    environment:
+      NODE_PASSPHRASE: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+      CHAIN_ID: "2"
+      CONSENSUS_ENGINE: "cometbft"
+      COMETBFT_RPC_URL: "http://cometbft:26657"
+      COMETBFT_STARTUP_TIMEOUT_SECONDS: "120"
+      GRPC_PORT: "5000"
+      GRPC_WEB_PORT: "5001"
+      NODE_ADDRESS: "ukc-app:5000"
+      BOOTSRTAP_PEERS: ""
+    ports:
+      - "5000:5000"
+      - "5001:5001"
+    volumes:
+      - ukc-db:/app/DbFiles
+
+  cometbft:
+    image: cometbft/cometbft:v0.38.17
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["if [ ! -f /cometbft/config/genesis.json ]; then cometbft init --home /cometbft --chain-id ukc-testnet-2; fi && cometbft node --home /cometbft --proxy_app=grpc://ukc-app:5000"]
+    depends_on:
+      - ukc-app
+    ports:
+      - "26657:26657"
+    volumes:
+      - cometbft-data:/cometbft
+
+volumes:
+  ukc-db:
+  cometbft-data:

@@ -24,6 +24,13 @@ public sealed class ConsensusEngineTests
     }
 
     [Fact]
+    public void StartupTimeout_IsBounded()
+    {
+        Assert.Equal(15, ConsensusEngineOptions.Parse("development", "", 15).StartupTimeoutSeconds);
+        Assert.Throws<InvalidOperationException>(() => ConsensusEngineOptions.Parse("development", "", 601));
+    }
+
+    [Fact]
     public async Task CometBftAdapter_ReportsRpcHealth()
     {
         var handler = new StubHandler(

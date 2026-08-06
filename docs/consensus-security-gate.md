@@ -5,6 +5,9 @@ configuration. `CONSENSUS_ENGINE=development` uses the deterministic in-process
 driver and is suitable only for local tests. A production node must use
 `CONSENSUS_ENGINE=cometbft` and provide an absolute `COMETBFT_RPC_URL`.
 Production startup also requires a valid CometBFT `/status` payload.
+Startup retries the status check for `COMETBFT_STARTUP_TIMEOUT_SECONDS`
+(default 60 seconds) to support container startup ordering without silently
+falling back to the development driver.
 
 The Core now exposes a deterministic application boundary for transaction
 admission, proposal validation, and atomic finalization. The network transport
@@ -27,6 +30,7 @@ application state machine from the persisted canonical state.
 ## Remaining Production Evidence
 
 - Run a real multi-process CometBFT cluster with the application state machine.
+- Run the reproducible test-only smoke harness under `deploy/cometbft/` first.
 - Exercise validator failure, network partition, restart, delayed messages, and
   state recovery while recording finalized height and hash.
 - Verify that finalized state cannot be reverted after restart or resynchronization.
