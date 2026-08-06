@@ -57,6 +57,10 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
         }
 
         var result = Application.CheckTx(transaction!);
+        if (result.Accepted)
+        {
+            TransactionStatusRegistry.MarkPending(transaction!.ComputeIdHex(), result.Message);
+        }
         return Task.FromResult(new ResponseCheckTx
         {
             Code = result.Accepted ? Success : InvalidTransaction,
@@ -110,6 +114,10 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
         var proposer = ResolveProposer(request.Height, request.ProposerAddress);
         if (proposer is null)
         {
+            foreach (var transaction in transactions)
+            {
+                TransactionStatusRegistry.MarkRejected(transaction.ComputeIdHex(), "Invalid proposer or external chain height.");
+            }
             return Task.FromResult(FinalizeFailure(
                 request.Txs.Count,
                 "Invalid CometBFT chain, height, or proposer."));
@@ -131,6 +139,10 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
                 AppHash = ByteString.CopyFrom(persistedState.ComputeStateRoot())
             };
             AddTransactionResults(replay, request.Txs.Count, Success, "External commit was already accepted.");
+            foreach (var transaction in transactions)
+            {
+                TransactionStatusRegistry.MarkConfirmed(transaction.ComputeIdHex(), persistedState.Height);
+            }
             return Task.FromResult(replay);
         }
 
@@ -148,6 +160,19 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
         if (commit.Item1)
         {
             Application.Synchronize(ServicePool.CanonicalNodeService.Chain.State);
+            foreach (var transaction in transactions)
+            {
+                TransactionStatusRegistry.MarkConfirmed(
+                    transaction.ComputeIdHex(),
+                    ServicePool.CanonicalNodeService.Chain.State.Height);
+            }
+        }
+        else
+        {
+            foreach (var transaction in transactions)
+            {
+                TransactionStatusRegistry.MarkRejected(transaction.ComputeIdHex(), commit.Item3);
+            }
         }
 
         var appHash = commit.Item1

@@ -178,6 +178,41 @@ namespace UbudKusCoin
 
                     await context.Response.WriteAsJsonAsync(transactions, context.RequestAborted);
                 });
+                endpoints.MapGet("/api/v1/transactions/{txId}", async context =>
+                {
+                    var txId = context.Request.RouteValues["txId"]?.ToString()?.Trim().ToLowerInvariant();
+                    if (string.IsNullOrWhiteSpace(txId) || txId.Length != 64
+                        || txId.Any(character => !Uri.IsHexDigit(character)))
+                    {
+                        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                        return;
+                    }
+
+                    var canonical = ServicePool.CanonicalNodeService?.Chain
+                        .GetCanonicalBlocks(0)
+                        .SelectMany(block => block.Txs.Select(transaction => new { transaction, block.Height }))
+                        .FirstOrDefault(item => item.transaction.ComputeIdHex() == txId);
+                    if (canonical is not null)
+                    {
+                        TransactionStatusRegistry.MarkConfirmed(txId, canonical.Height);
+                        await context.Response.WriteAsJsonAsync(new
+                        {
+                            txId,
+                            status = "confirmed",
+                            message = "Transaction committed in the canonical chain.",
+                            height = canonical.Height.ToString(CultureInfo.InvariantCulture)
+                        }, context.RequestAborted);
+                        return;
+                    }
+
+                    if (!TransactionStatusRegistry.TryGet(txId, out var status))
+                    {
+                        context.Response.StatusCode = StatusCodes.Status404NotFound;
+                        return;
+                    }
+
+                    await context.Response.WriteAsJsonAsync(status, context.RequestAborted);
+                });
                 endpoints.MapGet("/", async context =>
                 {
                     await context.Response.WriteAsync(
