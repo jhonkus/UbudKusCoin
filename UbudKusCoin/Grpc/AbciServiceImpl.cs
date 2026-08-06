@@ -98,6 +98,7 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
 
     public override Task<ResponseFinalizeBlock> FinalizeBlock(RequestFinalizeBlock request, ServerCallContext context)
     {
+        var previousState = Application.State;
         var proposer = ResolveProposer(request.Height, request.ProposerAddress);
         if (proposer is null)
         {
@@ -133,7 +134,7 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
         }));
         if (commit.Item1)
         {
-            response.ValidatorUpdates.AddRange(BuildValidatorUpdates(Application.State));
+            response.ValidatorUpdates.AddRange(BuildValidatorUpdates(previousState, Application.State));
         }
         return Task.FromResult(response);
     }
@@ -239,13 +240,16 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
         return null;
     }
 
-    private static IEnumerable<ValidatorUpdate> BuildValidatorUpdates(State state)
+    private static IEnumerable<ValidatorUpdate> BuildValidatorUpdates(State previousState, State state)
     {
+        var currentKeys = new HashSet<string>(StringComparer.Ordinal);
         foreach (var stake in state.Stakes.OrderBy(x => x.Address.Encoded, StringComparer.Ordinal))
         {
             if (stake.PubKey.Length is < 33 or > 65)
                 continue;
 
+            var key = Convert.ToHexString(stake.PubKey);
+            currentKeys.Add(key);
             var power = stake.Jailed || stake.UnlockHeight != 0
                 ? 0
                 : Math.Max(1, Math.Min(long.MaxValue, stake.Amount.BaseUnits));
@@ -253,6 +257,19 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
             {
                 PubKey = new PublicKey { Secp256K1 = Google.Protobuf.ByteString.CopyFrom(stake.PubKey) },
                 Power = power
+            };
+        }
+
+        // A withdrawn position is no longer present in the new state. Emit a
+        // zero-power update for its previous key so CometBFT removes it.
+        foreach (var stake in previousState.Stakes
+            .Where(x => !currentKeys.Contains(Convert.ToHexString(x.PubKey)))
+            .OrderBy(x => x.Address.Encoded, StringComparer.Ordinal))
+        {
+            yield return new ValidatorUpdate
+            {
+                PubKey = new PublicKey { Secp256K1 = Google.Protobuf.ByteString.CopyFrom(stake.PubKey) },
+                Power = 0
             };
         }
     }
