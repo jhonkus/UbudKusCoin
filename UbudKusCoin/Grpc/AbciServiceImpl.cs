@@ -25,6 +25,8 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
     private const int SnapshotChunkBytes = 512 * 1024;
     private readonly object snapshotGate = new();
     private SnapshotSession? snapshotSession;
+    private byte[]? listedSnapshotPayload;
+    private Snapshot? listedSnapshot;
 
     private static ConsensusApplicationStateMachine Application
         => ServicePool.ApplicationStateMachine
@@ -201,11 +203,14 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
 
     public override Task<ResponseListSnapshots> ListSnapshots(RequestListSnapshots request, ServerCallContext context)
     {
-        var payload = BuildSnapshotPayload();
-        var snapshot = DescribeSnapshot(payload);
-        var response = new ResponseListSnapshots();
-        response.Snapshots.Add(snapshot);
-        return Task.FromResult(response);
+        lock (snapshotGate)
+        {
+            listedSnapshotPayload = BuildSnapshotPayload();
+            listedSnapshot = DescribeSnapshot(listedSnapshotPayload);
+            var response = new ResponseListSnapshots();
+            response.Snapshots.Add(listedSnapshot);
+            return Task.FromResult(response);
+        }
     }
 
     public override Task<ResponseOfferSnapshot> OfferSnapshot(RequestOfferSnapshot request, ServerCallContext context)
@@ -238,20 +243,26 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
 
     public override Task<ResponseLoadSnapshotChunk> LoadSnapshotChunk(RequestLoadSnapshotChunk request, ServerCallContext context)
     {
-        if (request.Format != SnapshotFormat)
-            return Task.FromResult(new ResponseLoadSnapshotChunk());
-
-        var payload = BuildSnapshotPayload();
-        var snapshot = DescribeSnapshot(payload);
-        if (request.Height != snapshot.Height || request.Chunk >= snapshot.Chunks)
-            return Task.FromResult(new ResponseLoadSnapshotChunk());
-
-        var offset = checked((int)request.Chunk * SnapshotChunkBytes);
-        var length = Math.Min(SnapshotChunkBytes, payload.Length - offset);
-        return Task.FromResult(new ResponseLoadSnapshotChunk
+        lock (snapshotGate)
         {
-            Chunk = ByteString.CopyFrom(payload, offset, length)
-        });
+            if (listedSnapshotPayload is null
+                || listedSnapshot is null
+                || request.Format != SnapshotFormat
+                || request.Height != listedSnapshot.Height
+                || request.Chunk >= listedSnapshot.Chunks)
+            {
+                return Task.FromResult(new ResponseLoadSnapshotChunk());
+            }
+
+            var offset = checked((int)request.Chunk * SnapshotChunkBytes);
+            var length = Math.Min(
+                SnapshotChunkBytes,
+                listedSnapshotPayload.Length - offset);
+            return Task.FromResult(new ResponseLoadSnapshotChunk
+            {
+                Chunk = ByteString.CopyFrom(listedSnapshotPayload, offset, length)
+            });
+        }
     }
 
     public override Task<ResponseApplySnapshotChunk> ApplySnapshotChunk(RequestApplySnapshotChunk request, ServerCallContext context)
