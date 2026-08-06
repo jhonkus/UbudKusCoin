@@ -15,6 +15,15 @@ namespace UbudKusCoin.Grpc
     {
         public override Task<AddStakeStatus> Add(Stake req, ServerCallContext context)
         {
+            if (ServicePool.ConsensusEngine?.Mode == ConsensusEngineMode.CometBft)
+            {
+                return Task.FromResult(new AddStakeStatus
+                {
+                    Message = "Direct stake writes are disabled under CometBFT; submit a signed consensus transaction.",
+                    Status = Others.Constants.TXN_STATUS_FAIL,
+                });
+            }
+
             ServicePool.DbService.StakeDb.AddOrUpdate(req);
             return Task.FromResult(new AddStakeStatus
             {
