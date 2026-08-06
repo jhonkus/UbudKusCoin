@@ -69,6 +69,17 @@ namespace UbudKusCoin.Services
 
             var consensusOptions = ConsensusEngineOptions.FromEnvironment();
             ConsensusEngine = ConsensusEngineFactory.Create(consensusOptions);
+            if (consensusOptions.Mode == ConsensusEngineMode.CometBft
+                && consensusOptions.KeyCustodyMode == ValidatorKeyCustodyMode.ExternalSigner)
+            {
+                var reachabilityTimeout = TimeSpan.FromSeconds(
+                    Math.Min(Math.Max(consensusOptions.StartupTimeoutSeconds, 1), 5));
+                ExternalSignerConnectivity.EnsureReachableAsync(
+                        consensusOptions.ExternalSignerAddress,
+                        reachabilityTimeout)
+                    .GetAwaiter()
+                    .GetResult();
+            }
             var validatorKey = consensusOptions.Mode == ConsensusEngineMode.CometBft
                 ? CometBftValidatorKeyLoader.LoadConfiguredPublicKey(
                     consensusOptions.KeyCustodyMode == ValidatorKeyCustodyMode.ExternalSigner)

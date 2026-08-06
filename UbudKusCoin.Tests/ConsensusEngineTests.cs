@@ -40,6 +40,8 @@ public sealed class ConsensusEngineTests
         Assert.Equal("tcp://signer:26659/", options.ExternalSignerAddress.ToString());
         Assert.Throws<InvalidOperationException>(() => ConsensusEngineOptions.Parse(
             "cometbft", "http://localhost:26657", 60, "external-signer", "http://signer:26659"));
+        Assert.Throws<InvalidOperationException>(() => ConsensusEngineOptions.Parse(
+            "cometbft", "http://localhost:26657", 60, "external-signer", "tcp://signer"));
     }
 
     [Fact]

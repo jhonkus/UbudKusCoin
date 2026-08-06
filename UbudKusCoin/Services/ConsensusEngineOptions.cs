@@ -98,10 +98,12 @@ public sealed class ConsensusEngineOptions
             return null;
 
         if (!Uri.TryCreate(value?.Trim(), UriKind.Absolute, out var endpoint)
-            || !string.Equals(endpoint.Scheme, "tcp", StringComparison.OrdinalIgnoreCase))
+            || !string.Equals(endpoint.Scheme, "tcp", StringComparison.OrdinalIgnoreCase)
+            || endpoint.IsDefaultPort
+            || endpoint.Port <= 0)
         {
             throw new InvalidOperationException(
-                "COMETBFT_PRIV_VALIDATOR_LADDR must be an absolute tcp:// URL for external-signer custody.");
+                "COMETBFT_PRIV_VALIDATOR_LADDR must be an absolute tcp:// host:port URL for external-signer custody.");
         }
 
         return endpoint;

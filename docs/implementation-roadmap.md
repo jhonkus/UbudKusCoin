@@ -97,6 +97,8 @@ canonical two-node exchange/rejection tests and crash-safe snapshot rebuild test
 - [x] Add partition/reconnect and round-change progress tests.
 - [x] Add an explicit consensus-engine adapter boundary and fail-closed
   `CONSENSUS_ENGINE`/`COMETBFT_RPC_URL` configuration.
+- [x] Add a fail-closed external-signer reachability guard for
+  `VALIDATOR_KEY_CUSTODY_MODE=external-signer`.
 - [x] Disable legacy local minting whenever an external consensus engine is configured.
 - [x] Require a valid external-engine status response before production startup.
 - [x] Add a deterministic Core application boundary for `CheckTx`, proposal
@@ -214,8 +216,7 @@ tests pass; runtime engine integration and fault/liveness tests remain.
 round-change tests, CometBFT ABCI integration, multi-process smoke/restart verification, deterministic on-chain staking
 transactions, Ed25519 validator updates, restart recovery, network-partition fault injection, local snapshot restore,
 verified cross-node state-sync, validator-update mapping tests, delayed-finality regression tests, mutation fuzzing,
-tests, delayed-message recovery, validated external genesis manifest loading,
-end-to-end validator key rotation, and the fail-closed external-signer identity
-boundary landed). Next: stronger fuzzing, deployment of an audited external
-signer/HSM, and independent consensus/security review. See
+delayed-message recovery, validated external genesis manifest loading,
+end-to-end validator key rotation, fail-closed external-signer reachability, and engine boundary hardening landed). Next:
+stronger fuzzing, deployment of an audited external signer/HSM, and independent consensus/security review. See
 `docs/consensus-security-gate.md`.**

@@ -323,7 +323,8 @@ namespace UbudKusCoin.P2P
             if (uri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)
                 && !string.IsNullOrWhiteSpace(clientCertificatePath))
             {
-                handler.ClientCertificates.Add(new X509Certificate2(clientCertificatePath, clientCertificatePassword));
+                handler.ClientCertificates.Add(
+                    X509CertificateLoader.LoadPkcs12FromFile(clientCertificatePath, clientCertificatePassword));
             }
 
             return GrpcChannel.ForAddress(uri, new GrpcChannelOptions
