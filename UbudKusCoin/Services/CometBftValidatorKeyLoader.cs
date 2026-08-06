@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using NBitcoin.DataEncoders;
+using UbudKusCoin.Core.Types;
 
 namespace UbudKusCoin.Services;
 
@@ -47,6 +49,57 @@ public static class CometBftValidatorKeyLoader
         catch (Exception exception) when (exception is IOException or JsonException or KeyNotFoundException or FormatException)
         {
             return Array.Empty<byte>();
+        }
+    }
+
+    public static Address? TryResolveApplicationAddress(byte[] cometAddress, uint chainId)
+    {
+        if (cometAddress is null || cometAddress.Length == 0)
+        {
+            return null;
+        }
+
+        foreach (var publicKey in TryLoadGenesisPublicKeys())
+        {
+            var derivedCometAddress = System.Security.Cryptography.SHA256.HashData(publicKey)[..20];
+            if (derivedCometAddress.SequenceEqual(cometAddress))
+            {
+                return Address.FromPublicKey(ChainInfo.AddressVersion(chainId), publicKey);
+            }
+        }
+
+        var localPublicKey = TryLoadPublicKey();
+        if (localPublicKey.Length > 0
+            && System.Security.Cryptography.SHA256.HashData(localPublicKey)[..20].SequenceEqual(cometAddress))
+        {
+            return Address.FromPublicKey(ChainInfo.AddressVersion(chainId), localPublicKey);
+        }
+
+        return null;
+    }
+
+    private static IReadOnlyList<byte[]> TryLoadGenesisPublicKeys()
+    {
+        var home = DotNetEnv.Env.GetString("COMETBFT_HOME", string.Empty);
+        var path = string.IsNullOrWhiteSpace(home)
+            ? string.Empty
+            : Path.Combine(home, "config", "genesis.json");
+        if (!File.Exists(path))
+        {
+            return Array.Empty<byte[]>();
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(File.ReadAllText(path));
+            return document.RootElement.GetProperty("validators")
+                .EnumerateArray()
+                .Select(x => Convert.FromBase64String(x.GetProperty("pub_key").GetProperty("value").GetString()!))
+                .ToArray();
+        }
+        catch (Exception exception) when (exception is IOException or JsonException or KeyNotFoundException or FormatException)
+        {
+            return Array.Empty<byte[]>();
         }
     }
 }

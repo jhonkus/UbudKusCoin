@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -99,7 +98,8 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
 
     public override Task<ResponseFinalizeBlock> FinalizeBlock(RequestFinalizeBlock request, ServerCallContext context)
     {
-        if (!IsExpectedChain(request.Height, request.ProposerAddress))
+        var proposer = ResolveProposer(request.Height, request.ProposerAddress);
+        if (proposer is null)
         {
             return Task.FromResult(new ResponseFinalizeBlock
             {
@@ -115,7 +115,7 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
             ? ServicePool.CanonicalNodeService.AcceptExternalCommit(
                 transactions,
                 TimestampSeconds(request.Time),
-                Application.Validator)
+                proposer.Value)
             : (false, new CoreBlock(), validation.Message);
         if (commit.Item1)
         {
@@ -154,7 +154,7 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
             AppHash = ByteString.CopyFrom(Application.State.ComputeStateRoot())
         };
         var publicKey = CometBftValidatorKeyLoader.TryLoadPublicKey();
-        if (publicKey.Length > 0)
+        if (request.Validators.Count == 0 && publicKey.Length > 0)
         {
             response.Validators.Add(new ValidatorUpdate
             {
@@ -209,17 +209,17 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
     private static long AbciHeight(long applicationHeight)
         => Math.Max(0, applicationHeight - 1);
 
-    private static bool IsExpectedChain(long requestedHeight, ByteString proposerAddress)
+    private static Address? ResolveProposer(long requestedHeight, ByteString proposerAddress)
     {
         var state = Application.State;
-        if (requestedHeight != AbciHeight(state.Height) + 1
-            || Application.ValidatorPublicKey.Count == 0)
+        if (requestedHeight != AbciHeight(state.Height) + 1)
         {
-            return false;
+            return null;
         }
 
-        var expectedAddress = SHA256.HashData(Application.ValidatorPublicKey.ToArray())[..20];
-        return proposerAddress.Span.SequenceEqual(expectedAddress);
+        return CometBftValidatorKeyLoader.TryResolveApplicationAddress(
+            proposerAddress.ToByteArray(),
+            state.ChainId);
     }
 
     private static long TimestampSeconds(Timestamp timestamp)

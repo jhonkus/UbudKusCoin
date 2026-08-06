@@ -110,6 +110,8 @@ canonical two-node exchange/rejection tests and crash-safe snapshot rebuild test
 - [x] Add the length-prefixed ABCI socket transport, `initial_height: 1`
   genesis configuration, validator bootstrap, and readiness ordering.
 - [x] Add a pinned, test-only CometBFT container smoke harness.
+- [x] Add a two-validator, multi-process CometBFT harness with proposer mapping
+  and restart recovery verification.
 
 **Exit criteria:** multi-node tests showing finality, liveness under faults, and slashing. Protocol-level finality and slashing
 tests pass; runtime engine integration and fault/liveness tests remain.
@@ -189,5 +191,5 @@ tests pass; runtime engine integration and fault/liveness tests remain.
 - Use the `docs/*.md` files as living documents updated as stages land.
 
 **Current position: Stage 6 in progress (protocol, proposer gating, vote transport, finality persistence, quorum, partition,
-round-change tests, and adapter boundary landed). Next: real multi-process CometBFT/ABCI integration and independent
-consensus/security review. See `docs/consensus-security-gate.md`.**
+round-change tests, CometBFT ABCI integration, and multi-process smoke/restart verification landed). Next: on-chain
+staking integration, fault injection, and independent consensus/security review. See `docs/consensus-security-gate.md`.**

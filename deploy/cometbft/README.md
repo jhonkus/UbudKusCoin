@@ -36,3 +36,19 @@ RPC and never falls back to the in-process driver.
 - It does not prove multi-validator quorum, partition recovery, or production
   key management.
 - Delete the test volumes after the run with `docker compose ... down -v`.
+
+## Multi-process smoke test
+
+The two-validator harness uses CometBFT's generated testnet topology and two
+independent application processes:
+
+```powershell
+docker compose -f deploy/cometbft/docker-compose.multinode.yml up --build -d
+Invoke-RestMethod http://localhost:26657/status
+Invoke-RestMethod http://localhost:26658/status
+docker compose -f deploy/cometbft/docker-compose.multinode.yml down -v
+```
+
+This validates process isolation, shared genesis, validator proposer mapping,
+ABCI finalization, and peer consensus. It remains a development harness and
+does not replace a production key-management or network-failure test plan.

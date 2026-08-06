@@ -82,7 +82,7 @@ message RequestQuery { bytes data = 1; string path = 2; int64 height = 3; bool p
 message ResponseQuery { uint32 code = 1; string log = 3; string info = 4; int64 index = 5; bytes key = 6; bytes value = 7; int64 height = 9; string codespace = 10; }
 message RequestCommit {}
 message ResponseCommit { int64 retain_height = 3; }
-message RequestInitChain { google.protobuf.Timestamp time = 1; string chain_id = 2; bytes app_state_bytes = 5; int64 initial_height = 6; }
+message RequestInitChain { google.protobuf.Timestamp time = 1; string chain_id = 2; repeated ValidatorUpdate validators = 4; bytes app_state_bytes = 5; int64 initial_height = 6; }
 message ResponseInitChain { repeated ValidatorUpdate validators = 2; bytes app_hash = 3; }
 message ValidatorUpdate { PublicKey pub_key = 1; int64 power = 2; }
 message PublicKey { oneof sum { bytes ed25519 = 1; bytes secp256k1 = 2; } }

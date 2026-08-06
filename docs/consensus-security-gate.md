@@ -33,9 +33,13 @@ The CometBFT genesis harness starts at `initial_height: 1`. The application
 reports its internal genesis state as ABCI height `0`, allowing `InitChain` to
 run once and making the first CometBFT block height `1`.
 
+The repository also includes a two-validator, multi-process harness that checks
+shared genesis, proposer mapping, peer consensus, and restart recovery. It is
+still test-only and does not provide production key custody or fault injection.
+
 ## Remaining Production Evidence
 
-- Run a real multi-process CometBFT cluster with the application state machine.
+- Run a production-shaped multi-process CometBFT cluster with managed keys.
 - Run the reproducible test-only smoke harness under `deploy/cometbft/` first.
 - Exercise validator failure, network partition, restart, delayed messages, and
   state recovery while recording finalized height and hash.

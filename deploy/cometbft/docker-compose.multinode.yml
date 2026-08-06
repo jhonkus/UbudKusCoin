@@ -1,0 +1,95 @@
+services:
+  cometbft-init:
+    image: cometbft/cometbft:v0.38.17
+    user: "0:0"
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["if [ ! -f /network/node0/config/genesis.json ]; then cometbft testnet --v 2 --o /network --hostname-prefix cometbft- --initial-height 1 --populate-persistent-peers && sed -i -e 's/\\\"chain_id\\\": \\\"[^\\\"]*\\\"/\\\"chain_id\\\": \\\"ukc-testnet-2\\\"/' -e 's/\\\"app_hash\\\": \\\"\\\"/\\\"app_hash\\\": \\\"2359977350803ef775c0a6dec7aefe70225a820463de005e8184899958def4e3\\\"/' /network/node0/config/genesis.json && cp /network/node0/config/genesis.json /network/node1/config/genesis.json && chmod -R a+rwX /network; fi"]
+    volumes:
+      - multinode-data:/network
+
+  ukc-app-0:
+    build:
+      context: ../..
+      dockerfile: deploy/cometbft/Dockerfile
+    environment:
+      NODE_PASSPHRASE: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+      CHAIN_ID: "2"
+      CONSENSUS_ENGINE: "cometbft"
+      COMETBFT_RPC_URL: "http://cometbft-0:26657"
+      COMETBFT_CHAIN_ID: "ukc-testnet-2"
+      COMETBFT_HOME: "/cometbft/node0"
+      ABCI_SOCKET_PORT: "26658"
+      GRPC_PORT: "5000"
+      GRPC_WEB_PORT: "5001"
+      NODE_ADDRESS: "ukc-app-0:5000"
+      BOOTSRTAP_PEERS: ""
+    depends_on:
+      cometbft-init:
+        condition: service_completed_successfully
+    volumes:
+      - ukc-db-0:/app/DbFiles
+      - multinode-data:/cometbft:ro
+    ports:
+      - "5100:5001"
+
+  ukc-app-1:
+    build:
+      context: ../..
+      dockerfile: deploy/cometbft/Dockerfile
+    environment:
+      NODE_PASSPHRASE: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+      CHAIN_ID: "2"
+      CONSENSUS_ENGINE: "cometbft"
+      COMETBFT_RPC_URL: "http://cometbft-1:26657"
+      COMETBFT_CHAIN_ID: "ukc-testnet-2"
+      COMETBFT_HOME: "/cometbft/node1"
+      ABCI_SOCKET_PORT: "26658"
+      GRPC_PORT: "5000"
+      GRPC_WEB_PORT: "5001"
+      NODE_ADDRESS: "ukc-app-1:5000"
+      BOOTSRTAP_PEERS: ""
+    depends_on:
+      cometbft-init:
+        condition: service_completed_successfully
+    volumes:
+      - ukc-db-1:/app/DbFiles
+      - multinode-data:/cometbft:ro
+    ports:
+      - "5101:5001"
+
+  cometbft-0:
+    image: cometbft/cometbft:v0.38.17
+    entrypoint: ["cometbft"]
+    environment:
+      CMTHOME: "/network/node0"
+    command: ["--home=/network/node0", "node", "--proxy_app=tcp://ukc-app-0:26658", "--rpc.laddr=tcp://0.0.0.0:26657"]
+    depends_on:
+      cometbft-init:
+        condition: service_completed_successfully
+      ukc-app-0:
+        condition: service_started
+    volumes:
+      - multinode-data:/network
+    ports:
+      - "26657:26657"
+
+  cometbft-1:
+    image: cometbft/cometbft:v0.38.17
+    entrypoint: ["cometbft"]
+    environment:
+      CMTHOME: "/network/node1"
+    command: ["--home=/network/node1", "node", "--proxy_app=tcp://ukc-app-1:26658", "--rpc.laddr=tcp://0.0.0.0:26657"]
+    depends_on:
+      cometbft-init:
+        condition: service_completed_successfully
+      ukc-app-1:
+        condition: service_started
+    volumes:
+      - multinode-data:/network
+    ports:
+      - "26658:26657"
+
+volumes:
+  multinode-data:
+  ukc-db-0:
+  ukc-db-1:
