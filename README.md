@@ -35,6 +35,7 @@ feature count.
   partition/recovery, and snapshot-restore tests.
 - Validated external genesis manifest support for reproducible chain bootstrap;
   production manifests must be reviewed, hash-pinned, and distributed out of band.
+- Explicit validator key custody policy with fail-closed local-file or external-signer modes.
 - Console wallet, explorer integration, gRPC APIs, and deployment harnesses.
 
 ## Status and Production Gate

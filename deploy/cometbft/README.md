@@ -116,3 +116,7 @@ only the public key, requires exactly 32 Ed25519 bytes, and rejects a key that
 is not present in the local genesis validator set. A production deployment
 still needs an external secret manager or HSM, audited key rotation, backup,
 and recovery procedures; this repository does not implement those services.
+Set `VALIDATOR_KEY_CUSTODY_MODE=external-signer` together with a
+`COMETBFT_PRIV_VALIDATOR_LADDR=tcp://...` endpoint when CometBFT is configured
+to delegate signing. The application validates this boundary but does not
+implement the external signer protocol.

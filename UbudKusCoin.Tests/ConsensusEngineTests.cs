@@ -31,6 +31,25 @@ public sealed class ConsensusEngineTests
     }
 
     [Fact]
+    public void ExternalSignerRequiresTcpEndpoint()
+    {
+        var options = ConsensusEngineOptions.Parse(
+            "cometbft", "http://localhost:26657", 60, "external-signer", "tcp://signer:26659");
+
+        Assert.Equal(ValidatorKeyCustodyMode.ExternalSigner, options.KeyCustodyMode);
+        Assert.Equal("tcp://signer:26659/", options.ExternalSignerAddress.ToString());
+        Assert.Throws<InvalidOperationException>(() => ConsensusEngineOptions.Parse(
+            "cometbft", "http://localhost:26657", 60, "external-signer", "http://signer:26659"));
+    }
+
+    [Fact]
+    public void ExternalSignerIsNotAllowedWithDevelopmentEngine()
+    {
+        Assert.Throws<InvalidOperationException>(() => ConsensusEngineOptions.Parse(
+            "development", "", 60, "external-signer", "tcp://signer:26659"));
+    }
+
+    [Fact]
     public async Task CometBftAdapter_ReportsRpcHealth()
     {
         var handler = new StubHandler(

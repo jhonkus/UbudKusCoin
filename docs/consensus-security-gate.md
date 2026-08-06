@@ -68,6 +68,9 @@ and all four nodes converged again with the same block hash.
 - Require an external secret manager or HSM for validator private keys; the
   application-side public-key identity check is only a fail-closed boundary and
   is not key custody.
+- Configure `VALIDATOR_KEY_CUSTODY_MODE=external-signer` only when CometBFT's
+  external signing endpoint is deployed and monitored; the application does
+  not pretend to implement that signer protocol.
 - Obtain an independent consensus and application security review before any
   public testnet or mainnet claim.
 
