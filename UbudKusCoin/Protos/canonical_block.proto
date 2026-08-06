@@ -55,4 +55,6 @@ message CanonicalTransaction {
   int64 valid_until = 9;
   bytes pub_key = 10;
   bytes signature = 11;
+  uint32 kind = 12;
+  int64 lock_period = 13;
 }

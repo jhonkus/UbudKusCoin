@@ -100,6 +100,8 @@ public sealed class CanonicalChainStore
             Fee = tx.Fee.BaseUnits,
             ValidFrom = tx.ValidFrom,
             ValidUntil = tx.ValidUntil,
+            Kind = (uint)tx.Kind,
+            LockPeriod = tx.LockPeriod,
             PubKey = tx.PubKey,
             Signature = tx.Signature
         };
@@ -136,6 +138,8 @@ public sealed class CanonicalChainStore
             Fee = new Money(record.Fee),
             ValidFrom = record.ValidFrom,
             ValidUntil = record.ValidUntil,
+            Kind = (TransactionKind)record.Kind,
+            LockPeriod = record.LockPeriod,
             PubKey = record.PubKey,
             Signature = record.Signature
         };
@@ -173,6 +177,8 @@ public sealed class CanonicalChainStore
         public long Fee { get; set; }
         public long ValidFrom { get; set; }
         public long ValidUntil { get; set; }
+        public uint Kind { get; set; }
+        public long LockPeriod { get; set; }
         public byte[] PubKey { get; set; } = Array.Empty<byte>();
         public byte[] Signature { get; set; } = Array.Empty<byte>();
     }

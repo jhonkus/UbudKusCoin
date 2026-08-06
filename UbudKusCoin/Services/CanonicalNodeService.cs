@@ -320,6 +320,8 @@ public sealed class CanonicalNodeService
             Fee = transaction.Fee.BaseUnits,
             ValidFrom = transaction.ValidFrom,
             ValidUntil = transaction.ValidUntil,
+            Kind = (uint)transaction.Kind,
+            LockPeriod = transaction.LockPeriod,
             PubKey = Google.Protobuf.ByteString.CopyFrom(transaction.PubKey),
             Signature = Google.Protobuf.ByteString.CopyFrom(transaction.Signature)
         };
@@ -336,6 +338,8 @@ public sealed class CanonicalNodeService
             Fee = new Money(transaction.Fee),
             ValidFrom = transaction.ValidFrom,
             ValidUntil = transaction.ValidUntil,
+            Kind = (TransactionKind)transaction.Kind,
+            LockPeriod = transaction.LockPeriod,
             PubKey = transaction.PubKey.ToByteArray(),
             Signature = transaction.Signature.ToByteArray()
         };

@@ -154,6 +154,30 @@ public sealed class CanonicalChainStoreTests
         }
     }
 
+    [Fact]
+    public void CanonicalGrpcTransaction_PreservesStakingFields()
+    {
+        var transaction = new Transaction
+        {
+            ChainId = ChainInfo.ChainIdTestnet,
+            Kind = TransactionKind.Unbond,
+            Nonce = 4,
+            From = new Address(ChainInfo.AddressVersion(ChainInfo.ChainIdTestnet), new byte[] { 1, 2, 3, 4 }),
+            To = new Address(ChainInfo.AddressVersion(ChainInfo.ChainIdTestnet), new byte[] { 1, 2, 3, 4 }),
+            Amount = Money.Zero,
+            Fee = FeePolicy.MinRelayFee,
+            LockPeriod = 120,
+            PubKey = new byte[33],
+            Signature = new byte[] { 1 }
+        };
+        var block = new Block { ChainId = transaction.ChainId, Validator = transaction.From, Txs = new() { transaction } };
+
+        var encoded = CanonicalNodeService.ToGrpc(block);
+
+        Assert.Equal((uint)TransactionKind.Unbond, encoded.Transactions[0].Kind);
+        Assert.Equal(120, encoded.Transactions[0].LockPeriod);
+    }
+
     private static WalletService MakeWallet()
         => new()
         {
