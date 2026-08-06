@@ -5,6 +5,14 @@ using UbudKusCoin.Core.Signing;
 
 namespace UbudKusCoin.Core.Types;
 
+public enum TransactionKind : uint
+{
+    Transfer = 0,
+    Bond = 1,
+    Unbond = 2,
+    Withdraw = 3
+}
+
 /// <summary>
 /// Canonical, versioned transaction envelope. Amount and fee are integer
 /// fixed-point (see <see cref="Money"/>). A per-sender monotonic nonce plus the
@@ -15,6 +23,7 @@ public sealed class Transaction
 {
     public uint Version { get; set; } = ChainInfo.TxVersion;
     public uint ChainId { get; set; } = ChainInfo.ChainIdUndefined;
+    public TransactionKind Kind { get; set; } = TransactionKind.Transfer;
     public ulong Nonce { get; set; }
     public Address From { get; set; }
     public Address To { get; set; }
@@ -22,6 +31,7 @@ public sealed class Transaction
     public Money Fee { get; set; }
     public long ValidFrom { get; set; }   // unix seconds (0 = no restriction)
     public long ValidUntil { get; set; }  // unix seconds (0 = no expiry)
+    public long LockPeriod { get; set; }  // blocks for unbond requests
     public byte[] PubKey { get; set; } = Array.Empty<byte>(); // compressed ECDSA pubkey
     public byte[] Signature { get; set; } = Array.Empty<byte>(); // DER ECDSA over digest
 
@@ -35,11 +45,13 @@ public sealed class Transaction
         using var ms = new MemoryStream();
         HashUtils.AppendLe32(ms, Version);
         HashUtils.AppendLe32(ms, ChainId);
+        HashUtils.AppendLe32(ms, (uint)Kind);
         HashUtils.AppendLe64(ms, Nonce);
         HashUtils.AppendLengthPrefixed(ms, From.Encoded);
         HashUtils.AppendLengthPrefixed(ms, To.Encoded);
         HashUtils.AppendLe64(ms, (ulong)Amount.BaseUnits);
         HashUtils.AppendLe64(ms, (ulong)Fee.BaseUnits);
+        HashUtils.AppendLe64(ms, unchecked((ulong)LockPeriod));
         HashUtils.AppendLe64(ms, (ulong)ValidFrom);
         HashUtils.AppendLe64(ms, (ulong)ValidUntil);
         HashUtils.AppendLengthPrefixed(ms, PubKey);
@@ -65,11 +77,13 @@ public string ComputeIdHex()
     {
         return 4             // version
              + 4             // chain id
+             + 4             // transaction kind
              + 8             // nonce
              + From.Encoded.Length
              + To.Encoded.Length
              + 8             // amount
              + 8             // fee
+             + 8             // lock period
              + 8             // valid_from
              + 8             // valid_until
              + PubKey.Length
@@ -105,15 +119,20 @@ public string ComputeIdHex()
             return false;
         }
 
-        // No self-transactions, no null recipient.
-        if (From.Encoded == To.Encoded)
-        {
+        if (!Enum.IsDefined(Kind) || LockPeriod < 0)
             return false;
-        }
 
-        if (Amount.BaseUnits <= 0)
+        var isSelf = From.Encoded == To.Encoded;
+        switch (Kind)
         {
-            return false;
+            case TransactionKind.Transfer when isSelf || Amount.BaseUnits <= 0 || LockPeriod != 0:
+                return false;
+            case TransactionKind.Bond when !isSelf || Amount.BaseUnits <= 0 || LockPeriod != 0:
+                return false;
+            case TransactionKind.Unbond when !isSelf || Amount.BaseUnits != 0 || LockPeriod <= 0:
+                return false;
+            case TransactionKind.Withdraw when !isSelf || Amount.BaseUnits != 0 || LockPeriod != 0:
+                return false;
         }
 
         if (Fee < FeePolicy.MinRelayFee)

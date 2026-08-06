@@ -85,12 +85,12 @@ canonical two-node exchange/rejection tests and crash-safe snapshot rebuild test
 **Why:** current PoS is insecure (random stakes, no finality).
 - [x] Wrap the protocol behind `IConsensusDriver`: proposer selection, proposal validation, vote, and commit boundary.
 - [x] Add deterministic stake-weighted proposer selection, signed votes, `2/3+1` quorum certificates, and equivocation evidence.
-- [x] Add staking lock/unbonding rules, validator jail state, slashing, and sequential finality tracking.
+- [x] Add legacy staking lock/unbonding rules, validator jail state, slashing, and sequential finality tracking.
 - [x] Add `VALIDATOR_SET` configuration and runtime proposer gating; remove random `AutoStake` minting.
 - **Option A (recommended):** integrate a mature engine (e.g., CometBFT-style) as the app/ABCI side.
 - **Option B:** implement specified PoS-BFT (e.g., Streamlet/HotStuff) — only with a formal spec + fuzz + audit.
 - [ ] Choose and integrate a mature engine (recommended) or complete a formally specified in-process BFT driver.
-- [x] Implement staking module: locked stake, weighted selection, lock period, slashing for equivocation; remove
+- [x] Implement legacy staking module: locked stake, weighted selection, lock period, slashing for equivocation; remove
   `AutoStake` random logic from runtime.
 - [x] Transport signed votes between nodes and persist finalized heights atomically.
 - [x] Add multi-node quorum tests, conflicting-vote rejection, and below-quorum liveness checks.
@@ -112,6 +112,9 @@ canonical two-node exchange/rejection tests and crash-safe snapshot rebuild test
 - [x] Add a pinned, test-only CometBFT container smoke harness.
 - [x] Add a two-validator, multi-process CometBFT harness with proposer mapping
   and restart recovery verification.
+- [x] Add signed KTX2 staking transactions (`Bond`, `Unbond`, `Withdraw`) with
+  deterministic lock-period rules and stake positions committed into `state_root`.
+- [ ] Emit and verify CometBFT validator-set updates from committed staking state.
 
 **Exit criteria:** multi-node tests showing finality, liveness under faults, and slashing. Protocol-level finality and slashing
 tests pass; runtime engine integration and fault/liveness tests remain.
@@ -191,5 +194,6 @@ tests pass; runtime engine integration and fault/liveness tests remain.
 - Use the `docs/*.md` files as living documents updated as stages land.
 
 **Current position: Stage 6 in progress (protocol, proposer gating, vote transport, finality persistence, quorum, partition,
-round-change tests, CometBFT ABCI integration, and multi-process smoke/restart verification landed). Next: on-chain
-staking integration, fault injection, and independent consensus/security review. See `docs/consensus-security-gate.md`.**
+round-change tests, CometBFT ABCI integration, multi-process smoke/restart verification, and deterministic on-chain staking
+transactions landed). Next: CometBFT validator-set updates, fault injection, and independent consensus/security review. See
+`docs/consensus-security-gate.md`.**

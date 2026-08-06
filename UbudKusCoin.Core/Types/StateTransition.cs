@@ -152,7 +152,10 @@ var applied = ComputeResultingState(state, block);
                 return StateTransitionResult.Fail("Invalid nonce.");
             }
 
-            var total = tx.Amount + tx.Fee;
+            var operationCost = tx.Kind is TransactionKind.Transfer or TransactionKind.Bond
+                ? tx.Amount
+                : Money.Zero;
+            var total = operationCost + tx.Fee;
             if (total > sender.Balance)
             {
                 return StateTransitionResult.Fail("Insufficient balance.");
@@ -161,11 +164,56 @@ var applied = ComputeResultingState(state, block);
             sender.Balance -= total;
             sender.Nonce = tx.Nonce;
 
-            var recipient = next.EnsureAccount(tx.To);
-            recipient.Balance += tx.Amount;
-
             // Fees accrue to the block validator.
             validator.Balance += tx.Fee;
+
+            switch (tx.Kind)
+            {
+                case TransactionKind.Transfer:
+                    next.EnsureAccount(tx.To).Balance += tx.Amount;
+                    break;
+                case TransactionKind.Bond:
+                {
+                    var existing = next.GetStake(tx.From);
+                    if (existing is not null && (existing.Jailed || existing.UnlockHeight != 0))
+                        return StateTransitionResult.Fail("Stake position is jailed or unbonding.");
+
+                    if (existing is null)
+                    {
+                        next.SetStake(new StakePositionState
+                        {
+                            Address = tx.From,
+                            PubKey = tx.PubKey.ToArray(),
+                            Amount = tx.Amount,
+                            BondedHeight = block.Height
+                        });
+                    }
+                    else
+                    {
+                        if (!existing.PubKey.SequenceEqual(tx.PubKey))
+                            return StateTransitionResult.Fail("Stake public key mismatch.");
+                        existing.Amount += tx.Amount;
+                    }
+                    break;
+                }
+                case TransactionKind.Unbond:
+                {
+                    var stake = next.GetStake(tx.From);
+                    if (stake is null || stake.Jailed || stake.UnlockHeight != 0)
+                        return StateTransitionResult.Fail("Stake position cannot be unbonded.");
+                    stake.UnlockHeight = checked(block.Height + tx.LockPeriod);
+                    break;
+                }
+                case TransactionKind.Withdraw:
+                {
+                    var stake = next.GetStake(tx.From);
+                    if (stake is null || stake.UnlockHeight == 0 || block.Height < stake.UnlockHeight)
+                        return StateTransitionResult.Fail("Stake position is not unlocked.");
+                    sender.Balance += stake.Amount;
+                    next.RemoveStake(tx.From);
+                    break;
+                }
+            }
         }
 
         return StateTransitionResult.Ok(next);

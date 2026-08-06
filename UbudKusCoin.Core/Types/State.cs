@@ -11,6 +11,7 @@ namespace UbudKusCoin.Core.Types;
 public sealed class State
 {
     private readonly Dictionary<string, Account> _accounts = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StakePositionState> _stakes = new(StringComparer.Ordinal);
 
     public uint ChainId { get; }
     public long Height { get; private set; }
@@ -55,6 +56,16 @@ public void SetAccount(Account account)
     }
 
     public IReadOnlyCollection<Account> Accounts => _accounts.Values;
+    public IReadOnlyCollection<StakePositionState> Stakes => _stakes.Values;
+
+    public StakePositionState? GetStake(Address address)
+        => _stakes.TryGetValue(address.Encoded, out var stake) ? stake : null;
+
+    public void SetStake(StakePositionState stake)
+        => _stakes[stake.Address.Encoded] = stake;
+
+    public bool RemoveStake(Address address)
+        => _stakes.Remove(address.Encoded);
 
     /// <summary>
     /// Returns a deep copy of this state. Used by the state transition so a
@@ -66,6 +77,10 @@ public void SetAccount(Account account)
         foreach (var pair in _accounts)
         {
             copy._accounts[pair.Key] = pair.Value.ShallowClone();
+        }
+        foreach (var pair in _stakes)
+        {
+            copy._stakes[pair.Key] = pair.Value.Clone();
         }
 
         return copy;
@@ -83,7 +98,13 @@ public void SetAccount(Account account)
             .Select(HashAccount)
             .ToArray();
 
-        return Merkle.ComputeRoot(leaves);
+        var accountRoot = Merkle.ComputeRoot(leaves);
+        var stakeLeaves = _stakes.Values
+            .OrderBy(s => s.Address.Encoded, StringComparer.Ordinal)
+            .Select(HashStake)
+            .ToArray();
+        var stakeRoot = Merkle.ComputeRoot(stakeLeaves);
+        return HashUtils.Sha256(accountRoot.Concat(stakeRoot).ToArray());
     }
 
     private static byte[] HashAccount(Account account)
@@ -92,6 +113,18 @@ public void SetAccount(Account account)
         HashUtils.AppendLengthPrefixed(ms, account.Address.Encoded);
         HashUtils.AppendLe64(ms, (ulong)account.Balance.BaseUnits);
         HashUtils.AppendLe64(ms, account.Nonce);
+        return HashUtils.Sha256(ms.ToArray());
+    }
+
+    private static byte[] HashStake(StakePositionState stake)
+    {
+        using var ms = new MemoryStream();
+        HashUtils.AppendLengthPrefixed(ms, stake.Address.Encoded);
+        HashUtils.AppendLengthPrefixed(ms, stake.PubKey);
+        HashUtils.AppendLe64(ms, (ulong)stake.Amount.BaseUnits);
+        HashUtils.AppendLe64(ms, unchecked((ulong)stake.BondedHeight));
+        HashUtils.AppendLe64(ms, unchecked((ulong)stake.UnlockHeight));
+        ms.WriteByte(stake.Jailed ? (byte)1 : (byte)0);
         return HashUtils.Sha256(ms.ToArray());
     }
 }

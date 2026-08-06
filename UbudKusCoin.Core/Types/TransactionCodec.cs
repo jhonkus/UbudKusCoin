@@ -9,7 +9,7 @@ namespace UbudKusCoin.Core.Types;
 /// </summary>
 public static class TransactionCodec
 {
-    private const uint Magic = 0x3158544B; // KTX1
+    private const uint Magic = 0x3258544B; // KTX2
     private const int MaxAddressBytes = 128;
     private const int MaxPublicKeyBytes = 65;
     private const int MaxSignatureBytes = 80;
@@ -24,18 +24,20 @@ public static class TransactionCodec
         ValidateLength(transaction.PubKey.Length, MaxPublicKeyBytes, "public key");
         ValidateLength(transaction.Signature.Length, MaxSignatureBytes, "signature");
 
-        var size = 4 + 4 + 4 + 8 + 4 + from.Length + 4 + to.Length + 8 + 8 + 8 + 8
+        var size = 4 + 4 + 4 + 4 + 8 + 4 + from.Length + 4 + to.Length + 8 + 8 + 8 + 8 + 8
             + 4 + transaction.PubKey.Length + 4 + transaction.Signature.Length;
         var result = new byte[size];
         var offset = 0;
         WriteUInt32(result, ref offset, Magic);
         WriteUInt32(result, ref offset, transaction.Version);
         WriteUInt32(result, ref offset, transaction.ChainId);
+        WriteUInt32(result, ref offset, (uint)transaction.Kind);
         WriteUInt64(result, ref offset, transaction.Nonce);
         WriteBytes(result, ref offset, from);
         WriteBytes(result, ref offset, to);
         WriteUInt64(result, ref offset, checked((ulong)transaction.Amount.BaseUnits));
         WriteUInt64(result, ref offset, checked((ulong)transaction.Fee.BaseUnits));
+        WriteUInt64(result, ref offset, unchecked((ulong)transaction.LockPeriod));
         WriteUInt64(result, ref offset, unchecked((ulong)transaction.ValidFrom));
         WriteUInt64(result, ref offset, unchecked((ulong)transaction.ValidUntil));
         WriteBytes(result, ref offset, transaction.PubKey);
@@ -60,11 +62,13 @@ public static class TransactionCodec
             {
                 Version = reader.ReadUInt32(),
                 ChainId = reader.ReadUInt32(),
+                Kind = (TransactionKind)reader.ReadUInt32(),
                 Nonce = reader.ReadUInt64(),
                 From = Address.Parse(reader.ReadString(MaxAddressBytes)),
                 To = Address.Parse(reader.ReadString(MaxAddressBytes)),
                 Amount = new Money(checked((long)reader.ReadUInt64())),
                 Fee = new Money(checked((long)reader.ReadUInt64())),
+                LockPeriod = unchecked((long)reader.ReadUInt64()),
                 ValidFrom = unchecked((long)reader.ReadUInt64()),
                 ValidUntil = unchecked((long)reader.ReadUInt64()),
                 PubKey = reader.ReadBytes(MaxPublicKeyBytes),
