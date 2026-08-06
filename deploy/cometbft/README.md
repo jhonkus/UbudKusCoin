@@ -9,8 +9,12 @@ anonymous local ports.
 From the repository root:
 
 ```powershell
+$env:WALLET_ENCRYPTION_KEY = [Convert]::ToBase64String((0..31 | ForEach-Object { [byte]$_ }))
 docker compose -f deploy/cometbft/docker-compose.yml up --build
 ```
+
+The multi-node compose file also requires this environment variable. It is a
+test-only key for the development vault and must never be reused in production.
 
 In another terminal, verify both processes:
 

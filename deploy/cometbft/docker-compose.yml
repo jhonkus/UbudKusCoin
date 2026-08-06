@@ -12,6 +12,8 @@ services:
       dockerfile: deploy/cometbft/Dockerfile
     environment:
       NODE_PASSPHRASE: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+      WALLET_STORAGE_MODE: "aes-gcm"
+      WALLET_ENCRYPTION_KEY: "${WALLET_ENCRYPTION_KEY:?Set WALLET_ENCRYPTION_KEY to a base64-encoded 32-byte test key}"
       CHAIN_ID: "2"
       CONSENSUS_ENGINE: "cometbft"
       COMETBFT_RPC_URL: "http://cometbft:26657"
@@ -21,7 +23,7 @@ services:
       COMETBFT_HOME: "/cometbft"
       GRPC_PORT: "5000"
       GRPC_WEB_PORT: "5001"
-      NODE_ADDRESS: "ukc-app:5000"
+      NODE_ADDRESS: "http://ukc-app:5000"
       BOOTSRTAP_PEERS: ""
       GENESIS_MANIFEST_PATH: "/app/genesis-manifest.json"
       GENESIS_MANIFEST_SHA256: "AB23BDF1F4BDAD384C616338C446ED950AF2702AB763F0FEE76B82BEFEAF9533"
