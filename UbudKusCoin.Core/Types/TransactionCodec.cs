@@ -12,6 +12,7 @@ public static class TransactionCodec
     private const uint Magic = 0x3258544B; // KTX2
     private const int MaxAddressBytes = 128;
     private const int MaxPublicKeyBytes = 65;
+    private const int MaxValidatorPublicKeyBytes = 32;
     private const int MaxSignatureBytes = 80;
 
     public static byte[] Encode(Transaction transaction)
@@ -22,10 +23,12 @@ public static class TransactionCodec
         ValidateLength(from.Length, MaxAddressBytes, "sender address");
         ValidateLength(to.Length, MaxAddressBytes, "recipient address");
         ValidateLength(transaction.PubKey.Length, MaxPublicKeyBytes, "public key");
+        ValidateLength(transaction.ValidatorPubKey.Length, MaxValidatorPublicKeyBytes, "validator public key");
         ValidateLength(transaction.Signature.Length, MaxSignatureBytes, "signature");
 
         var size = 4 + 4 + 4 + 4 + 8 + 4 + from.Length + 4 + to.Length + 8 + 8 + 8 + 8 + 8
-            + 4 + transaction.PubKey.Length + 4 + transaction.Signature.Length;
+            + 4 + transaction.PubKey.Length + 4 + transaction.ValidatorPubKey.Length
+            + 4 + transaction.Signature.Length;
         var result = new byte[size];
         var offset = 0;
         WriteUInt32(result, ref offset, Magic);
@@ -41,6 +44,7 @@ public static class TransactionCodec
         WriteUInt64(result, ref offset, unchecked((ulong)transaction.ValidFrom));
         WriteUInt64(result, ref offset, unchecked((ulong)transaction.ValidUntil));
         WriteBytes(result, ref offset, transaction.PubKey);
+        WriteBytes(result, ref offset, transaction.ValidatorPubKey);
         WriteBytes(result, ref offset, transaction.Signature);
         return result;
     }
@@ -72,6 +76,7 @@ public static class TransactionCodec
                 ValidFrom = unchecked((long)reader.ReadUInt64()),
                 ValidUntil = unchecked((long)reader.ReadUInt64()),
                 PubKey = reader.ReadBytes(MaxPublicKeyBytes),
+                ValidatorPubKey = reader.ReadBytes(MaxValidatorPublicKeyBytes),
                 Signature = reader.ReadBytes(MaxSignatureBytes)
             };
             if (!reader.IsAtEnd)

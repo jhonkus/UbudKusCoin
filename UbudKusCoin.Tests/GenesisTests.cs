@@ -1,6 +1,10 @@
 using System;
 using System.Linq;
+using NBitcoin;
+using UbudKusCoin.Core.Signing;
 using UbudKusCoin.Core.Types;
+using CoreMoney = UbudKusCoin.Core.Types.Money;
+using CoreTransaction = UbudKusCoin.Core.Types.Transaction;
 using Xunit;
 
 namespace UbudKusCoin.Tests;
@@ -67,4 +71,33 @@ public class GenesisTests
         var state = Genesis.CreateState(ChainInfo.ChainIdTestnet);
         Assert.True(state.Accounts.All(a => a.Balance.BaseUnits > 0));
     }
+
+    [Fact]
+    public void GenesisFixtureAccount_CanSignBondTransaction()
+    {
+        var privateKey = new byte[32];
+        privateKey[^1] = 1;
+        var key = new Key(privateKey);
+        var publicKey = key.PubKey.ToBytes();
+        var address = Address.FromPublicKey(Address.TestnetVersion, publicKey);
+        var transaction = new CoreTransaction
+        {
+            ChainId = ChainInfo.ChainIdTestnet,
+            Kind = TransactionKind.Bond,
+            Nonce = 1,
+            From = address,
+            To = address,
+            Amount = CoreMoney.FromCoins(1m),
+            Fee = FeePolicy.MinRelayFee,
+            PubKey = publicKey,
+            ValidatorPubKey = Enumerable.Repeat((byte)7, 32).ToArray()
+        };
+        transaction.Signature = TransactionSigner.Sign(transaction, privateKey);
+
+        Assert.Contains(Genesis.CreateState(ChainInfo.ChainIdTestnet).Accounts,
+            account => account.Address.Equals(address));
+        Assert.True(transaction.IsEnvelopeWellFormed(ChainInfo.ChainIdTestnet));
+        Assert.True(transaction.VerifySignature());
+    }
+
 }

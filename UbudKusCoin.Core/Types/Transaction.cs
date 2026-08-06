@@ -33,6 +33,7 @@ public sealed class Transaction
     public long ValidUntil { get; set; }  // unix seconds (0 = no expiry)
     public long LockPeriod { get; set; }  // blocks for unbond requests
     public byte[] PubKey { get; set; } = Array.Empty<byte>(); // compressed ECDSA pubkey
+    public byte[] ValidatorPubKey { get; set; } = Array.Empty<byte>(); // CometBFT Ed25519 key for Bond
     public byte[] Signature { get; set; } = Array.Empty<byte>(); // DER ECDSA over digest
 
     /// <summary>
@@ -55,6 +56,7 @@ public sealed class Transaction
         HashUtils.AppendLe64(ms, (ulong)ValidFrom);
         HashUtils.AppendLe64(ms, (ulong)ValidUntil);
         HashUtils.AppendLengthPrefixed(ms, PubKey);
+        HashUtils.AppendLengthPrefixed(ms, ValidatorPubKey);
         return ms.ToArray();
     }
 
@@ -146,6 +148,16 @@ public string ComputeIdHex()
         }
 
         if (PubKey.Length is < 33 or > FeePolicy.MaxPubKeyBytes)
+        {
+            return false;
+        }
+
+        if (Kind == TransactionKind.Bond && ValidatorPubKey.Length != 32)
+        {
+            return false;
+        }
+
+        if (Kind != TransactionKind.Bond && ValidatorPubKey.Length != 0)
         {
             return false;
         }

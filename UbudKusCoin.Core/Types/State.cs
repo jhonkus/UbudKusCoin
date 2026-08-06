@@ -121,6 +121,7 @@ public void SetAccount(Account account)
         using var ms = new MemoryStream();
         HashUtils.AppendLengthPrefixed(ms, stake.Address.Encoded);
         HashUtils.AppendLengthPrefixed(ms, stake.PubKey);
+        HashUtils.AppendLengthPrefixed(ms, stake.ConsensusPubKey);
         HashUtils.AppendLe64(ms, (ulong)stake.Amount.BaseUnits);
         HashUtils.AppendLe64(ms, unchecked((ulong)stake.BondedHeight));
         HashUtils.AppendLe64(ms, unchecked((ulong)stake.UnlockHeight));

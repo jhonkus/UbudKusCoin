@@ -104,6 +104,7 @@ public sealed class CanonicalChainStore
             Kind = (uint)tx.Kind,
             LockPeriod = tx.LockPeriod,
             PubKey = tx.PubKey,
+            ValidatorPubKey = tx.ValidatorPubKey,
             Signature = tx.Signature
         };
 
@@ -143,6 +144,7 @@ public sealed class CanonicalChainStore
             Kind = (TransactionKind)record.Kind,
             LockPeriod = record.LockPeriod,
             PubKey = record.PubKey,
+            ValidatorPubKey = record.ValidatorPubKey,
             Signature = record.Signature
         };
 
@@ -194,6 +196,7 @@ public sealed class CanonicalChainStore
         public uint Kind { get; set; }
         public long LockPeriod { get; set; }
         public byte[] PubKey { get; set; } = Array.Empty<byte>();
+        public byte[] ValidatorPubKey { get; set; } = Array.Empty<byte>();
         public byte[] Signature { get; set; } = Array.Empty<byte>();
     }
 

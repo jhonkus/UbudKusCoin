@@ -77,17 +77,13 @@ public static class Genesis
 byte version = ChainInfo.AddressVersion(chainId);
 
         // Deterministic account public keys (fixed content, not secrets).
-        var pub1 = new byte[33];
-        pub1[0] = 0x02;
-        pub1[1] = 0x11;
-        pub1[2] = 0x22;
-        pub1[3] = 0x33;
-
-        var pub2 = new byte[33];
-        pub2[0] = 0x02;
-        pub2[1] = 0xAA;
-        pub2[2] = 0xBB;
-        pub2[3] = 0xCC;
+        // These are public halves of deterministic testnet fixtures. They are
+        // valid secp256k1 keys so integration tests can sign genesis-account
+        // transactions without inventing an invalid address format.
+        var pub1 = Convert.FromHexString(
+            "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798");
+        var pub2 = Convert.FromHexString(
+            "02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5");
 
         var validator = Address.FromPublicKey(version, pub1);
 

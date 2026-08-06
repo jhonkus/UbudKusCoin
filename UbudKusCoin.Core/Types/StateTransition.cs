@@ -209,13 +209,15 @@ var applied = ComputeResultingState(state, block);
                         {
                             Address = tx.From,
                             PubKey = tx.PubKey.ToArray(),
+                            ConsensusPubKey = tx.ValidatorPubKey.ToArray(),
                             Amount = tx.Amount,
                             BondedHeight = block.Height
                         });
                     }
                     else
                     {
-                        if (!existing.PubKey.SequenceEqual(tx.PubKey))
+                        if (!existing.PubKey.SequenceEqual(tx.PubKey)
+                            || !existing.ConsensusPubKey.SequenceEqual(tx.ValidatorPubKey))
                             return StateTransitionResult.Fail("Stake public key mismatch.");
                         existing.Amount += tx.Amount;
                     }

@@ -17,22 +17,23 @@ public static class ValidatorUpdateBuilder
         var currentKeys = new HashSet<string>(StringComparer.Ordinal);
         foreach (var stake in state.Stakes.OrderBy(x => x.Address.Encoded, StringComparer.Ordinal))
         {
-            if (stake.PubKey.Length is < 33 or > 65)
+            if (stake.ConsensusPubKey.Length != 32)
                 continue;
 
-            var key = Convert.ToHexString(stake.PubKey);
+            var key = Convert.ToHexString(stake.ConsensusPubKey);
             currentKeys.Add(key);
             var power = stake.Jailed || stake.UnlockHeight != 0
                 ? 0
                 : Math.Max(1, Math.Min(long.MaxValue, stake.Amount.BaseUnits));
-            updates.Add(CreateUpdate(stake.PubKey, power));
+            updates.Add(CreateUpdate(stake.ConsensusPubKey, power));
         }
 
         foreach (var stake in previousState.Stakes
-            .Where(x => !currentKeys.Contains(Convert.ToHexString(x.PubKey)))
+            .Where(x => x.ConsensusPubKey.Length == 32
+                && !currentKeys.Contains(Convert.ToHexString(x.ConsensusPubKey)))
             .OrderBy(x => x.Address.Encoded, StringComparer.Ordinal))
         {
-            updates.Add(CreateUpdate(stake.PubKey, 0));
+            updates.Add(CreateUpdate(stake.ConsensusPubKey, 0));
         }
 
         return updates;
@@ -41,7 +42,7 @@ public static class ValidatorUpdateBuilder
     private static ValidatorUpdate CreateUpdate(byte[] publicKey, long power)
         => new()
         {
-            PubKey = new PublicKey { Secp256K1 = ByteString.CopyFrom(publicKey) },
+            PubKey = new PublicKey { Ed25519 = ByteString.CopyFrom(publicKey) },
             Power = power
         };
 }

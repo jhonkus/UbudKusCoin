@@ -2,7 +2,7 @@ services:
   cometbft-init:
     image: cometbft/cometbft:v0.38.17
     entrypoint: ["/bin/sh", "-c"]
-    command: ["if [ ! -f /cometbft/config/genesis.json ]; then cometbft init --home /cometbft && sed -i -e 's/\\\"chain_id\\\": \\\"[^\\\"]*\\\"/\\\"chain_id\\\": \\\"ukc-testnet-2\\\"/' -e 's/\\\"initial_height\\\": \\\"0\\\"/\\\"initial_height\\\": \\\"1\\\"/' -e 's/\\\"app_hash\\\": \\\"\\\"/\\\"app_hash\\\": \\\"dff823b79f527f73db39163397ab3ce43d976b94f0bfbfc0637e2f8ced944af4\\\"/' /cometbft/config/genesis.json; fi"]
+    command: ["if [ ! -f /cometbft/config/genesis.json ]; then cometbft init --home /cometbft && sed -i -e 's/\\\"chain_id\\\": \\\"[^\\\"]*\\\"/\\\"chain_id\\\": \\\"ukc-testnet-2\\\"/' -e 's/\\\"initial_height\\\": \\\"0\\\"/\\\"initial_height\\\": \\\"1\\\"/' -e 's/\\\"app_hash\\\": \\\"\\\"/\\\"app_hash\\\": \\\"7cd27abd68161f3d9662420a4cf0643f97926b058084ab50c0fd9daf6bbf6c4e\\\"/' /cometbft/config/genesis.json; fi"]
     volumes:
       - cometbft-data:/cometbft
 

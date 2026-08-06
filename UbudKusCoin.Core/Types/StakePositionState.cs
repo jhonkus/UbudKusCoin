@@ -5,6 +5,7 @@ public sealed class StakePositionState
 {
     public required Address Address { get; init; }
     public required byte[] PubKey { get; init; }
+    public byte[] ConsensusPubKey { get; set; } = Array.Empty<byte>();
     public Money Amount { get; set; }
     public long BondedHeight { get; set; }
     public long UnlockHeight { get; set; }
@@ -14,6 +15,7 @@ public sealed class StakePositionState
     {
         Address = Address,
         PubKey = PubKey.ToArray(),
+        ConsensusPubKey = ConsensusPubKey.ToArray(),
         Amount = Amount,
         BondedHeight = BondedHeight,
         UnlockHeight = UnlockHeight,

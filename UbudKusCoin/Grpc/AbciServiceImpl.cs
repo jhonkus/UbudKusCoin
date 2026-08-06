@@ -426,7 +426,7 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
 
         return state.Stakes
             .Where(x => !x.Jailed)
-            .FirstOrDefault(x => ComputeSecp256k1CometAddress(x.PubKey)
+            .FirstOrDefault(x => ComputeCometValidatorAddress(x.ConsensusPubKey)
                 .SequenceEqual(cometAddress.ToByteArray()))?.Address;
     }
 
@@ -454,7 +454,8 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
         foreach (var stake in state.Stakes)
         {
             if (!stake.Jailed && stake.UnlockHeight == 0
-                && ComputeSecp256k1CometAddress(stake.PubKey).SequenceEqual(proposerAddress.ToByteArray()))
+                && ComputeCometValidatorAddress(stake.ConsensusPubKey)
+                    .SequenceEqual(proposerAddress.ToByteArray()))
             {
                 return stake.Address;
             }
@@ -463,8 +464,10 @@ public sealed class AbciServiceImpl : ABCI.ABCIBase
         return null;
     }
 
-    private static byte[] ComputeSecp256k1CometAddress(byte[] publicKey)
-        => new NBitcoin.PubKey(publicKey).Hash.ToBytes();
+    private static byte[] ComputeCometValidatorAddress(byte[] publicKey)
+        => publicKey.Length == 0
+            ? Array.Empty<byte>()
+            : System.Security.Cryptography.SHA256.HashData(publicKey)[..20];
 
     private static long TimestampSeconds(Timestamp timestamp)
         => timestamp?.Seconds ?? 0;

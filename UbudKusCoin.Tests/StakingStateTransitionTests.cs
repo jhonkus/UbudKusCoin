@@ -161,6 +161,8 @@ public sealed class StakingStateTransitionTests
             LockPeriod = lockPeriod,
             PubKey = key.PubKey.ToBytes()
         };
+        if (kind == TransactionKind.Bond)
+            transaction.ValidatorPubKey = System.Security.Cryptography.SHA256.HashData(transaction.PubKey);
         transaction.Signature = TransactionSigner.Sign(transaction, key.ToBytes());
         return transaction;
     }

@@ -47,6 +47,7 @@ public static class StateSnapshotCodec
                 {
                     Address = x.Address.Encoded,
                     PubKey = x.PubKey.ToArray(),
+                    ConsensusPubKey = x.ConsensusPubKey.ToArray(),
                     Amount = x.Amount.BaseUnits,
                     BondedHeight = x.BondedHeight,
                     UnlockHeight = x.UnlockHeight,
@@ -92,6 +93,7 @@ public static class StateSnapshotCodec
                 {
                     Address = Address.Parse(stake.Address),
                     PubKey = stake.PubKey.ToArray(),
+                    ConsensusPubKey = stake.ConsensusPubKey.ToArray(),
                     Amount = new Money(stake.Amount),
                     BondedHeight = stake.BondedHeight,
                     UnlockHeight = stake.UnlockHeight,
@@ -149,6 +151,7 @@ public static class StateSnapshotCodec
     {
         public string Address { get; set; } = string.Empty;
         public byte[] PubKey { get; set; } = Array.Empty<byte>();
+        public byte[] ConsensusPubKey { get; set; } = Array.Empty<byte>();
         public long Amount { get; set; }
         public long BondedHeight { get; set; }
         public long UnlockHeight { get; set; }
@@ -207,7 +210,8 @@ public static class StateSnapshotCodec
             LockPeriod = transaction.LockPeriod,
             ValidFrom = transaction.ValidFrom,
             ValidUntil = transaction.ValidUntil,
-            PubKey = transaction.PubKey.ToArray(),
+                    PubKey = transaction.PubKey.ToArray(),
+                    ValidatorPubKey = transaction.ValidatorPubKey.ToArray(),
             Signature = transaction.Signature.ToArray()
         };
 
@@ -226,6 +230,7 @@ public static class StateSnapshotCodec
             ValidFrom = transaction.ValidFrom,
             ValidUntil = transaction.ValidUntil,
             PubKey = transaction.PubKey,
+            ValidatorPubKey = transaction.ValidatorPubKey,
             Signature = transaction.Signature
         };
 
@@ -258,6 +263,7 @@ public static class StateSnapshotCodec
         public long ValidFrom { get; set; }
         public long ValidUntil { get; set; }
         public byte[] PubKey { get; set; } = Array.Empty<byte>();
+        public byte[] ValidatorPubKey { get; set; } = Array.Empty<byte>();
         public byte[] Signature { get; set; } = Array.Empty<byte>();
     }
 

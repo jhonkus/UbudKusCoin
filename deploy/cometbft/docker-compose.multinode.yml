@@ -3,7 +3,7 @@ services:
     image: cometbft/cometbft:v0.38.17
     user: "0:0"
     entrypoint: ["/bin/sh", "-c"]
-    command: ["if [ ! -f /network/node0/config/genesis.json ]; then cometbft testnet --v 4 --o /network --hostname-prefix cometbft- --initial-height 1 --populate-persistent-peers && sed -i -e 's/\"chain_id\": \"[^\"]*\"/\"chain_id\": \"ukc-testnet-2\"/' -e 's/\"app_hash\": \"\"/\"app_hash\": \"dff823b79f527f73db39163397ab3ce43d976b94f0bfbfc0637e2f8ced944af4\"/' /network/node0/config/genesis.json && cp /network/node0/config/genesis.json /network/node1/config/genesis.json && cp /network/node0/config/genesis.json /network/node2/config/genesis.json && cp /network/node0/config/genesis.json /network/node3/config/genesis.json && chmod -R a+rwX /network; fi"]
+    command: ["if [ ! -f /network/node0/config/genesis.json ]; then cometbft testnet --v 4 --o /network --hostname-prefix cometbft- --initial-height 1 --populate-persistent-peers && sed -i -e 's/\"chain_id\": \"[^\"]*\"/\"chain_id\": \"ukc-testnet-2\"/' -e 's/\"app_hash\": \"\"/\"app_hash\": \"7cd27abd68161f3d9662420a4cf0643f97926b058084ab50c0fd9daf6bbf6c4e\"/' /network/node0/config/genesis.json && cp /network/node0/config/genesis.json /network/node1/config/genesis.json && cp /network/node0/config/genesis.json /network/node2/config/genesis.json && cp /network/node0/config/genesis.json /network/node3/config/genesis.json && chmod -R a+rwX /network; fi"]
     volumes:
       - multinode-data:/network
 

@@ -16,6 +16,7 @@ public sealed class StateSnapshotCodecTests
         {
             Address = address,
             PubKey = new byte[] { 2, 1, 2, 3 },
+            ConsensusPubKey = new byte[32],
             Amount = Money.FromCoins(3m),
             BondedHeight = 2,
             UnlockHeight = 0,

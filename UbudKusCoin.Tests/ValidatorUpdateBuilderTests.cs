@@ -23,9 +23,9 @@ public sealed class ValidatorUpdateBuilderTests
             .OrderBy(x => x.Address.Encoded, StringComparer.Ordinal)
             .ToArray();
         Assert.Equal(2, updates.Count);
-        Assert.Equal(expected[0].PubKey, updates[0].PubKey.Secp256K1.ToByteArray());
+        Assert.Equal(expected[0].ConsensusPubKey, updates[0].PubKey.Ed25519.ToByteArray());
         Assert.Equal(expected[0].Amount.BaseUnits, updates[0].Power);
-        Assert.Equal(expected[1].PubKey, updates[1].PubKey.Secp256K1.ToByteArray());
+        Assert.Equal(expected[1].ConsensusPubKey, updates[1].PubKey.Ed25519.ToByteArray());
         Assert.Equal(expected[1].Amount.BaseUnits, updates[1].Power);
     }
 
@@ -38,6 +38,7 @@ public sealed class ValidatorUpdateBuilderTests
         var unbonding = Stake("02" + new string('3', 64), "c", 5m);
         unbonding.UnlockHeight = 20;
         var malformed = Stake("02" + new string('4', 62), "d", 6m);
+        malformed.ConsensusPubKey = new byte[31];
         var previous = new State(ChainInfo.ChainIdTestnet);
         previous.SetStake(removed);
         previous.SetStake(jailed);
@@ -50,9 +51,9 @@ public sealed class ValidatorUpdateBuilderTests
 
         Assert.Equal(3, updates.Count);
         Assert.All(updates, update => Assert.Equal(0, update.Power));
-        Assert.Contains(updates, update => update.PubKey.Secp256K1.ToByteArray().SequenceEqual(removed.PubKey));
-        Assert.Contains(updates, update => update.PubKey.Secp256K1.ToByteArray().SequenceEqual(unbonding.PubKey));
-        Assert.DoesNotContain(updates, update => update.PubKey.Secp256K1.Length == malformed.PubKey.Length);
+        Assert.Contains(updates, update => update.PubKey.Ed25519.ToByteArray().SequenceEqual(removed.ConsensusPubKey));
+        Assert.Contains(updates, update => update.PubKey.Ed25519.ToByteArray().SequenceEqual(unbonding.ConsensusPubKey));
+        Assert.DoesNotContain(updates, update => update.PubKey.Ed25519.Length == malformed.ConsensusPubKey.Length);
     }
 
     private static StakePositionState Stake(string publicKey, string suffix, decimal amount)
@@ -62,6 +63,7 @@ public sealed class ValidatorUpdateBuilderTests
         {
             Address = Address.FromPublicKey(Address.TestnetVersion, bytes),
             PubKey = bytes,
+            ConsensusPubKey = Enumerable.Repeat((byte)suffix[0], 32).ToArray(),
             Amount = Money.FromCoins(amount),
             BondedHeight = suffix[0],
             UnlockHeight = 0,
