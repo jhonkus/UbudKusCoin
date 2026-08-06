@@ -124,6 +124,34 @@ public sealed class ConsensusDriverTests
     }
 
     [Fact]
+    public void DelayedCertificate_CannotRewindFinality()
+    {
+        var validators = MakeValidators();
+        var set = new ValidatorSet(validators.Select(x => x.Validator));
+        var state = new State(ChainId);
+        var driver = new DeterministicBftDriver(state, set);
+        var proposer = driver.Proposer(1, 0);
+        var proposerKey = validators.Single(x => x.Address.Equals(proposer.Address)).Key;
+        var block = BuildEmptyBlock(state, proposer, proposerKey);
+        var first = SignVote(validators[0], block.Height, 0, block.ComputeHeaderHashHex());
+        var second = SignVote(validators[1], block.Height, 0, block.ComputeHeaderHashHex());
+
+        Assert.True(driver.AddVote(first, out _, out var firstError), firstError);
+        Assert.True(driver.AddVote(second, out var certificate, out var secondError), secondError);
+        Assert.NotNull(certificate);
+        Assert.True(driver.Commit(block, certificate!, out var commitError), commitError);
+        var finalizedHash = driver.Finality.FinalizedHash;
+
+        Assert.True(driver.AddVote(first, out _, out firstError), firstError);
+        Assert.True(driver.AddVote(second, out var delayedCertificate, out secondError), secondError);
+        Assert.NotNull(delayedCertificate);
+        Assert.False(driver.Commit(block, delayedCertificate!, out var delayedError));
+        Assert.Contains("sequential", delayedError, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(finalizedHash, driver.Finality.FinalizedHash);
+        Assert.Equal(1, driver.Finality.FinalizedHeight);
+    }
+
+    [Fact]
     public void StakingLedger_EnforcesLockAndSlashesEquivocators()
     {
         var validator = MakeValidators()[0];
