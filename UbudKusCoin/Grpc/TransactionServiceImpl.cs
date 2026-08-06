@@ -5,8 +5,10 @@
 // Redistribution and use in source and binary forms with or without
 // modifications are permitted.
 
-using System.Threading.Tasks;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Grpc.Core;
 using UbudKusCoin.Services;
 using UbudKusCoin.Others;
@@ -17,13 +19,20 @@ namespace UbudKusCoin.Grpc
     {
         public override Task<Transaction> GetByHash(Transaction req, ServerCallContext context)
         {
-            var transaction = ServicePool.DbService.TransactionDb.GetByHash(req.Hash);
-            return Task.FromResult(transaction);
+            var transaction = AllCanonicalTransactions()
+                .FirstOrDefault(item => item.transaction.ComputeIdHex().Equals(req.Hash, StringComparison.OrdinalIgnoreCase));
+            return Task.FromResult(transaction.transaction is null
+                ? new Transaction()
+                : CanonicalExplorerMapper.ToTransaction(transaction.transaction, transaction.height, transaction.timeStamp));
         }
 
         public override Task<TransactionList> GetRangeByAddress(TransactionPaging req, ServerCallContext context)
         {
-            var transactions = ServicePool.DbService.TransactionDb.GetRangeByAddress(req.Address, req.PageNumber, req.ResultPerPage);
+            var transactions = AllCanonicalTransactions()
+                .Where(item => item.transaction.From.Encoded == req.Address || item.transaction.To.Encoded == req.Address)
+                .Skip(Math.Max(0, req.PageNumber - 1) * req.ResultPerPage)
+                .Take(Math.Max(0, req.ResultPerPage))
+                .Select(item => CanonicalExplorerMapper.ToTransaction(item.transaction, item.height, item.timeStamp));
             var response = new TransactionList();
             response.Transactions.AddRange(transactions);
             return Task.FromResult(response);
@@ -32,7 +41,10 @@ namespace UbudKusCoin.Grpc
         public override Task<TransactionList> GetRange(TransactionPaging req, ServerCallContext context)
         {
             var response = new TransactionList();
-            var transactions = ServicePool.DbService.TransactionDb.GetRange(req.PageNumber, req.ResultPerPage);
+            var transactions = AllCanonicalTransactions()
+                .Skip(Math.Max(0, req.PageNumber - 1) * req.ResultPerPage)
+                .Take(Math.Max(0, req.ResultPerPage))
+                .Select(item => CanonicalExplorerMapper.ToTransaction(item.transaction, item.height, item.timeStamp));
             response.Transactions.AddRange(transactions);
             return Task.FromResult(response);
         }
@@ -44,6 +56,10 @@ namespace UbudKusCoin.Grpc
             response.Transactions.AddRange(transactions);
             return Task.FromResult(response);
         }
+
+        private static IEnumerable<(UbudKusCoin.Core.Types.Transaction transaction, long height, long timeStamp)> AllCanonicalTransactions()
+            => ServicePool.CanonicalNodeService.Chain.GetCanonicalBlocks(0)
+                .SelectMany(block => block.Txs.Select(transaction => (transaction, block.Height, block.TimeStamp)));
 
         public static bool VerifySignature(Transaction txn)
         {
