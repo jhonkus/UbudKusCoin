@@ -52,3 +52,7 @@
 # CometBFT integration tool build output
 /deploy/cometbft/ValidatorUpdateIntegrationTool/bin/
 /deploy/cometbft/ValidatorUpdateIntegrationTool/obj/
+
+# Blockchain qualification tests build output
+/BlockchainQualificationTests/bin/
+/BlockchainQualificationTests/obj/
