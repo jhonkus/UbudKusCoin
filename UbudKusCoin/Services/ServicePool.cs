@@ -58,8 +58,10 @@ namespace UbudKusCoin.Services
                 var expectedManifestHash = DotNetEnv.Env.GetString("GENESIS_MANIFEST_SHA256", string.Empty);
                 if (!string.IsNullOrWhiteSpace(expectedManifestHash))
                 {
+                    // Normalize line endings to LF before hashing to ensure cross-platform compatibility (Windows CRLF vs Linux LF)
+                    var manifestContent = File.ReadAllText(genesisPath).Replace("\r\n", "\n");
                     var actualManifestHash = Convert.ToHexString(
-                        SHA256.HashData(File.ReadAllBytes(genesisPath)));
+                        SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(manifestContent)));
                     if (!actualManifestHash.Equals(expectedManifestHash.Trim(), StringComparison.OrdinalIgnoreCase))
                     {
                         throw new InvalidDataException("Genesis manifest SHA-256 does not match the configured pin.");
