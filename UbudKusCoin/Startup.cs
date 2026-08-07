@@ -1,4 +1,5 @@
 // Created by I Putu Kusuma Negara
+// Created by I Putu Kusuma Negara
 // markbrain2013[at]gmail.com
 // 
 // Ubudkuscoin is free software distributed under the MIT software license,
@@ -13,6 +14,8 @@ using Microsoft.Extensions.Hosting;
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
 using UbudKusCoin.Core.Types;
 using UbudKusCoin.Grpc;
 using UbudKusCoin.Services;
@@ -249,6 +252,61 @@ namespace UbudKusCoin
 
                     await context.Response.WriteAsJsonAsync(status, context.RequestAborted);
                 });
+                endpoints.MapPost("/api/v1/transactions", async context =>
+                {
+                    try
+                    {
+                        var body = await context.Request.ReadFromJsonAsync<SubmitTxRequest>(context.RequestAborted);
+                        if (body == null || string.IsNullOrWhiteSpace(body.Hex))
+                        {
+                            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                            await context.Response.WriteAsJsonAsync(new { error = "Missing transaction hex." }, context.RequestAborted);
+                            return;
+                        }
+
+                        var txBytes = Convert.FromHexString(body.Hex);
+                        if (!TransactionCodec.TryDecode(txBytes, out var transaction, out var decodeError))
+                        {
+                            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                            await context.Response.WriteAsJsonAsync(new { error = $"Invalid transaction format: {decodeError}" }, context.RequestAborted);
+                            return;
+                        }
+
+                        var consensusOptions = ConsensusEngineOptions.FromEnvironment();
+                        if (consensusOptions.Mode == ConsensusEngineMode.Development)
+                        {
+                            // In development mode, we add directly to the database and broadcast
+                            var grpcTx = CanonicalExplorerMapper.ToTransaction(transaction!, 0, DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+                            ServicePool.DbService.PoolTransactionsDb.Add(grpcTx);
+                            Task.Run(() => ServicePool.P2PService.BroadcastTransaction(grpcTx));
+                        }
+                        else
+                        {
+                            var cometRpcUrl = DotNetEnv.Env.GetString("COMETBFT_RPC_URL", "http://localhost:26657");
+                            using var client = new HttpClient();
+                            var response = await client.GetAsync($"{cometRpcUrl}/broadcast_tx_sync?tx=0x{body.Hex}", context.RequestAborted);
+                            if (!response.IsSuccessStatusCode)
+                            {
+                                context.Response.StatusCode = StatusCodes.Status502BadGateway;
+                                await context.Response.WriteAsJsonAsync(new { error = "CometBFT broadcast failed." }, context.RequestAborted);
+                                return;
+                            }
+                        }
+
+                        context.Response.StatusCode = StatusCodes.Status200OK;
+                        await context.Response.WriteAsJsonAsync(new
+                        {
+                            txId = transaction!.ComputeIdHex(),
+                            status = "pending",
+                            message = "Transaction broadcasted to consensus network successfully."
+                        }, context.RequestAborted);
+                    }
+                    catch (Exception ex)
+                    {
+                        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                        await context.Response.WriteAsJsonAsync(new { error = ex.Message }, context.RequestAborted);
+                    }
+                });
                 endpoints.MapGet("/", async context =>
                 {
                     await context.Response.WriteAsync(
@@ -256,6 +314,11 @@ namespace UbudKusCoin
                         " must be made through a gRPC client.");
                 });
             });
+        }
+
+        private class SubmitTxRequest
+        {
+            public string Hex { get; set; } = "";
         }
     }
 }
