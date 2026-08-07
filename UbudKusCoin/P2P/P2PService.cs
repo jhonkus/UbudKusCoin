@@ -393,6 +393,11 @@ namespace UbudKusCoin.P2P
                     X509CertificateLoader.LoadPkcs12FromFile(clientCertificatePath, clientCertificatePassword));
             }
 
+            if (DotNetEnv.Env.GetBool("P2P_ALLOW_UNTRUSTED_ROOT"))
+            {
+                handler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+            }
+
             return GrpcChannel.ForAddress(uri, new GrpcChannelOptions
             {
                 HttpHandler = handler
