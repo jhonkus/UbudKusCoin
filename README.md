@@ -31,6 +31,8 @@ feature count.
   canonical hashing, Merkle roots, and deterministic genesis.
 - Atomic block validation and persistence, staking lock/unbonding, validator
   updates, slashing evidence, and sequential finality tracking.
+- Storage backend migrated from LiteDB to LightningDB (LMDB) for improved
+  performance and durability.
 - CometBFT v0.38 ABCI integration with four-validator local quorum, restart,
   partition/recovery, and snapshot-restore tests.
 - Validated external genesis manifest support for reproducible chain bootstrap;
@@ -78,9 +80,31 @@ send. Keep explorer queries paginated rather than increasing these limits.
 ```powershell
 dotnet restore
 dotnet test UbudKusCoin.sln --no-restore --nologo
+```
+
+Set the test wallet encryption key and start the multi-validator harness:
+
+```powershell
+$env:WALLET_ENCRYPTION_KEY = [Convert]::ToBase64String((0..31 | ForEach-Object { [byte]$_ }))
 docker compose -f deploy/cometbft/docker-compose.multinode.yml up --build -d
+```
+
+Verify all four validators are running:
+
+```powershell
+Invoke-RestMethod http://localhost:26657/status
+Invoke-RestMethod http://localhost:26658/status
+Invoke-RestMethod http://localhost:26659/status
+Invoke-RestMethod http://localhost:26660/status
+```
+
+Run the drill tests:
+
+```powershell
 powershell -ExecutionPolicy Bypass -File .\deploy\cometbft\test-multinode-partition.ps1
 powershell -ExecutionPolicy Bypass -File .\deploy\cometbft\test-multinode-delayed-message.ps1
+powershell -ExecutionPolicy Bypass -File .\deploy\cometbft\test-multinode-state-sync.ps1
+powershell -ExecutionPolicy Bypass -File .\deploy\cometbft\test-multinode-validator-update.ps1
 ```
 
 Stop the local harness and remove its test volumes with:
