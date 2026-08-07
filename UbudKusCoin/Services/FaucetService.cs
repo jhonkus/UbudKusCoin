@@ -170,7 +170,7 @@ public static class FaucetService
                 }
                 if (ServicePool.P2PService != null)
                 {
-                    _ = Task.Run(() => ServicePool.P2PService.BroadcastTransaction(grpcTx), cancellationToken);
+                    SafeTask.Run(() => ServicePool.P2PService.BroadcastTransaction(grpcTx), "Faucet Claim P2P Broadcast");
                 }
             }
             else

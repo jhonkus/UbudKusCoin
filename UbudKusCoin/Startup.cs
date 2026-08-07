@@ -680,7 +680,7 @@ namespace UbudKusCoin
                             // In development mode, we add directly to the database and broadcast
                             var grpcTx = CanonicalExplorerMapper.ToTransaction(transaction!, 0, DateTimeOffset.UtcNow.ToUnixTimeSeconds());
                             ServicePool.DbService.PoolTransactionsDb.Add(grpcTx);
-                            Task.Run(() => ServicePool.P2PService.BroadcastTransaction(grpcTx));
+                            SafeTask.Run(() => ServicePool.P2PService.BroadcastTransaction(grpcTx), "REST Submit Transaction P2P Broadcast");
                         }
                         else
                         {

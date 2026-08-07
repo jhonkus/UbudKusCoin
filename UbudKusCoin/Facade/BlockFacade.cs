@@ -1,4 +1,4 @@
-﻿// Created by I Putu Kusuma Negara
+// Created by I Putu Kusuma Negara
 // markbrain2013[at]gmail.com
 // 
 // Ubudkuscoin is free software distributed under the MIT software license,
@@ -153,7 +153,7 @@ namespace UbudKusCoin.Facade
             }
 
             // broadcast block
-            Task.Run(() => ServicePool.P2PService.BroadcastBlock(block));
+            SafeTask.Run(() => ServicePool.P2PService.BroadcastBlock(block), "Local Block Minting Broadcast");
         }
 
         public string GetBlockHash(Block block)
