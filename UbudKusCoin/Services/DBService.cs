@@ -7,19 +7,18 @@
 
 using System;
 using System.IO;
-using LiteDB;
 using UbudKusCoin.DB;
 
 namespace UbudKusCoin.Services
 {
     public class DbService
     {
-        private readonly LiteDatabase DB_BLOCK;
-        private readonly LiteDatabase DB_ACCOUNT;
-        private readonly LiteDatabase DB_TRANSACTION;
-        private readonly LiteDatabase DB_TRANSACTION_POOL;
-        private readonly LiteDatabase DB_PEER;
-        private readonly LiteDatabase DB_STAKE;
+        private readonly LmdbStore DB_BLOCK;
+        private readonly LmdbStore DB_ACCOUNT;
+        private readonly LmdbStore DB_TRANSACTION;
+        private readonly LmdbStore DB_TRANSACTION_POOL;
+        private readonly LmdbStore DB_PEER;
+        private readonly LmdbStore DB_STAKE;
 
         public BlockDb BlockDb { get; set; }
         public TransactionDb TransactionDb { get; set; }
@@ -29,7 +28,7 @@ namespace UbudKusCoin.Services
         public PoolTransactionsDb PoolTransactionsDb { get; set; }
         public StakeDb StakeDb { get; set; }
 
-        // I use multiple database, to minimize database size for transaction, block
+        // I use multiple databases, to minimize database size for transaction, block
         // size will smaller for each database
         public DbService()
         {
@@ -40,17 +39,17 @@ namespace UbudKusCoin.Services
                 Directory.CreateDirectory(dataDirectory);
             }
 
-            DB_BLOCK = InitializeDatabase(Path.Combine(dataDirectory, "block.db"));
-            DB_ACCOUNT = InitializeDatabase(Path.Combine(dataDirectory, "account.db"));
-            DB_TRANSACTION = InitializeDatabase(Path.Combine(dataDirectory, "transaction.db"));
-            DB_TRANSACTION_POOL = InitializeDatabase(Path.Combine(dataDirectory, "transaction_pool.db"));
-            DB_STAKE = InitializeDatabase(Path.Combine(dataDirectory, "stake.db"));
-            DB_PEER = InitializeDatabase(Path.Combine(dataDirectory, "peer.db"));
+            DB_BLOCK = InitializeDatabase(Path.Combine(dataDirectory, "block.mdb"));
+            DB_ACCOUNT = InitializeDatabase(Path.Combine(dataDirectory, "account.mdb"));
+            DB_TRANSACTION = InitializeDatabase(Path.Combine(dataDirectory, "transaction.mdb"));
+            DB_TRANSACTION_POOL = InitializeDatabase(Path.Combine(dataDirectory, "transaction_pool.mdb"));
+            DB_STAKE = InitializeDatabase(Path.Combine(dataDirectory, "stake.mdb"));
+            DB_PEER = InitializeDatabase(Path.Combine(dataDirectory, "peer.mdb"));
         }
 
-        private LiteDatabase InitializeDatabase(string path)
+        private LmdbStore InitializeDatabase(string path)
         {
-            return new LiteDatabase(path);
+            return new LmdbStore(path);
         }
 
         public void Start()

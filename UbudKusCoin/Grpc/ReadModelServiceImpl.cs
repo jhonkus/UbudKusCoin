@@ -13,7 +13,7 @@ public sealed class ReadModelServiceImpl : ReadModelService.ReadModelServiceBase
     {
         var blocks = ServicePool.CanonicalNodeService.Chain.GetCanonicalBlocks(0).ToList();
         var transactions = blocks.SelectMany(block => block.Txs).ToList();
-        var pending = ServicePool.DbService.PoolTransactionsDb.GetAll().FindAll();
+        var pending = ServicePool.DbService.PoolTransactionsDb.GetAll();
         var accounts = ServicePool.CanonicalNodeService.Chain.State.Accounts.Count();
 
         return Task.FromResult(new StatsResponse

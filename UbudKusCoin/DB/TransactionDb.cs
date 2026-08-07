@@ -5,36 +5,39 @@
 // Redistribution and use in source and binary forms with or without
 // modifications are permitted.
 
+using System;
 using System.Collections.Generic;
-using LiteDB;
-using UbudKusCoin.Others;
+using System.Linq;
+using System.Text;
 using UbudKusCoin.Grpc;
 
 namespace UbudKusCoin.DB
 {
     /// <summary>
-    /// Transaction DB, for add, update transaction
+    /// Transaction DB, for add, update transaction. Transactions are keyed by
+    /// their hash so lookups are direct and scans provide chronological views.
     /// </summary>
     public class TransactionDb
     {
-        private readonly LiteDatabase _db;
+        private readonly LmdbStore _store;
 
-        public TransactionDb(LiteDatabase db)
+        public TransactionDb(LmdbStore store)
         {
-            _db = db;
+            _store = store;
         }
 
         /// <summary>
-        /// Add some transaction in smae time
+        /// Add some transaction in same time
         /// </summary>
         public bool AddBulk(List<Transaction> transactions)
         {
             try
             {
-                var collection = GetAll();
-                
-                collection.InsertBulk(transactions);
-                
+                foreach (var transaction in transactions)
+                {
+                    Add(transaction);
+                }
+
                 return true;
             }
             catch
@@ -50,10 +53,7 @@ namespace UbudKusCoin.DB
         {
             try
             {
-                var transactions = GetAll();
-                
-                transactions.Insert(transaction);
-                
+                _store.Put(Key(transaction.Hash), LmdbSerializer.ToBytes(transaction));
                 return true;
             }
             catch
@@ -64,7 +64,7 @@ namespace UbudKusCoin.DB
 
         public bool RemoveByHash(string hash)
         {
-            return GetAll().DeleteMany(x => x.Hash == hash) > 0;
+            return _store.Delete(Key(hash));
         }
 
         /// <summary>
@@ -72,22 +72,12 @@ namespace UbudKusCoin.DB
         /// </summary>
         public IEnumerable<Transaction> GetRangeByAddress(string address, int pageNumber, int resultsPerPage)
         {
-            var transactions = GetAll();
-            if (transactions is null || transactions.Count() < 1)
-            {
-                return new List<Transaction>();
-            }
-
-            transactions.EnsureIndex(x => x.Sender);
-            transactions.EnsureIndex(x => x.Recipient);
-
-            var query = transactions.Query()
-                .OrderByDescending(x => x.TimeStamp)
+            return GetAll()
                 .Where(x => x.Sender == address || x.Recipient == address)
-                .Offset((pageNumber - 1) * resultsPerPage)
-                .Limit(resultsPerPage).ToList();
-
-            return query;
+                .OrderByDescending(x => x.TimeStamp)
+                .Skip((pageNumber - 1) * resultsPerPage)
+                .Take(resultsPerPage)
+                .ToList();
         }
 
         /// <summary>
@@ -95,15 +85,12 @@ namespace UbudKusCoin.DB
         /// </summary>
         public Transaction GetByHash(string hash)
         {
-            var transactions = GetAll();
-            if (transactions is null || transactions.Count() < 1)
+            if (_store.TryGet(Key(hash), out var bytes))
             {
-                return null;
+                return LmdbSerializer.FromBytes<Transaction>(bytes);
             }
 
-            transactions.EnsureIndex(x => x.Hash);
-            
-            return transactions.FindOne(x => x.Hash == hash);
+            return null;
         }
 
         /// <summary>
@@ -111,37 +98,19 @@ namespace UbudKusCoin.DB
         /// </summary>
         public IEnumerable<Transaction> GetRange(int pageNumber, int resultPerPage)
         {
-            var transactions = GetAll();
-            if (transactions is null || transactions.Count() < 1)
-            {
-                return new List<Transaction>();
-            }
-
-            transactions.EnsureIndex(x => x.TimeStamp);
-
-            var query = transactions.Query()
+            return GetAll()
                 .OrderByDescending(x => x.TimeStamp)
-                .Offset((pageNumber - 1) * resultPerPage)
-                .Limit(resultPerPage).ToList();
-
-            return query;
+                .Skip((pageNumber - 1) * resultPerPage)
+                .Take(resultPerPage)
+                .ToList();
         }
 
         public IEnumerable<Transaction> GetLast(int num)
         {
-            var transactions = GetAll();
-            if (transactions is null || transactions.Count() < 1)
-            {
-                return new List<Transaction>();
-            }
-
-            transactions.EnsureIndex(x => x.TimeStamp);
-
-            var query = transactions.Query()
+            return GetAll()
                 .OrderByDescending(x => x.TimeStamp)
-                .Limit(num).ToList();
-
-            return query;
+                .Take(num)
+                .ToList();
         }
 
         /// <summary>
@@ -149,20 +118,21 @@ namespace UbudKusCoin.DB
         /// </summary>
         public Transaction GetByAddress(string address)
         {
-            var transactions = GetAll();
-            if (transactions is null || transactions.Count() < 1)
-            {
-                return null;
-            }
-
-            transactions.EnsureIndex(x => x.TimeStamp);
-            var transaction = transactions.FindOne(x => x.Sender == address || x.Recipient == address);
-            return transaction;
+            return GetAll()
+                .OrderByDescending(x => x.TimeStamp)
+                .FirstOrDefault(x => x.Sender == address || x.Recipient == address);
         }
 
-        public ILiteCollection<Transaction> GetAll()
+        public List<Transaction> GetAll()
         {
-            return _db.GetCollection<Transaction>(Constants.TBL_TRANSACTIONS);
+            return _store.Scan(Array.Empty<byte>())
+                .Select(pair => LmdbSerializer.FromBytes<Transaction>(pair.Value))
+                .ToList();
+        }
+
+        private static byte[] Key(string hash)
+        {
+            return Encoding.UTF8.GetBytes(hash ?? string.Empty);
         }
     }
 }
