@@ -5,96 +5,76 @@
 // Redistribution and use in source and binary forms with or without
 // modifications are permitted.
 
+using System;
 using System.Collections.Generic;
-using LiteDB;
+using System.Linq;
+using System.Text;
 using UbudKusCoin.Grpc;
-using UbudKusCoin.Others;
 
 namespace UbudKusCoin.DB
 {
     /// <summary>
-    /// Account Database, for Add. Update and retrieve account
+    /// Account Database, for Add. Update and retrieve account. Accounts are
+    /// keyed by address for direct lookups; other queries iterate the store.
     /// </summary>
     public class AccountDb
     {
-        private readonly LiteDatabase _db;
+        private readonly LmdbStore _store;
 
-        public AccountDb(LiteDatabase db)
+        public AccountDb(LmdbStore store)
         {
-            _db = db;
+            _store = store;
         }
 
-        /// <summary>
-        /// Add new Account
-        /// </summary>
         public void Add(Account acc)
         {
-            var accounts = GetAll();
-            accounts.Insert(acc);
+            _store.Put(Key(acc.Address), LmdbSerializer.ToBytes(acc));
         }
 
-        /// <summary>
-        /// update an Account 
-        /// </summary>
         public void Update(Account acc)
         {
-            var accounts = GetAll();
-            accounts.Update(acc);
+            _store.Put(Key(acc.Address), LmdbSerializer.ToBytes(acc));
         }
 
         public bool RemoveByAddress(string address)
         {
-            return GetAll().DeleteMany(x => x.Address == address) > 0;
+            return _store.Delete(Key(address));
         }
 
-        /// <summary>
-        /// Get accounts with paging, page number and result per page
-        /// </summary>
         public IEnumerable<Account> GetRange(int pageNumber, int resultPerPage)
         {
-            var accounts = GetAll();
-            
-            accounts.EnsureIndex(x => x.Balance);
-            
-            var query = accounts.Query()
+            return GetAll()
                 .OrderByDescending(x => x.Balance)
-                .Offset((pageNumber - 1) * resultPerPage)
-                .Limit(resultPerPage).ToList();
-            
-            return query;
+                .Skip((pageNumber - 1) * resultPerPage)
+                .Take(resultPerPage)
+                .ToList();
         }
 
-        /// <summary>
-        /// Get Account by it's Address
-        /// </summary>
         public Account GetByAddress(string address)
         {
-            var accounts = GetAll();
-            if (accounts is null)
+            if (_store.TryGet(Key(address), out var bytes))
             {
-                return null;
+                return LmdbSerializer.FromBytes<Account>(bytes);
             }
 
-            accounts.EnsureIndex(x => x.Address);
-            
-            return accounts.FindOne(x => x.Address == address);
+            return null;
         }
 
-        /// <summary>
-        /// Get an Account by its Public Key
-        /// </summary>
         public Account GetByPubKey(string pubkey)
         {
-            var accounts = GetAll();
-            
-            accounts.EnsureIndex(x => x.PubKey);
-            
-            return accounts.FindOne(x => x.PubKey == pubkey);
+            return GetAll().FirstOrDefault(x => x.PubKey == pubkey);
         }
 
-        private ILiteCollection<Account> GetAll()
+        public List<Account> GetAll()
         {
-            return _db.GetCollection<Account>(Constants.TBL_ACCOUNTS);
+            return _store.Scan(Array.Empty<byte>())
+                .Select(pair => LmdbSerializer.FromBytes<Account>(pair.Value))
+                .ToList();
+        }
+
+        private static byte[] Key(string address)
+        {
+            return Encoding.UTF8.GetBytes(address ?? string.Empty);
         }
     }
 }

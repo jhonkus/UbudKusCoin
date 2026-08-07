@@ -5,22 +5,24 @@
 // Redistribution and use in source and binary forms with or without
 // modifications are permitted.
 
-using LiteDB;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using UbudKusCoin.Grpc;
-using UbudKusCoin.Others;
 
 namespace UbudKusCoin.DB
 {
     /// <summary>
-    /// Stake database
+    /// Stake database. Stakes are keyed by address for direct upsert lookups.
     /// </summary>
     public class StakeDb
     {
-        private readonly LiteDatabase _db;
+        private readonly LmdbStore _store;
 
-        public StakeDb(LiteDatabase db)
+        public StakeDb(LmdbStore store)
         {
-            _db = db;
+            _store = store;
         }
 
         /// <summary>
@@ -28,13 +30,7 @@ namespace UbudKusCoin.DB
         /// </summary>
         public void AddOrUpdate(Stake stake)
         {
-            var locStake = GetByAddress(stake.Address);
-            if (locStake is null)
-            {
-                GetAll().Insert(stake);
-            }
-
-            GetAll().Update(stake);
+            _store.Put(Key(stake.Address), LmdbSerializer.ToBytes(stake));
         }
 
         /// <summary>
@@ -42,32 +38,17 @@ namespace UbudKusCoin.DB
         /// </summary>
         public void DeleteAll()
         {
-            var stakers = GetAll();
-            if (stakers is null || stakers.Count() < 1)
-            {
-                return;
-            }
-
-            stakers.DeleteAll();
+            _store.Clear(Array.Empty<byte>());
         }
-        
+
         /// <summary>
         /// Get maximum stake, base on amount
         /// </summary>
         public Stake GetMax()
         {
-            var stakes = GetAll();
-            if (stakes is null || stakes.Count() < 1)
-            {
-                return null;
-            }
-
-            stakes.EnsureIndex(x => x.Amount);
-            
-            var query = stakes.Query()
-                .OrderByDescending(x => x.Amount);
-            
-            return query.FirstOrDefault();
+            return GetAll()
+                .OrderByDescending(x => x.Amount)
+                .FirstOrDefault();
         }
 
         /// <summary>
@@ -75,29 +56,27 @@ namespace UbudKusCoin.DB
         /// </summary>
         public Stake GetByAddress(string address)
         {
-            var stakes = GetAll();
-            if (stakes is null)
+            if (_store.TryGet(Key(address), out var bytes))
             {
-                return null;
+                return LmdbSerializer.FromBytes<Stake>(bytes);
             }
 
-            stakes.EnsureIndex(x => x.Address);
-            
-            var stake = stakes.FindOne(x => x.Address == address);
-            
-            return stake;
+            return null;
         }
-        
+
         /// <summary>
         /// Get all stake
         /// </summary>
-        public ILiteCollection<Stake> GetAll()
+        public List<Stake> GetAll()
         {
-            var stakes = _db.GetCollection<Stake>(Constants.TBL_STAKES);
-            
-            stakes.EnsureIndex(x => x.Amount);
-            
-            return stakes;
+            return _store.Scan(Array.Empty<byte>())
+                .Select(pair => LmdbSerializer.FromBytes<Stake>(pair.Value))
+                .ToList();
+        }
+
+        private static byte[] Key(string address)
+        {
+            return Encoding.UTF8.GetBytes(address ?? string.Empty);
         }
     }
 }

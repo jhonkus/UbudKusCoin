@@ -68,7 +68,7 @@ namespace UbudKusCoin.Facade
         public List<Peer> GetKnownPeers()
         {
             var now = UkcUtils.GetTime();
-            var peers = ServicePool.DbService.PeerDb.GetAll().FindAll().ToList();
+            var peers = ServicePool.DbService.PeerDb.GetAll();
             return PeerAdmissionPolicy.OrderPeers(peers, now)
                 .Take(PeerAdmissionPolicy.GetMaxKnownPeers())
                 .ToList();

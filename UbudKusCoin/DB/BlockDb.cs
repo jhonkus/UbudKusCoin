@@ -5,24 +5,25 @@
 // Redistribution and use in source and binary forms with or without
 // modifications are permitted.
 
-using LiteDB;
-using UbudKusCoin.Grpc;
-using UbudKusCoin.Others;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using UbudKusCoin.Grpc;
+using UbudKusCoin.Others;
 
 namespace UbudKusCoin.DB
 {
     /// <summary>
-    /// Block Database to keep block persistant
+    /// Block Database to keep block persistent. Blocks are keyed by their
+    /// height (big-endian 8-byte) so iteration follows chain order.
     /// </summary>
     public class BlockDb
     {
-        private readonly LiteDatabase _db;
+        private readonly LmdbStore _store;
 
-        public BlockDb(LiteDatabase db)
+        public BlockDb(LmdbStore store)
         {
-            _db = db;
+            _store = store;
         }
 
         /// <summary>
@@ -30,10 +31,9 @@ namespace UbudKusCoin.DB
         /// </summary>
         public AddBlockStatus Add(Block block)
         {
-            var blocks = GetAll();
             try
             {
-                blocks.Insert(block);
+                _store.Put(LmdbSerializer.ToOrderedBytes(block.Height), LmdbSerializer.ToBytes(block));
                 return new AddBlockStatus
                 {
                     Status = Constants.TXN_STATUS_SUCCESS,
@@ -45,14 +45,20 @@ namespace UbudKusCoin.DB
                 return new AddBlockStatus
                 {
                     Status = Constants.TXN_STATUS_FAIL,
-                    Message = "Rttpt add transaction to pool"
+                    Message = "Failed to add block"
                 };
             }
         }
 
         public bool RemoveByHash(string hash)
         {
-            return GetAll().DeleteMany(x => x.Hash == hash) > 0;
+            var block = GetByHash(hash);
+            if (block is null)
+            {
+                return false;
+            }
+
+            return _store.Delete(LmdbSerializer.ToOrderedBytes(block.Height));
         }
 
         /// <summary>
@@ -60,28 +66,25 @@ namespace UbudKusCoin.DB
         /// </summary>
         public Block GetFirst()
         {
-            return GetAll().FindAll().FirstOrDefault();
+            return GetAll().FirstOrDefault();
         }
 
         /// <summary>
-        /// Get Last block ordered by block weight
+        /// Get Last block ordered by block height
         /// </summary>
         public Block GetLast()
         {
-            return GetAll().FindOne(Query.All(Query.Descending));
+            return GetAll().LastOrDefault();
         }
 
         /// <summary>
-        /// Get Block by Block weight
+        /// Get Block by Block height
         /// </summary>
-        public Block GetByHeight(long weight)
+        public Block GetByHeight(long height)
         {
-            var blockCollection = GetAll();
-            var blocks = blockCollection.Query().Where(x => x.Height == weight).ToList();
-            
-            if (blocks.Any())
+            if (_store.TryGet(LmdbSerializer.ToOrderedBytes(height), out var bytes))
             {
-                return blocks.FirstOrDefault();
+                return LmdbSerializer.FromBytes<Block>(bytes);
             }
 
             return null;
@@ -92,15 +95,7 @@ namespace UbudKusCoin.DB
         /// </summary>
         public Block GetByHash(string hash)
         {
-            var blockCollection = GetAll();
-            var blocks = blockCollection.Query().Where(x => x.Hash == hash).ToList();
-            
-            if (blocks.Any())
-            {
-                return blocks.FirstOrDefault();
-            }
-
-            return null;
+            return GetAll().FirstOrDefault(x => x.Hash == hash);
         }
 
         /// <summary>
@@ -108,49 +103,33 @@ namespace UbudKusCoin.DB
         /// </summary>
         public List<Block> GetRange(int pageNumber, int resultPerPage)
         {
-            var blockCollection = GetAll();
-            
-            blockCollection.EnsureIndex(x => x.Height);
-            
-            var query = blockCollection.Query()
+            return GetAll()
                 .OrderByDescending(x => x.Height)
-                .Offset((pageNumber - 1) * resultPerPage)
-                .Limit(resultPerPage).ToList();
-            
-            return query;
+                .Skip((pageNumber - 1) * resultPerPage)
+                .Take(resultPerPage)
+                .ToList();
         }
 
         /// <summary>
-        /// Get blocks starting from specific weight until 50 rows
+        /// Get blocks starting from specific height until 50 rows
         /// </summary>
         public List<Block> GetRemaining(long startHeight)
         {
-            var blockCollection = GetAll();
-            
-            blockCollection.EnsureIndex(x => x.Height);
-            
-            var query = blockCollection.Query()
-                .OrderByDescending(x => x.Height)
+            return GetAll()
                 .Where(x => x.Height > startHeight && x.Height <= startHeight + 50)
+                .OrderByDescending(x => x.Height)
                 .ToList();
-            
-            return query;
         }
 
         /// <summary>
-        /// Get last blocks 
+        /// Get last blocks
         /// </summary>
         public List<Block> GetLast(int num)
         {
-            var blockCollection = GetAll();
-            
-            blockCollection.EnsureIndex(x => x.Height);
-            
-            var query = blockCollection.Query()
+            return GetAll()
                 .OrderByDescending(x => x.Height)
-                .Limit(num).ToList();
-            
-            return query;
+                .Take(num)
+                .ToList();
         }
 
         /// <summary>
@@ -158,29 +137,22 @@ namespace UbudKusCoin.DB
         /// </summary>
         public IEnumerable<Block> GetByValidator(string address, int pageNumber, int resultPerPage)
         {
-            var blockCollection = GetAll();
-            
-            blockCollection.EnsureIndex(x => x.Validator);
-            
-            var query = blockCollection.Query()
-                .OrderByDescending(x => x.Height)
+            return GetAll()
                 .Where(x => x.Validator == address)
-                .Offset((pageNumber - 1) * resultPerPage)
-                .Limit(resultPerPage).ToList();
-            
-            return query;
+                .OrderByDescending(x => x.Height)
+                .Skip((pageNumber - 1) * resultPerPage)
+                .Take(resultPerPage)
+                .ToList();
         }
 
         /// <summary>
         /// Get all blocks
         /// </summary>
-        public ILiteCollection<Block> GetAll()
+        public List<Block> GetAll()
         {
-            var blockCollection = _db.GetCollection<Block>(Constants.TBL_BLOCKS);
-            
-            blockCollection.EnsureIndex(x => x.Height);
-            
-            return blockCollection;
+            return _store.Scan(Array.Empty<byte>())
+                .Select(pair => LmdbSerializer.FromBytes<Block>(pair.Value))
+                .ToList();
         }
 
         /// <summary>
@@ -188,16 +160,7 @@ namespace UbudKusCoin.DB
         /// </summary>
         public IList<string> GetHashList()
         {
-            var blockCollection = GetAll();
-            
-            IList<string> hashList = new List<string>();
-            
-            foreach (var block in blockCollection.FindAll())
-            {
-                hashList.Add(block.Hash);
-            }
-
-            return hashList;
+            return GetAll().Select(x => x.Hash).ToList();
         }
     }
 }

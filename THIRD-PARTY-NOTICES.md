@@ -20,7 +20,7 @@ No CometBFT implementation source code is vendored in this repository.
 - `DotNetEnv`: MIT License.
 - `Grpc.Net.Client`, `Grpc.AspNetCore`, and `Grpc.Tools`: Apache License 2.0.
 - `Google.Protobuf`: BSD 3-Clause License.
-- `LiteDB`: MIT License.
+- `LightningDB`: MIT License.
 - `Newtonsoft.Json`: MIT License.
 - .NET hosting and configuration packages: MIT License.
 
