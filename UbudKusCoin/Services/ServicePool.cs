@@ -22,6 +22,8 @@ namespace UbudKusCoin.Services
         public static WalletService WalletService { set; get; }
         public static P2PService P2PService { set; get; }
         public static CanonicalNodeService CanonicalNodeService { get; private set; }
+        public static IndexerStore IndexerStore { get; private set; }
+        public static ChainIndexerService IndexerService { get; private set; }
         public static IConsensusEngineAdapter ConsensusEngine { get; private set; }
         public static ConsensusApplicationStateMachine ApplicationStateMachine { get; private set; }
         public static BlockCommitService BlockCommitService { get; } = new();
@@ -105,6 +107,9 @@ namespace UbudKusCoin.Services
                 CanonicalNodeService.Chain.State,
                 validator,
                 validatorPublicKey: validatorKey);
+            IndexerStore = new IndexerStore(@"DbFiles/indexer.db");
+            IndexerService = new ChainIndexerService(IndexerStore, CanonicalNodeService);
+            IndexerService.CatchUp();
             DbService.Start();
             FacadeService.start();
             P2PService.Start();
@@ -116,6 +121,7 @@ namespace UbudKusCoin.Services
         {
             //stop when application exit
             //WalletService.Stop();
+            IndexerStore?.Dispose();
             DbService.Stop();
             //FacadeService.Stop();
             //P2PService.Stop();

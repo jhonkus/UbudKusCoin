@@ -1,4 +1,4 @@
-﻿// Created by I Putu Kusuma Negara
+// Created by I Putu Kusuma Negara
 // markbrain2013[at]gmail.com
 // 
 // Ubudkuscoin is free software distributed under the MIT software license,
@@ -150,6 +150,27 @@ namespace UbudKusCoin
                         int.TryParse(context.Request.Query["limit"], out var requestedLimit) ? requestedLimit : 50,
                         1,
                         100);
+
+                    var indexer = ServicePool.IndexerStore;
+                    if (indexer is not null)
+                    {
+                        var indexedTxs = indexer.GetTransactionsForAddress(address.Encoded, limit);
+                        var responseItems = indexedTxs.Select(item => new
+                        {
+                            txId = item.TxId,
+                            height = item.Height.ToString(CultureInfo.InvariantCulture),
+                            timeStamp = item.TimeStamp.ToString(CultureInfo.InvariantCulture),
+                            from = item.From,
+                            to = item.To,
+                            amountBaseUnits = item.AmountBaseUnits.ToString(CultureInfo.InvariantCulture),
+                            feeBaseUnits = item.FeeBaseUnits.ToString(CultureInfo.InvariantCulture),
+                            nonce = item.Nonce.ToString(CultureInfo.InvariantCulture)
+                        }).ToArray();
+
+                        await context.Response.WriteAsJsonAsync(responseItems, context.RequestAborted);
+                        return;
+                    }
+
                     var transactions = ServicePool.CanonicalNodeService.Chain
                         .GetCanonicalBlocks(0)
                         .SelectMany(block => block.Txs.Select(transaction => new
@@ -185,6 +206,21 @@ namespace UbudKusCoin
                         || txId.Any(character => !Uri.IsHexDigit(character)))
                     {
                         context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                        return;
+                    }
+
+                    var indexer = ServicePool.IndexerStore;
+                    var indexedTx = indexer?.GetTransactionById(txId);
+                    if (indexedTx is not null)
+                    {
+                        TransactionStatusRegistry.MarkConfirmed(txId, indexedTx.Height);
+                        await context.Response.WriteAsJsonAsync(new
+                        {
+                            txId,
+                            status = "confirmed",
+                            message = "Transaction committed in the canonical chain.",
+                            height = indexedTx.Height.ToString(CultureInfo.InvariantCulture)
+                        }, context.RequestAborted);
                         return;
                     }
 
