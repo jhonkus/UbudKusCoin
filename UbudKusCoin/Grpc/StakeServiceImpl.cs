@@ -36,7 +36,7 @@ namespace UbudKusCoin.Grpc
         {
             var response = new StakeList();
             var stakes = ServicePool.DbService.StakeDb.GetAll();
-            response.Stakes.AddRange(stakes.FindAll());
+            response.Stakes.AddRange(stakes);
             return Task.FromResult(response);
         }
     }

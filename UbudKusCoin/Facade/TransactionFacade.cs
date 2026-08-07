@@ -88,7 +88,7 @@ namespace UbudKusCoin.Facade
         public List<Transaction> GetForMinting(long weight)
         {
             // get transaction from pool
-            var poolTransactions = ServicePool.DbService.PoolTransactionsDb.GetAll().FindAll().ToList();
+            var poolTransactions = ServicePool.DbService.PoolTransactionsDb.GetAll();
             var transactions = new List<Transaction>();
 
             // validator will get coin reward from genesis account

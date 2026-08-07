@@ -5,25 +5,26 @@
 // Redistribution and use in source and binary forms with or without
 // modifications are permitted.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using LiteDB;
+using System.Text;
 using UbudKusCoin.Grpc;
-using UbudKusCoin.Others;
 using UbudKusCoin.Services;
 
 namespace UbudKusCoin.DB
 {
     /// <summary>
-    /// Peer database, for add, update list of peers
+    /// Peer database, for add, update list of peers. Peers are keyed by their
+    /// normalized network address.
     /// </summary>
     public class PeerDb
     {
-        private readonly LiteDatabase _db;
+        private readonly LmdbStore _store;
 
-        public PeerDb(LiteDatabase db)
+        public PeerDb(LmdbStore store)
         {
-            _db = db;
+            _store = store;
         }
 
         /// <summary>
@@ -38,10 +39,15 @@ namespace UbudKusCoin.DB
                 return false;
             }
 
+            if (!PeerIdentityPolicy.TryNormalizeEndpoint(peer.Address, out var normalized, out message))
+            {
+                return false;
+            }
+
             var existingPeer = GetByAddress(peer.Address);
             if (existingPeer is null)
             {
-                var currentPeers = GetAll().FindAll().ToList();
+                var currentPeers = GetAll();
                 var maxPeers = PeerAdmissionPolicy.GetMaxKnownPeers();
                 if (currentPeers.Count >= maxPeers)
                 {
@@ -56,7 +62,7 @@ namespace UbudKusCoin.DB
                     }
                 }
 
-                GetAll().Insert(peer);
+                _store.Put(Key(peer.Address), LmdbSerializer.ToBytes(peer));
                 message = "Peer added.";
                 NodeTelemetry.RecordPeerAdmission(true, "new");
                 return true;
@@ -66,7 +72,7 @@ namespace UbudKusCoin.DB
             existingPeer.IsCanreach = peer.IsCanreach;
             existingPeer.LastReach = peer.LastReach;
             existingPeer.TimeStamp = peer.TimeStamp;
-            GetAll().Update(existingPeer);
+            _store.Put(Key(existingPeer.Address), LmdbSerializer.ToBytes(existingPeer));
             message = "Peer updated.";
             NodeTelemetry.RecordPeerAdmission(true, "update");
             return true;
@@ -77,29 +83,21 @@ namespace UbudKusCoin.DB
         /// </summary>
         public List<Peer> GetRange(int pageNumber, int resultPerPage)
         {
-            var peers = GetAll();
-            
-            peers.EnsureIndex(x => x.LastReach);
-            
-            var query = peers.Query()
+            return GetAll()
                 .OrderByDescending(x => x.LastReach)
-                .Offset((pageNumber - 1) * resultPerPage)
-                .Limit(resultPerPage).ToList();
-            
-            return query;
+                .Skip((pageNumber - 1) * resultPerPage)
+                .Take(resultPerPage)
+                .ToList();
         }
-
 
         /// <summary>
         /// Get all peer
         /// </summary>
-        public ILiteCollection<Peer> GetAll()
+        public List<Peer> GetAll()
         {
-            var peers = _db.GetCollection<Peer>(Constants.TBL_PEERS);
-            
-            peers.EnsureIndex(x => x.LastReach);
-            
-            return peers;
+            return _store.Scan(Array.Empty<byte>())
+                .Select(pair => LmdbSerializer.FromBytes<Peer>(pair.Value))
+                .ToList();
         }
 
         /// <summary>
@@ -107,14 +105,24 @@ namespace UbudKusCoin.DB
         /// </summary>
         public Peer GetByAddress(string address)
         {
-            var peers = GetAll();
-            if (peers is null)
+            if (_store.TryGet(Key(address), out var bytes))
             {
-                return null;
+                return LmdbSerializer.FromBytes<Peer>(bytes);
             }
 
-            peers.EnsureIndex(x => x.Address);
-            return peers.FindAll().FirstOrDefault(peer => PeerIdentityPolicy.AreSameEndpoint(peer.Address, address));
+            // Backward-compatible scan for records stored with a previously
+            // unnormalized key.
+            return GetAll().FirstOrDefault(peer => PeerIdentityPolicy.AreSameEndpoint(peer.Address, address));
+        }
+
+        private static byte[] Key(string address)
+        {
+            if (PeerIdentityPolicy.TryNormalizeEndpoint(address, out var normalized, out _))
+            {
+                return Encoding.UTF8.GetBytes(normalized);
+            }
+
+            return Encoding.UTF8.GetBytes(address ?? string.Empty);
         }
     }
 }

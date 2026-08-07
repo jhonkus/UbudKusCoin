@@ -5,73 +5,62 @@
 // Redistribution and use in source and binary forms with or without
 // modifications are permitted.
 
+using System;
 using System.Collections.Generic;
-using LiteDB;
+using System.Linq;
+using System.Text;
 using UbudKusCoin.Grpc;
-using UbudKusCoin.Others;
 
 namespace UbudKusCoin.DB
 {
     public class PoolTransactionsDb
     {
-        private readonly LiteDatabase _db;
+        private readonly LmdbStore _store;
 
-        public PoolTransactionsDb(LiteDatabase db)
+        public PoolTransactionsDb(LmdbStore store)
         {
-            _db = db;
+            _store = store;
         }
 
         public void Add(Transaction transaction)
         {
-            var transactions = GetAll();
-            transactions.Insert(transaction);
+            _store.Put(Key(transaction.Hash), LmdbSerializer.ToBytes(transaction));
         }
 
         public Transaction GetByHash(string hash)
         {
-            var transactions = GetAll();
-            if (transactions is null || transactions.Count() < 1)
+            if (_store.TryGet(Key(hash), out var bytes))
             {
-                return null;
+                return LmdbSerializer.FromBytes<Transaction>(bytes);
             }
 
-            transactions.EnsureIndex(x => x.Hash);
-
-            return transactions.FindOne(x => x.Hash == hash);
+            return null;
         }
 
         public IEnumerable<Transaction> GetRange(int pageNumber, int resultPerPage)
         {
-            var transactions = GetAll();
-            if (transactions is null || transactions.Count() < 1)
-            {
-                return new List<Transaction>();
-            }
-
-            transactions.EnsureIndex(x => x.TimeStamp);
-
-            var query = transactions.Query()
+            return GetAll()
                 .OrderByDescending(x => x.TimeStamp)
-                .Offset((pageNumber - 1) * resultPerPage)
-                .Limit(resultPerPage).ToList();
-
-            return query;
+                .Skip((pageNumber - 1) * resultPerPage)
+                .Take(resultPerPage)
+                .ToList();
         }
 
         public void DeleteAll()
         {
-            var transactions = GetAll();
-            if (transactions is null || transactions.Count() < 1)
-            {
-                return;
-            }
-
-            transactions.DeleteAll();
+            _store.Clear(Array.Empty<byte>());
         }
 
-        public ILiteCollection<Transaction> GetAll()
+        public List<Transaction> GetAll()
         {
-            return _db.GetCollection<Transaction>(Constants.TBL_TRANSACTIONS_POOL);
+            return _store.Scan(Array.Empty<byte>())
+                .Select(pair => LmdbSerializer.FromBytes<Transaction>(pair.Value))
+                .ToList();
+        }
+
+        private static byte[] Key(string hash)
+        {
+            return Encoding.UTF8.GetBytes(hash ?? string.Empty);
         }
     }
 }
