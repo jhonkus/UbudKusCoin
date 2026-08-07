@@ -248,4 +248,36 @@ public class MempoolTests
         Assert.False(result.Accepted);
         Assert.Contains("limit", result.Reason, StringComparison.OrdinalIgnoreCase);
     }
+
+    [Fact]
+    public void EvictExpired_PurgesExpiredTransactions()
+    {
+        var fromKey = MakeKey(0x01);
+        var to = MakeAddress(MakeKey(0x02));
+        var state = MakeState(new[] { (fromKey, Money.FromCoins(100m)) });
+        var pool = new Mempool(ChainId);
+
+        var txValid = MakeSignedTx(fromKey, to, Money.FromCoins(1m), FeePolicy.MinRelayFee, nonce: 1);
+        txValid.ValidUntil = Now + 1000;
+        txValid.Signature = TransactionSigner.Sign(txValid, fromKey.ToBytes());
+
+        var txExpiring = MakeSignedTx(fromKey, to, Money.FromCoins(2m), FeePolicy.MinRelayFee, nonce: 2);
+        txExpiring.ValidUntil = Now + 10;
+        txExpiring.Signature = TransactionSigner.Sign(txExpiring, fromKey.ToBytes());
+
+        var res1 = pool.Add(txValid, state, Now);
+        Assert.True(res1.Accepted, res1.Reason);
+        var res2 = pool.Add(txExpiring, state, Now);
+        Assert.True(res2.Accepted, res2.Reason);
+        Assert.Equal(2, pool.Count);
+
+        // Advance time past txExpiring expiry but before txValid expiry
+        var evicted = pool.EvictExpired(Now + 15);
+
+        Assert.Single(evicted);
+        Assert.Equal(txExpiring.ComputeIdHex(), evicted[0]);
+        Assert.Equal(1, pool.Count);
+        Assert.True(pool.Contains(txValid));
+        Assert.False(pool.Contains(txExpiring));
+    }
 }

@@ -18,6 +18,12 @@ public sealed class State
     public long TimeStamp { get; private set; }
     public byte[] Head { get; private set; } = Merkle.ZeroRoot;
 
+    /// <summary>
+    /// The current minimum fee-per-transaction required by the dynamic base fee model.
+    /// Updated deterministically at the end of each block by <see cref="StateTransition"/>.
+    /// </summary>
+    public Money BaseFee { get; set; } = FeePolicy.BaseFee;
+
     public State(uint chainId, long height = 0, byte[]? head = null, long timeStamp = 0)
     {
         ChainId = chainId;
@@ -73,7 +79,10 @@ public sealed class State
     /// </summary>
     public State Derive()
     {
-        var copy = new State(ChainId, Height, Head, TimeStamp);
+        var copy = new State(ChainId, Height, Head, TimeStamp)
+        {
+            BaseFee = BaseFee
+        };
         foreach (var pair in _accounts)
         {
             copy._accounts[pair.Key] = pair.Value.ShallowClone();

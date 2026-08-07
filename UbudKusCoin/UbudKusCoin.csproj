@@ -29,6 +29,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="10.0.10" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="10.0.10" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.2" />
   </ItemGroup>
   <ItemGroup>
     <Protobuf Include="Protos\account.proto" GrpcServices="Server, Client" />

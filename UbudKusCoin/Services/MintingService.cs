@@ -82,7 +82,7 @@ namespace UbudKusCoin.Services
                         var vote = ServicePool.CanonicalNodeService.CreateVote(result.Block, ServicePool.WalletService);
                         var voteResult = ServicePool.CanonicalNodeService.SubmitVote(vote);
                         Console.WriteLine("-- Local consensus vote: {0}", voteResult.Message);
-                        _ = Task.Run(() => ServicePool.P2PService.BroadcastCanonicalVote(vote));
+                        SafeTask.Run(() => ServicePool.P2PService.BroadcastCanonicalVote(vote), "Local Minting Block Vote Broadcast");
                     }
                     else
                     {

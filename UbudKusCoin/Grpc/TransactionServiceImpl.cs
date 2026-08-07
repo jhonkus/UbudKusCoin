@@ -1,4 +1,4 @@
-﻿// Created by I Putu Kusuma Negara
+// Created by I Putu Kusuma Negara
 // markbrain2013[at]gmail.com
 // 
 // Ubudkuscoin is free software distributed under the MIT software license,
@@ -141,7 +141,7 @@ namespace UbudKusCoin.Grpc
             ServicePool.DbService.PoolTransactionsDb.Add(req.Transaction);
 
             // broadcast transaction to all peer including myself.
-            Task.Run(() => ServicePool.P2PService.BroadcastTransaction(req.Transaction));
+            SafeTask.Run(() => ServicePool.P2PService.BroadcastTransaction(req.Transaction), "gRPC Transfer P2P Broadcast");
 
             // Response transaction success
             return Task.FromResult(new TransactionStatus
