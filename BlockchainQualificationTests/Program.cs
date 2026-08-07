@@ -7,6 +7,7 @@ using BlockchainQualificationTests.Networking;
 using BlockchainQualificationTests.Utilities;
 using BlockchainQualificationTests.Security;
 using BlockchainQualificationTests.LongRun;
+using BlockchainQualificationTests.Sqlite;
 
 namespace BlockchainQualificationTests;
 
@@ -72,10 +73,9 @@ public static class Program
             results.Add(LongRunTest.Run());
         }
 
-        // Add placeholders for tests not executed (NOT PROVEN / NOT TESTED) as per instructions
-        if (testMode.Equals("Full Qualification", StringComparison.OrdinalIgnoreCase))
+        if (testMode.Equals("Sqlite", StringComparison.OrdinalIgnoreCase) || testMode.Equals("Full Qualification", StringComparison.OrdinalIgnoreCase))
         {
-            results.Add(new TestResult { Name = "SQLite Independence Test", Status = "NOT PROVEN", Evidence = "Index deletion/rebuilding validation has not been run." });
+            results.Add(SqliteTest.Run());
         }
 
         ReportGenerator.Generate(testMode, results);
