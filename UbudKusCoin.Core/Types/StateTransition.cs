@@ -166,6 +166,13 @@ public static class StateTransition
                 return StateTransitionResult.Fail("Transaction is outside its validity window.");
             }
 
+            // Enforce the current dynamic base fee floor.
+            if (tx.Fee < state.BaseFee)
+            {
+                return StateTransitionResult.Fail(
+                    $"Transaction fee {tx.Fee.BaseUnits} is below the required base fee {state.BaseFee.BaseUnits}.");
+            }
+
             var sender = next.GetAccount(tx.From);
             if (sender is null)
             {
@@ -257,6 +264,9 @@ public static class StateTransition
                 }
             }
         }
+
+        // Update the dynamic base fee for the next block.
+        next.BaseFee = FeePolicy.GetDynamicBaseFee(block.Txs.Count, state.BaseFee);
 
         return StateTransitionResult.Ok(next);
     }
