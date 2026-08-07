@@ -191,6 +191,29 @@ public sealed class Mempool
         _bySender.Remove(senderEncoded);
     }
 
+    /// <summary>
+    /// Evicts all transactions that have expired relative to the given timestamp.
+    /// Returns the collection of evicted transaction canonical hex IDs.
+    /// </summary>
+    public IReadOnlyList<string> EvictExpired(long nowUnixSeconds)
+    {
+        var evicted = new List<string>();
+        foreach (var tx in _byId.Values)
+        {
+            if (tx.ValidUntil > 0 && nowUnixSeconds > tx.ValidUntil)
+            {
+                evicted.Add(tx.ComputeIdHex());
+            }
+        }
+
+        foreach (var id in evicted)
+        {
+            Remove(id);
+        }
+
+        return evicted;
+    }
+
     /// <summary>Clears the entire pool (used only on explicit reset/snapshot restore).</summary>
     public void Clear()
     {

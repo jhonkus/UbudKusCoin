@@ -29,27 +29,33 @@ feature count.
 - .NET 10 and C# with a dependency-light deterministic Core state machine.
 - Integer fixed-point amounts, versioned transactions, nonces, chain IDs,
   canonical hashing, Merkle roots, and deterministic genesis.
-- Atomic block validation and persistence, staking lock/unbonding, validator
+- Atomic block validation and persistence, staking lock/unbonding (`Bond`, `Unbond`, `Withdraw`), validator
   updates, slashing evidence, and sequential finality tracking.
 - Storage backend migrated from LiteDB to LightningDB (LMDB) for improved
-  performance and durability.
-- CometBFT v0.38 ABCI integration with four-validator local quorum, restart,
-  partition/recovery, and snapshot-restore tests.
+  performance, durability, and atomic snapshots.
+- Storage backup and restore service (`StorageBackupService`) for database files, state, finality, and wallet vaults.
+- CometBFT v0.38 ABCI 2.0 integration with four-validator local quorum, restart,
+  partition/recovery, validator updates, and state-sync snapshot-restore drills.
 - Validated external genesis manifest support for reproducible chain bootstrap;
   production manifests must be reviewed, hash-pinned, and distributed out of band.
 - Explicit validator key custody policy with fail-closed local-file or external-signer modes.
 - Signed validator consensus-key rotation with deterministic old-key removal and new-key activation.
+- Encrypted wallet vault for seed storage at rest using AES-GCM and DPAPI (`WalletVault`).
+- API middleware protection including CORS origin allowlist, API key authentication, per-IP rate limiting, and readiness health probes (`/health/ready`, `/health/consensus`).
+- Comprehensive unit, integration, multi-node harness, and protocol mutation/fuzz testing (143/143 tests passing).
 - Console wallet, explorer integration, gRPC APIs, and deployment harnesses.
 
 ## Status and Production Gate
 
-Stage 6 is in progress. The repository has a strong protocol and integration
-foundation, but it is **not yet approved for real funds or mainnet**. Remaining
-gates include cross-node state-sync evidence, secure node/API transport,
-encrypted key custody, observability, backup and migration runbooks, fuzz/load
-testing, public testnet operation, and an independent security audit. See
-[`docs/implementation-roadmap.md`](docs/implementation-roadmap.md) and
-[`docs/consensus-security-gate.md`](docs/consensus-security-gate.md).
+Stage 6 core protocol and ABCI engine integration items are complete, alongside foundational Stage 7 (API middleware, rate limiting, health probes) and Stage 8 (encrypted wallet vault, LMDB storage backup/restore) features.
+
+The repository has a strong protocol, consensus, and integration foundation, but it is **not yet approved for real funds or mainnet**. Remaining gates prior to production include:
+- Node-to-node mTLS transport security.
+- Comprehensive load/soak testing and reorg-safe explorer indexer.
+- Public testnet deployment with faucet and operational runbooks (Stage 10).
+- Independent security audit (Stage 11).
+
+See [`docs/implementation-roadmap.md`](docs/implementation-roadmap.md) and [`docs/consensus-security-gate.md`](docs/consensus-security-gate.md).
 
 ## Quick Start
 

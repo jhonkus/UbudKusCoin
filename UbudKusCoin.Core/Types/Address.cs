@@ -38,6 +38,30 @@ public readonly struct Address
         return new Address(version, payload);
     }
 
+    /// <summary>Creates a deterministic multi-sig address (payload = SHA-256 of threshold + pubkeys).</summary>
+    public static Address FromMultiSig(byte version, uint threshold, IEnumerable<byte[]> compressedPubKeys)
+    {
+        var keys = compressedPubKeys.Select(k => k.ToArray()).OrderBy(k => Convert.ToHexString(k), StringComparer.Ordinal).ToList();
+        if (keys.Count == 0)
+        {
+            throw new ArgumentException("Multi-sig public key list cannot be empty.", nameof(compressedPubKeys));
+        }
+        if (threshold == 0 || threshold > keys.Count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(threshold), "Threshold must be between 1 and the total number of public keys.");
+        }
+
+        using var ms = new MemoryStream();
+        HashUtils.AppendLe32(ms, threshold);
+        HashUtils.AppendLe32(ms, (uint)keys.Count);
+        foreach (var key in keys)
+        {
+            HashUtils.AppendLengthPrefixed(ms, key);
+        }
+        byte[] payload = HashUtils.Sha256(ms.ToArray());
+        return new Address(version, payload);
+    }
+
     public static Address Parse(string encoded)
     {
         if (!TryParse(encoded, out Address addr))
