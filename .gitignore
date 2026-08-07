@@ -1,4 +1,4 @@
-﻿/UbudKusCoin/obj
+/UbudKusCoin/obj
 /UbudKusCoin/*.zip
 /UbudKusCoin/bin
 /UbudKusCoin/DbFiles/*.db
@@ -24,6 +24,10 @@
 # UbudKusCoin.Core build output
 /UbudKusCoin.Core/bin/
 /UbudKusCoin.Core/obj/
+
+# UbudKusCoin.Sdk build output
+/UbudKusCoin.Sdk/bin/
+/UbudKusCoin.Sdk/obj/
 
 /ConsoleWallet/bin
 /ConsoleWallet/obj
