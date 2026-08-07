@@ -40,6 +40,11 @@ public static class Program
             results.Add(await NetworkingTest.RunAsync());
         }
 
+        if (testMode.Equals("Upgrade", StringComparison.OrdinalIgnoreCase) || testMode.Equals("Full Qualification", StringComparison.OrdinalIgnoreCase))
+        {
+            results.Add(Upgrade.UpgradeTest.Run());
+        }
+
         // Add placeholders for tests not executed (NOT PROVEN / NOT TESTED) as per instructions
         if (testMode.Equals("Full Qualification", StringComparison.OrdinalIgnoreCase))
         {
@@ -48,7 +53,6 @@ public static class Program
             results.Add(new TestResult { Name = "SQLite Independence Test", Status = "NOT PROVEN", Evidence = "Index deletion/rebuilding validation has not been run." });
             results.Add(new TestResult { Name = "Security Adversarial Fuzzing", Status = "NOT PROVEN", Evidence = "Malformed transaction signature boundary tests have not been run." });
             results.Add(new TestResult { Name = "10,000 Block Soak Test", Status = "NOT PROVEN", Evidence = "Long running stability profiling has not been executed." });
-            results.Add(new TestResult { Name = "Upgrade Test", Status = "NOT PROVEN", Evidence = "Live network hard-fork migration test has not been executed." });
         }
 
         ReportGenerator.Generate(testMode, results);
