@@ -50,10 +50,14 @@ public static class Program
             results.Add(await Recovery.RecoveryTest.RunAsync());
         }
 
+        if (testMode.Equals("Replay", StringComparison.OrdinalIgnoreCase) || testMode.Equals("Full Qualification", StringComparison.OrdinalIgnoreCase))
+        {
+            results.Add(Replay.ReplayTest.Run());
+        }
+
         // Add placeholders for tests not executed (NOT PROVEN / NOT TESTED) as per instructions
         if (testMode.Equals("Full Qualification", StringComparison.OrdinalIgnoreCase))
         {
-            results.Add(new TestResult { Name = "Replay Test", Status = "NOT PROVEN", Evidence = "Blockchain replay validation has not been run in this cycle." });
             results.Add(new TestResult { Name = "Crash Recovery Test", Status = "NOT PROVEN", Evidence = "Database partial transaction write crash recovery validation has not been run." });
             results.Add(new TestResult { Name = "SQLite Independence Test", Status = "NOT PROVEN", Evidence = "Index deletion/rebuilding validation has not been run." });
             results.Add(new TestResult { Name = "Security Adversarial Fuzzing", Status = "NOT PROVEN", Evidence = "Malformed transaction signature boundary tests have not been run." });
