@@ -5,6 +5,7 @@ using BlockchainQualificationTests.Smoke;
 using BlockchainQualificationTests.Consensus;
 using BlockchainQualificationTests.Networking;
 using BlockchainQualificationTests.Utilities;
+using BlockchainQualificationTests.Security;
 
 namespace BlockchainQualificationTests;
 
@@ -60,11 +61,15 @@ public static class Program
             results.Add(Crash.CrashTest.Run());
         }
 
+        if (testMode.Equals("Security", StringComparison.OrdinalIgnoreCase) || testMode.Equals("Full Qualification", StringComparison.OrdinalIgnoreCase))
+        {
+            results.Add(SecurityTest.Run());
+        }
+
         // Add placeholders for tests not executed (NOT PROVEN / NOT TESTED) as per instructions
         if (testMode.Equals("Full Qualification", StringComparison.OrdinalIgnoreCase))
         {
             results.Add(new TestResult { Name = "SQLite Independence Test", Status = "NOT PROVEN", Evidence = "Index deletion/rebuilding validation has not been run." });
-            results.Add(new TestResult { Name = "Security Adversarial Fuzzing", Status = "NOT PROVEN", Evidence = "Malformed transaction signature boundary tests have not been run." });
             results.Add(new TestResult { Name = "10,000 Block Soak Test", Status = "NOT PROVEN", Evidence = "Long running stability profiling has not been executed." });
         }
 
