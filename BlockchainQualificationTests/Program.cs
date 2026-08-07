@@ -6,6 +6,7 @@ using BlockchainQualificationTests.Consensus;
 using BlockchainQualificationTests.Networking;
 using BlockchainQualificationTests.Utilities;
 using BlockchainQualificationTests.Security;
+using BlockchainQualificationTests.LongRun;
 
 namespace BlockchainQualificationTests;
 
@@ -66,11 +67,15 @@ public static class Program
             results.Add(SecurityTest.Run());
         }
 
+        if (testMode.Equals("LongRun", StringComparison.OrdinalIgnoreCase) || testMode.Equals("Full Qualification", StringComparison.OrdinalIgnoreCase))
+        {
+            results.Add(LongRunTest.Run());
+        }
+
         // Add placeholders for tests not executed (NOT PROVEN / NOT TESTED) as per instructions
         if (testMode.Equals("Full Qualification", StringComparison.OrdinalIgnoreCase))
         {
             results.Add(new TestResult { Name = "SQLite Independence Test", Status = "NOT PROVEN", Evidence = "Index deletion/rebuilding validation has not been run." });
-            results.Add(new TestResult { Name = "10,000 Block Soak Test", Status = "NOT PROVEN", Evidence = "Long running stability profiling has not been executed." });
         }
 
         ReportGenerator.Generate(testMode, results);
