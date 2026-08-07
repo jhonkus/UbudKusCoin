@@ -45,6 +45,11 @@ public static class Program
             results.Add(Upgrade.UpgradeTest.Run());
         }
 
+        if (testMode.Equals("Recovery", StringComparison.OrdinalIgnoreCase) || testMode.Equals("Full Qualification", StringComparison.OrdinalIgnoreCase))
+        {
+            results.Add(await Recovery.RecoveryTest.RunAsync());
+        }
+
         // Add placeholders for tests not executed (NOT PROVEN / NOT TESTED) as per instructions
         if (testMode.Equals("Full Qualification", StringComparison.OrdinalIgnoreCase))
         {
