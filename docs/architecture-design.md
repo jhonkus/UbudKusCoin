@@ -1,4 +1,4 @@
-# UbudKusCoin — Target Architecture Design
+# UbudKusChain — Target Architecture Design
 
 **Status:** Living target architecture; implementation is tracked by stage in the roadmap.
 **Principles:** Auditability · Safety of funds first · Deterministic state · Mature crypto/consensus · Supported
@@ -133,15 +133,15 @@ equivocation). No more "delete all stakes and pick max random".
 
 ### Pillar 8 — Module map (target)
 ```
-UbudKusCoin.Core                 => protocol, state machine, hashing, merkle, types (no I/O)
-UbudKusCoin.Storage              => LiteDB (upgraded) or RocksDB/sharp; snapshots; migrations
-UbudKusCoin.Consensus            => interface + drivers (gRPC to engine or in-proc)
-UbudKusCoin.Network.P2P          => peers, handshake, sync, gossip, mTLS
-UbudKusCoin.Api                  => gRPC (and optional REST/gRPC-Web) with middleware (authn, rate limit, validation)
-UbudKusCoin.Wallet              => BIP-39/44, checksummed address, encrypted key storage, sign-only
-UbudKusCoin.Indexer             => derived query/explorer data, reorg-safe
-UbudKusCoin.Observability       => structured logs, OpenTelemetry metrics/traces, health
-UbudKusCoin.KeyStore            => encrypted private key at rest (DPAPI/AES-GCM), never logs secrets
+UbudKusChain.Core                 => protocol, state machine, hashing, merkle, types (no I/O)
+UbudKusChain.Storage              => LiteDB (upgraded) or RocksDB/sharp; snapshots; migrations
+UbudKusChain.Consensus            => interface + drivers (gRPC to engine or in-proc)
+UbudKusChain.Network.P2P          => peers, handshake, sync, gossip, mTLS
+UbudKusChain.Api                  => gRPC (and optional REST/gRPC-Web) with middleware (authn, rate limit, validation)
+UbudKusChain.Wallet              => BIP-39/44, checksummed address, encrypted key storage, sign-only
+UbudKusChain.Indexer             => derived query/explorer data, reorg-safe
+UbudKusChain.Observability       => structured logs, OpenTelemetry metrics/traces, health
+UbudKusChain.KeyStore            => encrypted private key at rest (DPAPI/AES-GCM), never logs secrets
 ```
 
 ### Pillar 9 — Testnet/Mainnet separation

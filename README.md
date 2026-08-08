@@ -1,20 +1,16 @@
-# UbudKusCoin
+# UbudKusChain
 
-UbudKusCoin is a production-oriented proof-of-stake blockchain platform for
-digital payments, community economies, and asset-backed applications. The
-project is no longer positioned as a tutorial or toy chain: protocol rules,
-state transitions, staking, finality, CometBFT integration, persistence, and
-multi-validator testing are being developed as a serious foundation for a
-future public testnet and mainnet.
+UbudKusChain is a **production‑oriented proof‑of‑stake blockchain infrastructure** for business networks, verifiable records, digital assets, loyalty programs, vouchers, membership, organization applications, and ERP integrations.
+The project is no longer positioned as a tutorial or toy chain: protocol rules, state transitions, staking, finality, CometBFT integration, persistence, and multi‑validator testing are being developed as a serious foundation for a future public testnet and mainnet.
+
+**Positioning disclaimer:** UbudKusChain does **not** aim to replace the Indonesian Rupiah or any sovereign currency for retail transactions. The native UKSC token is intended solely for validator‑staking, network security, governance, and optional transaction‑fee mechanisms. Business applications built on top of the chain must comply with applicable local laws and regulations.
+
 
 ## Potential Use Cases
 
-- **Payments and merchant settlement:** fast, deterministic finality with a
-  wallet and explorer integration path.
-- **Community and local economies:** transparent issuance, staking, rewards,
-  and governance for cooperatives, tourism communities, or digital membership.
-- **Loyalty and utility assets:** auditable points or service credits with
-  programmable issuance policies.
+- **Community and local economies:** transparent issuance, staking, rewards, and governance for cooperatives, tourism communities, or digital membership.
+- **Loyalty and utility assets:** auditable points or service credits with programmable issuance policies, usage caps, expiry, and redemption rules.
+- **Business‑focused applications:** voucher issuance, membership management, organization identity, document & certificate verification, supply‑chain provenance, ERP audit trails, B2B invoice verification, and custom ERP integration.
 - **Tokenized real-world projects:** a settlement layer for verified assets,
   provided legal custody, compliance, and issuer controls are implemented.
 - **Public infrastructure:** an application-specific chain for organizations
@@ -85,7 +81,7 @@ send. Keep explorer queries paginated rather than increasing these limits.
 
 ```powershell
 dotnet restore
-dotnet test UbudKusCoin.sln --no-restore --nologo
+dotnet test UbudKusChain.sln --no-restore --nologo
 ```
 
 Set the test wallet encryption key and start the multi-validator harness:
@@ -125,6 +121,7 @@ The Core protocol is isolated from transport and infrastructure. The node
 contains application services, persistence, gRPC/ABCI adapters, and wallet
 components; CometBFT owns validator rounds, quorum, and finality. All protocol changes require tests and
 must preserve deterministic state-root and replay behavior.
+**Legal / Compliance Note:** Applications built on UbudKusChain must not present the native UKSC token as a retail payment method or legal tender. Business use‑cases should adhere to Indonesian financial regulations (Bank Indonesia, OJK) and any relevant consumer‑protection laws. The chain itself is intended solely as infrastructure for verifiable business processes.
 
 ## License
 

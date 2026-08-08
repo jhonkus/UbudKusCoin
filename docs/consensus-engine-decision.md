@@ -2,8 +2,8 @@
 
 ## Decision
 
-UbudKusCoin will target a CometBFT-style mature BFT engine for production
-consensus. The application state machine remains in `UbudKusCoin.Core`; the
+UbudKusChain will target a CometBFT-style mature BFT engine for production
+consensus. The application state machine remains in `UbudKusChain.Core`; the
 engine owns rounds, peer voting, quorum certificates, timeouts, and finality.
 
 The current `DeterministicBftDriver` is a protocol and development driver. It

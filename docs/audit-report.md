@@ -1,9 +1,9 @@
-# UbudKusCoin — Repository Audit & Threat Model
+# UbudKusChain — Repository Audit & Threat Model
 
 **Status:** Historical baseline audit (pre-hardening; retained for traceability)
 **Date:** See git history
 **Auditor:** Senior Blockchain Architect / Cryptography Engineer
-**Scope:** `UbudKusCoin` (core node), `ConsoleWallet`, `BlockExplorer`, protobuf/gRPC definitions, config, deployment scripts.
+**Scope:** `UbudKusChain` (core node), `ConsoleWallet`, `BlockExplorer`, protobuf/gRPC definitions, config, deployment scripts.
 
 > **Historical executive summary:** At the time of this audit, this codebase was a **learning prototype**, not a production blockchain. It compiled, but the
 > "consensus" is not secure, the state transition is not deterministic, replay/fork protection is absent, the network
@@ -17,7 +17,7 @@
 
 | Item | Result |
 |------|--------|
-| `dotnet build UbudKusCoin.sln -c Debug` | **Succeeds** (3 projects) |
+| `dotnet build UbudKusChain.sln -c Debug` | **Succeeds** (3 projects) |
 | Test projects | **None exist** (`.gitignore` references a `/UnitTest` project that is absent) |
 | Target framework | `net5.0` — **EOL**, no security patches (warning NETSDK1138) |
 | Known vulnerable dependency | **LiteDB 5.0.10 — critical CVE** (warning NU1904, GHSA-3x49-g6rc-c284) |

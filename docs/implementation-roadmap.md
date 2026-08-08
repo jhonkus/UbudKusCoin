@@ -1,4 +1,4 @@
-# UbudKusCoin — Implementation Roadmap
+# UbudKusChain — Implementation Roadmap
 
 **Status:** In progress. Each stage is small, has a reason, tests, and a passing build. We do **not**
 proceed to mainnet until the security audit gate (Stage 8) passes.
@@ -10,7 +10,7 @@ production-ready while critical gaps remain.
 
 ## Stage 0 — Baseline (DONE)
 - [x] Read full repo & map dependencies.
-- [x] `dotnet build UbudKusCoin.sln -c Debug` → succeeds, 3 projects.
+- [x] `dotnet build UbudKusChain.sln -c Debug` → succeeds, 3 projects.
 - [x] Recorded build warnings (net5.0 EOL; LiteDB critical CVE).
 - [x] Produced `docs/audit-report.md` (threat model) and `docs/architecture-design.md` (target).
 - [ ] *(env-examples/.env* contain secrets; keep them out of git and never commit real secrets.)*
@@ -23,7 +23,7 @@ production-ready while critical gaps remain.
 - [x] Resolved LiteDB critical CVE: upgraded `LiteDB` 5.0.10 → **5.0.21** (patched).
 - [x] Bumped outdated deps: Grpc 2.83, NBitcoin 10.0.7, Newtonsoft 13.0.4, DotNetEnv 3.2.0, Systemd/ConfigurationManager 10.0.10.
 - [x] Disabled trim (`PublishTrimmed=false`) in core — reflection-based serializers/gRPC generated code are not trim-safe yet.
-- [x] Added `UbudKusCoin.Tests` xUnit project (net10.0) with initial wallet-signature tests; wired into `UbudKusCoin.sln`.
+- [x] Added `UbudKusChain.Tests` xUnit project (net10.0) with initial wallet-signature tests; wired into `UbudKusChain.sln`.
 - [x] `.gitignore` updated for test project bin/obj and temporary API probes.
 - [ ] Remaining from plan: `.editorconfig`/analyzers/`Directory.Build.props`, CI workflow, `SECURITY.md`, docs index.
 
@@ -33,7 +33,7 @@ production-ready while critical gaps remain.
 
 ## Stage 2 — Core types & canonical hashing (no I/O) (DONE)
 **Why:** deterministic, canonical, replay-safe foundation.
-- [x] Added dependency-free `UbudKusCoin.Core` project (net10.0, no gRPC/I/O); wired into solution.
+- [x] Added dependency-free `UbudKusChain.Core` project (net10.0, no gRPC/I/O); wired into solution.
 - [x] `Money` — integer fixed-point in base units (1 UKC = 1e8 base units); no `double`; exact add/sub, rejects negative.
 - [x] `HashUtils` — SHA-256/double-SHA-256, canonical little-endian + length-prefixed serializers.
 - [x] `Address` — versioned + checksummed (Base58Check-style), mainnet/testnet version separation.
@@ -72,7 +72,7 @@ production-ready while critical gaps remain.
 - [x] Validate legacy headers, merkle root, validator signature, coinbase, transaction signatures, balances, totals, and duplicates.
 - [x] Serialize block commits through one writer and compensate with rollback on persistence failure.
 - [x] Reject invalid peer blocks during gRPC receive, minting, and `DownloadBlocks` sync.
-- [x] Apply via `UbudKusCoin.Core.StateTransition` and validate a canonical state root.
+- [x] Apply via `UbudKusChain.Core.StateTransition` and validate a canonical state root.
 - [x] Quarantine invalid blocks and choose the longest valid fork deterministically.
 - [x] Persist canonical blocks/state atomically and wire gRPC, P2P block sync, and minting to the Core protocol.
 

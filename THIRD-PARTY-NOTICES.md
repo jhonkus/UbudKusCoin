@@ -1,12 +1,12 @@
 # Third-Party Notices
 
-UbudKusCoin application code is released under the MIT License in
+UbudKusChain application code is released under the MIT License in
 `LICENSE`. The following third-party components are used or referenced by the
 repository and remain under their respective licenses.
 
 ## Protocol Schema
 
-`UbudKusCoin/Protos/cometbft_abci.proto` is an application-owned adaptation of
+`UbudKusChain/Protos/cometbft_abci.proto` is an application-owned adaptation of
 the CometBFT v0.38.17 ABCI schema. CometBFT is released under the Apache
 License 2.0. The upstream schema is available at:
 
