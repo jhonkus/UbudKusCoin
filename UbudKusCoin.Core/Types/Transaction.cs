@@ -188,10 +188,20 @@ public sealed class Transaction
 
     /// <summary>
     /// Verifies the ECDSA signature over the canonical digest and that the
-    /// signer's public key matches the sender address. Never throws.
+    /// signer's public key matches the sender address (single-key or multi-sig). Never throws.
     /// </summary>
     public bool VerifySignature()
     {
-        return TransactionSigner.VerifyForSender(this, PubKey, Signature);
+        if (TransactionSigner.VerifyForSender(this, PubKey, Signature))
+        {
+            return true;
+        }
+
+        if (MultiSigUtils.TryDecodeMultiSigPayload(Signature, out var multiSig) && multiSig is not null)
+        {
+            return MultiSigUtils.VerifyForMultiSigSender(this, multiSig.Threshold, multiSig.PublicKeys, multiSig.Signatures);
+        }
+
+        return false;
     }
 }

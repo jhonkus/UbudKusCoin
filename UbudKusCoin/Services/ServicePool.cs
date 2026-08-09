@@ -22,6 +22,8 @@ namespace UbudKusCoin.Services
         public static WalletService WalletService { set; get; }
         public static P2PService P2PService { set; get; }
         public static CanonicalNodeService CanonicalNodeService { get; private set; }
+        public static IndexerStore IndexerStore { get; private set; }
+        public static ChainIndexerService IndexerService { get; private set; }
         public static IConsensusEngineAdapter ConsensusEngine { get; private set; }
         public static ConsensusApplicationStateMachine ApplicationStateMachine { get; private set; }
         public static BlockCommitService BlockCommitService { get; } = new();
@@ -56,8 +58,10 @@ namespace UbudKusCoin.Services
                 var expectedManifestHash = DotNetEnv.Env.GetString("GENESIS_MANIFEST_SHA256", string.Empty);
                 if (!string.IsNullOrWhiteSpace(expectedManifestHash))
                 {
+                    // Normalize line endings to LF before hashing to ensure cross-platform compatibility (Windows CRLF vs Linux LF)
+                    var manifestContent = File.ReadAllText(genesisPath).Replace("\r\n", "\n");
                     var actualManifestHash = Convert.ToHexString(
-                        SHA256.HashData(File.ReadAllBytes(genesisPath)));
+                        SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(manifestContent)));
                     if (!actualManifestHash.Equals(expectedManifestHash.Trim(), StringComparison.OrdinalIgnoreCase))
                     {
                         throw new InvalidDataException("Genesis manifest SHA-256 does not match the configured pin.");
@@ -105,6 +109,9 @@ namespace UbudKusCoin.Services
                 CanonicalNodeService.Chain.State,
                 validator,
                 validatorPublicKey: validatorKey);
+            IndexerStore = new IndexerStore(@"DbFiles/indexer.db");
+            IndexerService = new ChainIndexerService(IndexerStore, CanonicalNodeService);
+            IndexerService.CatchUp();
             DbService.Start();
             FacadeService.start();
             P2PService.Start();
@@ -116,6 +123,7 @@ namespace UbudKusCoin.Services
         {
             //stop when application exit
             //WalletService.Stop();
+            IndexerStore?.Dispose();
             DbService.Stop();
             //FacadeService.Stop();
             //P2PService.Stop();

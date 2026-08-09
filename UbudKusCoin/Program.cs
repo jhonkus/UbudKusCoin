@@ -1,4 +1,4 @@
-﻿// Created by I Putu Kusuma Negara
+// Created by I Putu Kusuma Negara
 // markbrain2013[at]gmail.com
 // 
 // Ubudkuscoin is free software distributed under the MIT software license,
@@ -8,6 +8,7 @@
 using System;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.AspNetCore.Server.Kestrel.Https;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using UbudKusCoin.Services;
@@ -46,6 +47,9 @@ namespace UbudKusCoin
                         var GRPC_PORT = DotNetEnv.Env.GetInt("GRPC_PORT");
                         var tlsCertificatePath = DotNetEnv.Env.GetString("API_TLS_CERT_PATH", string.Empty);
                         var tlsCertificatePassword = DotNetEnv.Env.GetString("API_TLS_CERT_PASSWORD", string.Empty);
+                        var p2pTlsCertPath = DotNetEnv.Env.GetString("P2P_TLS_CERT_PATH", string.Empty);
+                        var p2pTlsCertPassword = DotNetEnv.Env.GetString("P2P_TLS_CERT_PASSWORD", string.Empty);
+                        var p2pRequireClientCert = DotNetEnv.Env.GetBool("P2P_REQUIRE_CLIENT_CERT");
 
                         options.ListenAnyIP(GRPC_WEB_PORT, listenOptions =>
                         {
@@ -55,7 +59,25 @@ namespace UbudKusCoin
                                 listenOptions.UseHttps(tlsCertificatePath, tlsCertificatePassword);
                             }
                         }); //webapi
-                        options.ListenAnyIP(GRPC_PORT, listenOptions => listenOptions.Protocols = HttpProtocols.Http2); //grpc
+
+                        options.ListenAnyIP(GRPC_PORT, listenOptions =>
+                        {
+                            listenOptions.Protocols = HttpProtocols.Http2;
+                            if (!string.IsNullOrWhiteSpace(p2pTlsCertPath))
+                            {
+                                listenOptions.UseHttps(p2pTlsCertPath, p2pTlsCertPassword, httpsOptions =>
+                                {
+                                    if (p2pRequireClientCert)
+                                    {
+                                        httpsOptions.ClientCertificateMode = ClientCertificateMode.RequireCertificate;
+                                        httpsOptions.ClientCertificateValidation = (certificate, chain, errors) =>
+                                        {
+                                            return errors == System.Net.Security.SslPolicyErrors.None;
+                                        };
+                                    }
+                                });
+                            }
+                        }); //grpc
                     });
 
                     // start

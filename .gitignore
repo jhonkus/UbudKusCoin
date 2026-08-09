@@ -1,4 +1,4 @@
-﻿/UbudKusCoin/obj
+/UbudKusCoin/obj
 /UbudKusCoin/*.zip
 /UbudKusCoin/bin
 /UbudKusCoin/DbFiles/*.db
@@ -25,6 +25,10 @@
 /UbudKusCoin.Core/bin/
 /UbudKusCoin.Core/obj/
 
+# UbudKusCoin.Sdk build output
+/UbudKusCoin.Sdk/bin/
+/UbudKusCoin.Sdk/obj/
+
 /ConsoleWallet/bin
 /ConsoleWallet/obj
 
@@ -48,3 +52,7 @@
 # CometBFT integration tool build output
 /deploy/cometbft/ValidatorUpdateIntegrationTool/bin/
 /deploy/cometbft/ValidatorUpdateIntegrationTool/obj/
+
+# Blockchain qualification tests build output
+/BlockchainQualificationTests/bin/
+/BlockchainQualificationTests/obj/
